@@ -1,0 +1,14 @@
+{
+  "type": "module",
+  "scripts": {
+    "e2e:local": "playwright test --ui",
+    "ci:e2e": "playwright test -c playwright.ci.config.ts",
+    "ci:e2e-ui":"pnpm ci:e2e --ui",
+    "codegen": "playwright codegen --channel msedge"
+  },
+  "devDependencies": {
+    "@asnc/vio": "workspace:^",
+    "@playwright/test": "^1.44.1",
+    "playwright": "^1.44.1"
+  }
+}

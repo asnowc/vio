@@ -1,0 +1,32 @@
+{
+  "version": "0.0.1",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "vite build",
+    "ci:build": "vite build",
+    "dev": "vite",
+    "type:check": "tsc -p src/tsconfig.json --skipLibCheck"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "vite": "^5.3.1"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.3.7",
+    "@asnc/vio": "workspace:^",
+    "antd": "^5.18.1",
+    "cpcall": "^0.5.2",
+    "dockview": "^1.14.2",
+    "echarts-comp": "^0.2.0",
+    "evlib": "^2.5.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "*.d.ts"
+  ]
+}

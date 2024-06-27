@@ -1,0 +1,10 @@
+{
+  "themeName": "dark",
+  "rpcConnect": {
+    "connectProtocol": "ws",
+    "connectPath": "/api/rpc",
+    "autoConnect": true,
+    "reconnectTryMax": 10,
+    "wait": 5000
+  }
+}

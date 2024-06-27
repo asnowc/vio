@@ -1,17 +1,27 @@
 {
-  "name": "@asnc/view-io",
-  "version": "0.0.1",
-  "description": "",
   "type": "module",
-  "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "ci:build": "pnpm run -r ci:build",
+    "ci:test": "vitest run",
+    "ci:api-check": "pnpm run -r ci:api-check",
+    "test:coverage": "vitest --coverage --ui"
+  },
   "keywords": [],
   "author": "Eavid",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.12.8",
+    "@eavid/lib-dev": "^0.0.3",
+    "@microsoft/api-extractor": "^7.44.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "@vitest/ui": "^1.6.0",
+    "evlib": "^2.5.1",
     "prettier": "^3.2.5",
+    "tslib": "^2.6.2",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
   }
 }

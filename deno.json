@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@asnc/vio": "./vio/src/mod.ts"
+  },
+  "lock": false,
+  "nodeModulesDir": false
+}

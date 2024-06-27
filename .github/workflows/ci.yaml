@@ -1,0 +1,25 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+      - feat/*
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup NodeJS
+        uses: asnowc/actions@setup-node/v2
+        with:
+          node_v: 20
+          pnpm_v: 9
+          run_install: true
+      - name: Unit test
+        run: pnpm run ci:test
+      - name: Build
+        run: pnpm run -r ci:build
+      - name: E2E test
+        run: pnpm ci:e2e
+        working-directory: ./e2e

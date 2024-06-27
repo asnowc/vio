@@ -1,0 +1,33 @@
+{
+  "name": "@asnc/vio",
+  "version": "0.0.1",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "local:build": "pnpm build && pnpm dts:build && pnpm ci:api-check -l",
+    "dts:build": "rollup -c build/rollup-type.config.js",
+    "ci:build": "pnpm build --environment PROD && pnpm dts:build --environment PROD",
+    "ci:api-check": "api-extractor run -vc api-extractor.jsonc",
+    "build": "rollup -c build/rollup.config.js"
+  },
+  "keywords": [],
+  "author": "Eavid",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "rollup-plugin-dts": "^6.1.1",
+    "evlib": "^2.5.1",
+    "@eavid/lib-node": "^2.1.2"
+  },
+  "dependencies": {
+    "cpcall": "^0.5.2"
+  },
+  "files": [
+    "./dist/**/*.js",
+    "./dist/**/*.d.ts"
+  ],
+  "exports": {
+    ".": "./dist/mod.js",
+    "./client": "./dist/client.js"
+  }
+}

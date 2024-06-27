@@ -1,0 +1,47 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "mainEntryPointFilePath": "<projectFolder>/index.d.ts",
+  "bundledPackages": [],
+
+  // "newlineKind": "crlf",
+  // "testMode": false,
+  // "enumMemberOrder": "by-name",
+  "apiReport": {
+    "enabled": true,
+    "reportFileName": "<unscopedPackageName>.api.md",
+    "reportFolder": "<projectFolder>/api/",
+    "reportTempFolder": "<projectFolder>/api/temp/",
+    // "includeForgottenExports": false
+  },
+  "compiler": {
+    "overrideTsconfig": {
+      "compilerOptions": {
+        "target": "ES2022",
+        "module": "NodeNext",
+        "moduleResolution": "nodenext",
+        "skipDefaultLibCheck": true,
+      },
+      "files": ["index.d.ts"],
+    },
+  },
+  "docModel": {
+    "enabled": false,
+    // "apiJsonFilePath": "<projectFolder>/temp/<unscopedPackageName>.api.json",
+    // "includeForgottenExports": false,
+    // "projectFolderUrl": "http://github.com/path/to/your/projectFolder"
+  },
+  "dtsRollup": {
+    "enabled": false,
+    // "untrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>.d.ts",
+    // "alphaTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-alpha.d.ts",
+    // "betaTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-beta.d.ts",
+    // "publicTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-public.d.ts",
+    "omitTrimmingComments": true,
+  },
+
+  "tsdocMetadata": {
+    "enabled": false,
+    // "tsdocMetadataFilePath": "<projectFolder>/dist/tsdoc-metadata.json"
+  },
+  "messages": {},
+}

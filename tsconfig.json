@@ -1,13 +1,17 @@
 {
   "compilerOptions": {
     "module": "NodeNext",
+    "types": [],
+    "lib": ["ESNext"],
     "target": "ESNext",
     "moduleResolution": "NodeNext",
     "strict": true,
     "isolatedModules": true,
     "esModuleInterop": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "importHelpers": true,
+    "resolveJsonModule": true
   },
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }

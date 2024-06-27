@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "vio server",
+      "request": "launch",
+      "type": "node",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "vio/examples/run_server.ts",
+      "cwd": "${workspaceFolder}",
+      "sourceMaps": true,
+      "runtimeArgs": ["run", "--inspect-wait", "-A"],
+      "runtimeExecutable": "${env:DENO_DIR}/bin/deno",
+      "attachSimplePort": 9229
+    }
+  ],
+  "compounds": []
+}

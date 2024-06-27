@@ -1,2 +1,4 @@
 packages:
-  - packages/*
+  - vio
+  - vio-web
+  - e2e

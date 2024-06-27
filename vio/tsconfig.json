@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "types": [],
+    "paths": {
+      "@asnc/vio": ["./src/mod.ts"],
+      "@asnc/vio/server": ["./src/server.ts"],
+      "@asnc/vio/client": ["./types/mod.d.ts"]
+    }
+  },
+  "exclude": ["node_modules"]
+}
