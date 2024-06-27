@@ -2,6 +2,9 @@
   "imports": {
     "@asnc/vio": "./vio/src/mod.ts"
   },
+  "compilerOptions": {
+    "lib": ["deno.ns"]
+  },
   "lock": false,
   "nodeModulesDir": false
 }

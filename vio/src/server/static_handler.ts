@@ -48,14 +48,14 @@ export class FileServerHandler {
   }
   async #responseFile(info: FileStatusCache) {
     const filename = info.filename;
-    const stream = await readFileStream(filename);
+    const fd = await readFileStream(filename);
 
     let headers: Record<string, string> = {
       "content-length": info.size,
     };
     if (info.mime) headers["content-type"] = info.mime;
 
-    return new Response(stream, { status: 200, headers: headers });
+    return new Response(pipeFileStream(fd), { status: 200, headers: headers });
   }
   #mime: Record<string, string> = {};
 }
@@ -78,11 +78,26 @@ interface FileStatusCache {
   mime?: string;
   filename: string;
 }
-function readFileStreamNode(pathname: string): Promise<ReadableStream<Uint8Array>> {
-  return fs.open(pathname).then((fd) => fd.readableWebStream());
+
+async function* pipeFileStream(fd: FileStreamHandle) {
+  try {
+    yield* fd.readable;
+  } finally {
+    await fd.close();
+  }
 }
-function readFileStreamDeno(pathname: string): Promise<ReadableStream<Uint8Array>> {
+
+interface FileStreamHandle {
+  readable: ReadableStream<Uint8Array>;
+  close(): Promise<void>;
+}
+function readFileStreamNode(pathname: string): Promise<FileStreamHandle> {
+  return fs.open(pathname).then((fd) => {
+    return { readable: fd.readableWebStream({ type: "bytes" }), close: () => fd.close() };
+  });
+}
+function readFileStreamDeno(pathname: string): Promise<FileStreamHandle> {
   //@ts-ignore
-  return Deno.open(pathname).then((fd) => fd.readable);
+  return Deno.open(pathname);
 }
 const readFileStream = runtime === "deno" ? readFileStreamDeno : readFileStreamNode;

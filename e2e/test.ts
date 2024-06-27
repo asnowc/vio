@@ -1,36 +1,50 @@
 import { BrowserContext, Page, test } from "@playwright/test";
 import { Vio, createVio, VioHttpServer } from "@asnc/vio";
 import process from "node:process";
-import { webServerInfo } from "./playwright.ci.config.ts";
-const visitUrl = `http://${webServerInfo.hostname}:${webServerInfo.port}`;
+import { env } from "./playwright.ci.config.ts";
+
+const { webServerInfo } = env;
+
 export interface Context {
-  visitUrl: string;
   appPage: Page;
-  vioServerInfo: { port: number; hostname: string };
-  vio: Vio;
+  vioServerInfo: { port: number; hostname: string; visitUrl: string; vio: Vio };
+  // 没什么用
+  createAppPage(): Promise<Page>;
+  getFreePort(): number;
 }
+const PROCESS_PORT_NUMBER = 10;
 const VIO_SERVER_BASE_PORT = 7001;
+
 export const vioServerTest = test.extend<Context>({
-  visitUrl({}, use) {
-    return use(visitUrl);
-  },
-  vioServerInfo({}, use) {
-    const port = VIO_SERVER_BASE_PORT + parseInt(process.env.TEST_PARALLEL_INDEX!);
-    return use({ port, hostname: "127.0.0.1" });
-  },
-  async vio({ vioServerInfo }, use) {
+  async vioServerInfo({ getFreePort }, use) {
+    const port = getFreePort();
+    const hostname = "127.0.0.1";
+
     const vio = createVio();
     const vioServer = new VioHttpServer(vio);
-    await vioServer.listen(vioServerInfo.port, vioServerInfo.hostname);
-    await use(vio);
+    await vioServer.listen(port, hostname);
+
+    await use({ port, hostname, visitUrl: `http://${hostname}:${port}`, vio });
+
     await vioServer.close();
   },
-  async appPage({ context, vioServerInfo }, use) {
-    const page = await createAppPage(context, vioServerInfo);
+
+  async appPage({ createAppPage }, use) {
+    const page = await createAppPage();
     await use(page);
   },
+  async createAppPage({ context, vioServerInfo }, use) {
+    await use(() => context.newPage());
+  },
+  async getFreePort({}, use) {
+    const processIndex = parseInt(process.env.TEST_PARALLEL_INDEX!);
+    let processPortBase = VIO_SERVER_BASE_PORT + processIndex * PROCESS_PORT_NUMBER;
+    await use(() => {
+      return processPortBase++;
+    });
+  },
 });
-export async function createAppPage(context: BrowserContext, info: Context["vioServerInfo"]) {
+async function createAppPage(context: BrowserContext, info: { port: number; hostname: string }) {
   const page = await context.newPage();
   await page.route(/\/config.json$/, async (route) => {
     await route.fulfill({

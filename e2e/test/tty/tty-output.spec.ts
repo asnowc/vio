@@ -2,11 +2,11 @@ import { vioServerTest as test } from "../../test.ts";
 import { afterTime } from "evlib";
 const { expect, beforeEach } = test;
 
-beforeEach(async ({ vio, appPage, visitUrl }) => {
+beforeEach(async ({ appPage, vioServerInfo: { vio, visitUrl } }) => {
   vio; // 依赖 vio, 必须先启动 vio 服务器
   await appPage.goto(visitUrl);
 });
-test("output text", async function ({ vio: tty, appPage: page }) {
+test("output text", async function ({ vioServerInfo: { vio: tty }, appPage: page }) {
   await afterTime(1000); //等待连接
   expect(tty.viewerNumber).toBe(1);
 
@@ -22,14 +22,14 @@ test("output text", async function ({ vio: tty, appPage: page }) {
   await expect(page.getByText(textFlag).count(), "警告被隐藏，其余显示").resolves.toBe(3);
 });
 
-test.skip("output image", async function ({ vio: tty }) {
+test.skip("output image", async function ({ vioServerInfo: { vio: tty } }) {
   tty.writeImage;
 });
-test.skip("output ui link", async function ({ vio: tty }) {
+test.skip("output ui link", async function ({ vioServerInfo: { vio: tty } }) {
   tty.writeUiLink;
 });
 
-test("recover output", async function ({ vio, appPage: page }) {
+test("recover output", async function ({ vioServerInfo: { vio }, appPage: page }) {
   //打开 tty1
   await page.locator("svg").first().click();
   await page.getByRole("button", { name: "打 开" }).click();

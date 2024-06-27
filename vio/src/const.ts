@@ -9,6 +9,8 @@ export class InstanceDisposedError extends Error {
 export const packageDir = path.resolve(import.meta.dirname, "..");
 export const runtime = (function () {
   try {
+    //@ts-ignore
+    Deno.serve;
     return "deno";
   } catch (error) {
     return "node";

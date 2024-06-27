@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from "node:http";
-import { ReadableStream } from "node:stream/web";
+import { ReadableStream, TransformStream } from "node:stream/web";
 import { ServeHandlerInfo } from "./server.ts";
 import { readableToReadableStream, writableToWritableStream } from "@eavid/lib-node/stream";
 
@@ -37,8 +37,17 @@ export function processResponse(response: Response, resp: ServerResponse, body?:
   }
   resp.writeHead(response.status, response.statusText, headers);
   if (body) {
+    const trans = new TransformStream<any, Uint8Array>({
+      transform(chunk, controller) {
+        if (chunk instanceof ArrayBuffer) {
+          const data = new Uint8Array(chunk, 0, chunk.byteLength);
+          controller.enqueue(data);
+        } else if (chunk instanceof Uint8Array) controller.enqueue(chunk);
+        else controller.error(new Error("不支持的数据: " + String(chunk)));
+      },
+    });
     const writable = writableToWritableStream(resp);
-    return body.pipeTo(writable);
+    return body.pipeThrough(trans).pipeTo(writable);
   } else resp.end();
 }
 export function nodeReqToInfo(req: IncomingMessage): ServeHandlerInfo {

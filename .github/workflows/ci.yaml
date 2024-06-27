@@ -5,7 +5,7 @@ on:
       - main
       - feat/*
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,6 +20,9 @@ jobs:
         run: pnpm run ci:test
       - name: Build
         run: pnpm run -r ci:build
+      - name: Install browser
+        run: pnpm playwright install chromium webkit firefox --with-deps
+        working-directory: "./e2e"
       - name: E2E test
-        run: pnpm ci:e2e
+        run: pnpm run ci:e2e
         working-directory: ./e2e

@@ -1,10 +1,10 @@
 import { vioServerTest as test } from "../../test.ts";
 const { beforeAll, beforeEach, expect } = test;
 
-beforeEach(async function ({ visitUrl, page }) {
-  await page.goto(visitUrl);
+beforeEach(async function ({ vioServerInfo, appPage: page }) {
+  await page.goto(vioServerInfo.visitUrl);
 });
-test("saveLayout", async function ({ page, context }, info) {
+test("saveLayout", async function ({ appPage: page }, info) {
   await page.locator("path").first().click();
   await page.getByRole("button", { name: "打 开" }).click();
   await page.getByRole("button", { name: "打 开" }).click();
@@ -12,7 +12,7 @@ test("saveLayout", async function ({ page, context }, info) {
   await page.getByRole("button", { name: "save" }).click();
 
   await page.reload({ waitUntil: "domcontentloaded" });
-  await new Promise((resolve) => page.once("console", resolve)); //等待页面载入
+  await new Promise((resolve) => setTimeout(resolve, 1000)); //等待页面载入
   await expect(page.getByText("TTY 0").count()).resolves.toBe(1);
   await expect(page.getByText("TTY 1").count()).resolves.toBe(1);
   await expect(page.getByText("TTY 2").count()).resolves.toBe(1);

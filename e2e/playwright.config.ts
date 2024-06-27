@@ -1,8 +1,10 @@
 import { defineConfig } from "@playwright/test";
-import { webServerInfo } from "./playwright.ci.config.ts";
+import { env } from "./playwright.ci.config.ts";
 
-webServerInfo.hostname = "localhost";
-webServerInfo.port = 5173;
+env.webServerInfo = {
+  hostname: "localhost",
+  port: 5173,
+};
 
 export default defineConfig({
   testDir: ".",

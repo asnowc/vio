@@ -1,24 +1,14 @@
-import { Vio, createVio, VioHttpServer, SelectItem } from "@asnc/vio";
-import { createAppPage, vioServerTest as test } from "../../test.ts";
-const { expect, beforeEach, beforeAll, afterAll, describe } = test;
+import { SelectItem } from "@asnc/vio";
+import { vioServerTest as test } from "../../test.ts";
+const { expect, beforeEach, describe } = test;
 
 describe("test content", function () {
-  let vio: Vio;
-  let vioServer: VioHttpServer;
-  beforeAll(async ({ vioServerInfo }) => {
-    vio = createVio();
-    vioServer = new VioHttpServer(vio);
-    await vioServer.listen(vioServerInfo.port, vioServerInfo.hostname);
-  });
-  afterAll(async function () {
-    await vioServer.close();
-  });
-  beforeEach(async ({ appPage, visitUrl }) => {
+  beforeEach(async ({ appPage, vioServerInfo: { visitUrl } }) => {
     await appPage.goto(visitUrl);
 
     await appPage.getByRole("switch").click(); //开启接收请求
   });
-  test("input text", async function ({ appPage: page }) {
+  test("input text", async function ({ appPage: page, vioServerInfo: { vio } }) {
     const tty = vio;
     const p1 = tty.readText();
 
@@ -28,14 +18,14 @@ describe("test content", function () {
 
     await expect(p1).resolves.toBe("12345");
   });
-  test("confirm", async function ({ appPage: page }) {
+  test("confirm", async function ({ appPage: page, vioServerInfo: { vio } }) {
     const tty = vio;
     const p1 = tty.confirm("请求确认");
     await page.getByRole("button", { name: "是" }).click(); //发送
 
     await expect(p1).resolves.toBe(true);
   });
-  test("select", async function ({ appPage: page }) {
+  test("select", async function ({ appPage: page, vioServerInfo: { vio } }) {
     const tty = vio;
     const sendBtn = page.getByRole("button", { name: "发送" });
 
@@ -70,22 +60,22 @@ describe("test content", function () {
     await sendBtn.click();
     await expect(p3).resolves.toEqual([1, 2]);
   });
-  test.skip("file", async function ({ appPage: page }) {
+  test.skip("file", async function ({ appPage: page, vioServerInfo: { vio } }) {
     const tty = vio;
     //TODO
   });
 });
 describe("reading dispatch", function () {
-  beforeEach(async ({ vio, appPage, visitUrl }) => {
+  beforeEach(async ({ appPage, vioServerInfo: { vio, visitUrl } }) => {
     vio; // 依赖 vio, 必须先启动 vio 服务器
     await appPage.goto(visitUrl);
   });
-  test("夺取输入权", async function ({ vio, context, vioServerInfo, visitUrl, appPage: page }) {
+  test("夺取输入权", async function ({ vioServerInfo: { vio, visitUrl }, appPage: page, createAppPage }) {
     await page.getByRole("switch").click(); // 开启接收输入
 
     let p1 = vio.confirm("c1"); // 请求发送到 page1
 
-    const page2 = await createAppPage(context, vioServerInfo);
+    const page2 = await createAppPage();
     await page2.goto(visitUrl);
 
     await page2.getByRole("switch").click(); // page2 开启接收输入请求，page1 的输入权被夺走
@@ -107,7 +97,7 @@ describe("reading dispatch", function () {
   /**
    * 有时候请求已经发送到客户端，但客户端在断开连接前没有响应读取请求。如果有客户端获取输入权，改读取请求应被重新发送
    */
-  test("读取请求重发", async function ({ appPage: page, vio }) {
+  test("读取请求重发", async function ({ appPage: page, vioServerInfo: { vio } }) {
     await page.getByRole("switch").click(); // 开启接收输入
     const p1 = vio.confirm("yes or no?");
 
