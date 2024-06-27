@@ -8,4 +8,5 @@ export default defineConfig({
     browserName: "chromium",
   },
   outputDir: "temp",
+  timeout: 10000,
 });
