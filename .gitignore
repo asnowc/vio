@@ -3,3 +3,4 @@ dist
 temp
 /coverage
 /vio/assets/web
+/e2e/playwright-report

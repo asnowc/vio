@@ -1,6 +1,7 @@
 import type { Duplex } from "node:stream";
 import { readableToByteReader, ByteReader } from "@eavid/lib-node/stream";
 import { Buffer } from "node:buffer";
+import { WithPromise, withPromise } from "evlib";
 
 enum Opcode {
   continue = 0x0,
@@ -170,12 +171,12 @@ export class WebSocketResolver {
   private onMessage(data: Uint8Array | string) {}
   private onClose() {}
 
-  #pingWaitingQueue: PromiseWithResolvers<void>[] = [];
+  #pingWaitingQueue: WithPromise<void>[] = [];
   ping(): Promise<void> {
     //ping操作
     const head = encodeWsHead(0, Opcode.ping);
     this.sendFrame(head);
-    const pms = Promise.withResolvers<void>();
+    const pms = withPromise<void>();
     this.#pingWaitingQueue.push(pms);
     return pms.promise;
   }

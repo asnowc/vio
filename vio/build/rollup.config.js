@@ -41,6 +41,7 @@ export default defineEvConfig({
   extra: {
     typescript: {
       compilerOptions: {
+        target: "ES2022",
         module: "NodeNext",
         declaration: true,
         declarationDir: "dist/types",

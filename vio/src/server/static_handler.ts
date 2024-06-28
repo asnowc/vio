@@ -1,7 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { runtime } from "../const.ts";
-import type { ReadableStream } from "node:stream/web";
+import { TransformStream, type ReadableStream } from "node:stream/web";
+import { withPromise } from "evlib";
 
 type MaybePromise<T> = T extends Promise<any> ? T | Awaited<T> : T | Promise<T>;
 export class FileServerHandler {
@@ -19,7 +20,7 @@ export class FileServerHandler {
 
     let info = this.#cache.get(pathname);
     if (info === undefined) {
-      const resolver = Promise.withResolvers<FileStatusCache | undefined>();
+      const resolver = withPromise<FileStatusCache | undefined>();
       this.#cache.set(pathname, resolver.promise as any);
 
       const baseDir = this.rootDir + pathname;
@@ -93,7 +94,17 @@ interface FileStreamHandle {
 }
 function readFileStreamNode(pathname: string): Promise<FileStreamHandle> {
   return fs.open(pathname).then((fd) => {
-    return { readable: fd.readableWebStream({ type: "bytes" }), close: () => fd.close() };
+    const trans = new TransformStream<any, Uint8Array>({
+      transform(chunk, controller) {
+        if (chunk instanceof ArrayBuffer) {
+          const data = new Uint8Array(chunk, 0, chunk.byteLength);
+          controller.enqueue(data);
+        } else if (chunk instanceof Uint8Array) controller.enqueue(chunk);
+        else controller.error(new Error("不支持的数据: " + String(chunk)));
+      },
+    });
+
+    return { readable: fd.readableWebStream({ type: "bytes" }).pipeThrough(trans), close: () => fd.close() };
   });
 }
 function readFileStreamDeno(pathname: string): Promise<FileStreamHandle> {

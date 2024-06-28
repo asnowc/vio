@@ -3,7 +3,8 @@
   "scripts": {
     "e2e:local": "playwright test --ui",
     "ci:e2e": "playwright test -c playwright.ci.config.ts --trace retain-on-first-failure",
-    "codegen": "playwright codegen --channel msedge"
+    "codegen": "playwright codegen --channel msedge",
+    "report": "playwright show-report"
   },
   "devDependencies": {
     "@asnc/vio": "workspace:^",

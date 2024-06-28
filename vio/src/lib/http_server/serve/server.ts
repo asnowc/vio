@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse, createServer, STATUS_CODES } from "node:http";
 import type { Duplex } from "node:stream";
-import type { Buffer } from "node:buffer";
+import { Buffer } from "node:buffer";
 import { createHttpResHeaderFrame } from "../http/http_frame.ts";
 import {
   genUrl,
@@ -10,7 +10,7 @@ import {
   processResponse,
 } from "./node_http_transf.ts";
 import { WebSocket, genResponseWsHeader } from "../websocket/websocket.ts";
-import { ReadableStream } from "node:stream/web";
+import { genErrorInfo } from "../../parse_error.ts";
 function withResolvers<T>(): PromiseWithResolvers<T> {
   let obj: PromiseWithResolvers<any> = {} as any;
   obj.promise = new Promise(function (resolve, reject) {
@@ -24,49 +24,18 @@ export class HttpServer {
   static listen(server: HttpServer) {
     server.#server.listen({ port: server.addr.port, host: server.addr.hostname });
   }
-  async #writeResponse(socket: Duplex, response: Response) {
-    let { headers, body } = response;
-    let bodyList: Uint8Array[] | undefined;
-    if (body && !headers.has("content-length")) {
-      headers = new Headers(headers);
-      bodyList = [];
-      let contentLength = 0;
-      for await (const chunk of body as ReadableStream<Uint8Array>) {
-        bodyList.push(chunk);
-        contentLength += chunk.byteLength;
-      }
-      headers.set("content-length", contentLength.toString());
-    }
-    const headerInfo = {
-      status: response.status,
-      statusText: response.statusText,
-      version: "1.1",
-      headers,
-    };
-    const frameHeader = createHttpResHeaderFrame(headerInfo);
-    socket.write(frameHeader);
-    if (bodyList) {
-      for (const chunk of bodyList) {
-        socket.write(chunk);
-      }
-    } else if (body) {
-      for await (const chunk of body) {
-        socket.write(chunk);
-      }
-    }
-  }
   #onInternalReq = async (req: IncomingMessage, resp: ServerResponse) => {
     const request = nodeReqToWebRequest(req, this.addr.hostname);
     const info = nodeReqToInfo(req);
-    let response: Response;
     try {
-      response = await this.#onRequest(request, info);
+      const response = await this.#onRequest(request, info);
+      processResponse(response, resp, response.body);
     } catch (error) {
-      resp.writeHead(500);
+      let info = genInternalError(error);
+      resp.writeHead(info.status, undefined, info.headers);
+      resp.write(info.body);
       resp.end();
-      return;
     }
-    processResponse(response, resp, response.body);
   };
   #onUpgrade = async (req: IncomingMessage, socket: Duplex, buffer: Buffer) => {
     const request = new UpgRequest(socket, genUrl(req, this.addr.hostname), nodeReqToWebReqInit(req));
@@ -74,20 +43,30 @@ export class HttpServer {
     let response: Response;
     try {
       response = await this.#onRequest(request, info);
-    } catch (error) {
-      const headerInfo = { status: 500, statusText: STATUS_CODES[500] ?? "", version: "1.1" };
+      const headerInfo = {
+        status: response.status,
+        statusText: response.statusText,
+        version: "1.1",
+        headers: response.headers,
+      };
       const frameHeader = createHttpResHeaderFrame(headerInfo);
       socket.write(frameHeader);
-      return;
+      if (response.status !== 101) {
+        socket.end();
+      }
+    } catch (error) {
+      const { body, headers, status } = genInternalError(error);
+
+      const frameHeader = createHttpResHeaderFrame({
+        status: status,
+        statusText: STATUS_CODES[status] ?? "",
+        version: "1.1",
+        headers,
+      });
+      socket.write(frameHeader);
+      socket.write(body);
+      socket.end();
     }
-    const headerInfo = {
-      status: 101, // 必须是 101， nodejs 不会处理101 以外的响应
-      statusText: response.statusText,
-      version: "1.1",
-      headers: response.headers,
-    };
-    const frameHeader = createHttpResHeaderFrame(headerInfo);
-    socket.write(frameHeader);
   };
   #server = createServer(this.#onInternalReq);
   #onRequest: ServeHandler = function (req: Request, info: ServeHandlerInfo): Promise<Response> | Response {
@@ -137,6 +116,17 @@ export class HttpServer {
     this.#server.unref();
   }
 }
+
+function genInternalError(err: any) {
+  const info = JSON.stringify(genErrorInfo(err));
+  const buf = Buffer.from(info);
+  return {
+    status: 500,
+    body: buf,
+    headers: { "content-length": buf.length.toString(), "content-type": "application/json" },
+  };
+}
+
 export function upgradeWebSocket(request: Request) {
   if (request instanceof UpgRequest) return UpgRequest.upgradeWebSocket(request);
   else throw new Error("");

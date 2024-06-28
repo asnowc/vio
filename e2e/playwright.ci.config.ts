@@ -10,4 +10,5 @@ export default defineConfig({
   },
   outputDir: "temp",
   timeout: 10000,
+  maxFailures: 10,
 });
