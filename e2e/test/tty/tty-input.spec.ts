@@ -1,12 +1,12 @@
 import { SelectItem } from "@asnc/vio";
-import { vioServerTest as test } from "../../test.ts";
+import { vioServerTest as test, waitPageConnect } from "../../test.ts";
 const { expect, beforeEach, describe } = test;
 
 describe("test content", function () {
-  beforeEach(async ({ appPage, vioServerInfo: { visitUrl } }) => {
-    await appPage.goto(visitUrl);
-
-    await appPage.getByRole("switch").click(); //开启接收请求
+  beforeEach(async ({ appPage: page, vioServerInfo: { visitUrl } }) => {
+    await page.goto(visitUrl);
+    await waitPageConnect(page);
+    await page.getByRole("switch").click(); //开启接收请求
   });
   test("input text", async function ({ appPage: page, vioServerInfo: { vio } }) {
     const tty = vio;
@@ -66,9 +66,9 @@ describe("test content", function () {
   });
 });
 describe("reading dispatch", function () {
-  beforeEach(async ({ appPage, vioServerInfo: { vio, visitUrl } }) => {
-    vio; // 依赖 vio, 必须先启动 vio 服务器
-    await appPage.goto(visitUrl);
+  beforeEach(async ({ appPage: page, vioServerInfo: { visitUrl } }) => {
+    await page.goto(visitUrl);
+    await waitPageConnect(page);
   });
   test("夺取输入权", async function ({ vioServerInfo: { vio, visitUrl }, appPage: page, createAppPage }) {
     await page.getByRole("switch").click(); // 开启接收输入

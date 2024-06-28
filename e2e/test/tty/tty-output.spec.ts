@@ -1,10 +1,10 @@
-import { vioServerTest as test } from "../../test.ts";
+import { vioServerTest as test, waitPageConnect } from "../../test.ts";
 import { afterTime } from "evlib";
 const { expect, beforeEach } = test;
 
-beforeEach(async ({ appPage, vioServerInfo: { vio, visitUrl } }) => {
-  vio; // 依赖 vio, 必须先启动 vio 服务器
+beforeEach(async ({ appPage, vioServerInfo: { visitUrl } }) => {
   await appPage.goto(visitUrl);
+  await waitPageConnect(appPage);
 });
 test("output text", async function ({ vioServerInfo: { vio: tty }, appPage: page }) {
   await afterTime(1000); //等待连接

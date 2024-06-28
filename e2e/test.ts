@@ -1,4 +1,4 @@
-import { BrowserContext, Page, test } from "@playwright/test";
+import { BrowserContext, Page, test, WebSocket } from "@playwright/test";
 import { Vio, createVio, VioHttpServer } from "@asnc/vio";
 import process from "node:process";
 import { env } from "./playwright.ci.config.ts";
@@ -64,4 +64,29 @@ function mockConfig(config: { port: number; hostname: string }) {
       wait: 1000,
     },
   });
+}
+async function waitWebsocketConnect(page: Page, opts: { url?: string | RegExp } = {}) {
+  const { url } = opts;
+  return new Promise<WebSocket>(function (resolve, reject) {
+    function onWs(ws: WebSocket) {
+      let isMatch: boolean | undefined;
+      if (typeof url === "string") isMatch = url === ws.url();
+      else isMatch = url?.test(ws.url());
+      if (isMatch) resolve(ws);
+
+      page.off("close", onClose);
+    }
+    function onClose() {
+      page.off("websocket", onWs);
+      reject(new Error("page has been closed"));
+    }
+    page.on("websocket", onWs);
+    page.once("close", onClose);
+  });
+}
+export async function waitPageConnect(page: Page, opts: { url?: string | RegExp } = {}) {
+  await waitWebsocketConnect(page, { url: /\/api\/rpc$/ });
+}
+export async function waitPageReady(page: Page) {
+  return page.waitForResponse("**/config.json");
 }

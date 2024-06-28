@@ -19,7 +19,7 @@
     "antd": "^5.18.1",
     "cpcall": "^0.5.2",
     "dockview": "^1.14.2",
-    "echarts-comp": "^0.2.0",
+    "echarts-comp": "^0.3.0",
     "evlib": "^2.5.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

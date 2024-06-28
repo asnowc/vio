@@ -22,7 +22,13 @@
   "dependencies": {
     "cpcall": "^0.5.2"
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
   "files": [
+    "client.js",
+    "client.d.ts",
     "./dist/**/*.js",
     "./dist/**/*.d.ts"
   ],

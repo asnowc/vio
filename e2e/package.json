@@ -2,13 +2,11 @@
   "type": "module",
   "scripts": {
     "e2e:local": "playwright test --ui",
-    "ci:e2e": "playwright test -c playwright.ci.config.ts --reporter=html",
-    "ci:e2e-ui": "pnpm ci:e2e --ui",
+    "ci:e2e": "playwright test -c playwright.ci.config.ts --trace retain-on-first-failure",
     "codegen": "playwright codegen --channel msedge"
   },
   "devDependencies": {
     "@asnc/vio": "workspace:^",
-    "@playwright/test": "^1.44.1",
-    "playwright": "^1.44.1"
+    "@playwright/test": "^1.44.1"
   }
 }

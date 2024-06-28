@@ -44,9 +44,6 @@ importers:
       '@playwright/test':
         specifier: ^1.44.1
         version: 1.44.1
-      playwright:
-        specifier: ^1.44.1
-        version: 1.44.1
 
   vio:
     dependencies:
@@ -85,8 +82,8 @@ importers:
         specifier: ^1.14.2
         version: 1.14.2
       echarts-comp:
-        specifier: ^0.2.0
-        version: 0.2.0(echarts@5.5.0)(react@18.3.1)
+        specifier: ^0.3.0
+        version: 0.3.0(echarts@5.5.0)(react@18.3.1)
       evlib:
         specifier: ^2.5.1
         version: 2.5.1
@@ -811,8 +808,8 @@ packages:
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
-  echarts-comp@0.2.0:
-    resolution: {integrity: sha512-AxexQyDJMB2r/yH60x4KLsM77VVOLcEuHYgGc288l5nUX7hFOj40EXPtCW9VdZfVVAuN4sepnNORfmzPaz1+Pg==}
+  echarts-comp@0.3.0:
+    resolution: {integrity: sha512-wi6uTE0zUEjGbQXrRZCUDTcfpPMqt/72+r6584GhRpqBo+W2iEpIkU91t4W+MhSo5jTGpJz1HwwoT5HwcW6p/w==}
     peerDependencies:
       echarts: ^5.4.3
       react: ^18.2.0
@@ -2436,7 +2433,7 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
-  echarts-comp@0.2.0(echarts@5.5.0)(react@18.3.1):
+  echarts-comp@0.3.0(echarts@5.5.0)(react@18.3.1):
     dependencies:
       echarts: 5.5.0
       react: 18.3.1

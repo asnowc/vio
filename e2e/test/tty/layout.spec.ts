@@ -1,8 +1,9 @@
-import { vioServerTest as test } from "../../test.ts";
+import { vioServerTest as test, waitPageConnect, waitPageReady } from "../../test.ts";
 const { beforeAll, beforeEach, expect } = test;
 
 beforeEach(async function ({ vioServerInfo, appPage: page }) {
   await page.goto(vioServerInfo.visitUrl);
+  await waitPageReady(page);
 });
 test("saveLayout", async function ({ appPage: page }, info) {
   await page.locator("path").first().click();
