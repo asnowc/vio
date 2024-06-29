@@ -2,8 +2,9 @@ import {
   ChartUpdateData,
   ChartCreateInfo,
   VioChart,
+  VioChartImpl,
   DimensionalityReduction,
-  VioChartUpdateLowerOpts,
+  ChartUpdateLowerOption,
   ChartController,
   ChartInfo,
 } from "@asnc/vio/client";
@@ -52,8 +53,8 @@ export class ChartsDataCenterService implements ChartController {
   readonly deleteEvent = new EventTrigger<number | undefined>();
   readonly writeEvent = new EventTrigger<{ id: number; data: ChartUpdateData<any> }>();
 }
-export class ChartClientAgent<T = number> extends VioChart<T> {
-  constructor(config: ConstructorParameters<typeof VioChart>[0]) {
+export class ChartClientAgent<T = number> extends VioChartImpl<T> {
+  constructor(config: ConstructorParameters<typeof VioChartImpl>[0]) {
     super(config);
   }
   readonly changeEvent = new EventTrigger<void>();
@@ -61,7 +62,7 @@ export class ChartClientAgent<T = number> extends VioChart<T> {
     super.updateData(data, name);
     this.changeEvent.emit();
   }
-  updateSubData(updateData: DimensionalityReduction<T>, coord: number, opts?: VioChartUpdateLowerOpts): void {
+  updateSubData(updateData: DimensionalityReduction<T>, coord: number, opts?: ChartUpdateLowerOption): void {
     super.updateSubData(updateData, coord, opts);
     this.changeEvent.emit();
   }

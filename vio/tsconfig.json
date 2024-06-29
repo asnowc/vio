@@ -4,10 +4,11 @@
     "lib": ["ESNext"],
     "types": [],
     "paths": {
-      "@asnc/vio": ["./src/mod.ts"],
-      "@asnc/vio/server": ["./src/server.ts"],
-      "@asnc/vio/client": ["./types/mod.d.ts"]
-    }
+      "@asnc/vio": ["./src/mod.ts"]
+    },
+    "declaration": true,
+    "skipLibCheck": true,
+    "baseUrl": "."
   },
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "temp", "/dist"]
 }

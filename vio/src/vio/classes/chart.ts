@@ -7,11 +7,12 @@ import type {
 import { UniqueKeyMap } from "evlib/data_struct";
 import { deepClone } from "evlib";
 import {
-  VioChartUpdateLowerOpts,
-  VioChartUpdateOpts,
+  ChartUpdateLowerOption,
+  ChartUpdateOption,
   VioChart,
+  VioChartImpl,
   VioChartCreateConfig,
-  VioChartCreateOpts,
+  ChartCreateOption,
 } from "./VioChart.ts";
 import { indexRecordToArray } from "../../lib/array_like.ts";
 import { ChartController } from "../api_type.ts";
@@ -37,22 +38,22 @@ export class ChartCenter {
     return this.#instanceMap.size;
   }
 
-  create<T = any>(dimension: 1, config: CenterCreateChartConfig<T>): VioChart<T>;
-  create<T = any>(dimension: 2, config: CenterCreateChartConfig<T[]>): VioChart<T[]>;
-  create<T = any>(dimension: 3, config: CenterCreateChartConfig<T[][]>): VioChart<T[][]>;
-  create<T = any>(dimension: number, config: CenterCreateChartConfig<T>): VioChart<T>;
-  create(dimension: number, config: CenterCreateChartConfig<any>): VioChart<any> {
+  create<T = any>(dimension: 1, options?: CenterCreateChartOption<T>): VioChart<T>;
+  create<T = any>(dimension: 2, options?: CenterCreateChartOption<T[]>): VioChart<T[]>;
+  create<T = any>(dimension: 3, options?: CenterCreateChartOption<T[][]>): VioChart<T[][]>;
+  create<T = any>(dimension: number, options?: CenterCreateChartOption<T>): VioChart<T>;
+  create(dimension: number, options: CenterCreateChartOption<any>): VioChart<any> {
     let chartId = this.#instanceMap.allocKeySet(null as any);
-    const { maxCacheSize = ChartCenter.TTY_DEFAULT_CACHE_SIZE } = config;
+    const { maxCacheSize = ChartCenter.TTY_DEFAULT_CACHE_SIZE } = options;
     const chart = new ChartCenter.Chart(this, {
-      ...config,
+      ...options,
       id: chartId,
       dimension,
       maxCacheSize,
     });
     this.#instanceMap.set(chartId, chart);
     this.ctrl.createChart({
-      meta: config.meta,
+      meta: options.meta,
       dimension: chart.dimension,
       id: chartId,
       dimensionIndexNames: indexRecordToArray(chart.dimensionIndexNames, chart.dimension),
@@ -69,7 +70,7 @@ export class ChartCenter {
     if (!(chart instanceof ChartCenter.Chart)) throw new Error("This chart does not belong to the center");
     chart.dispose();
   }
-  private static Chart = class RpcVioChart<T> extends VioChart<T> {
+  private static Chart = class RpcVioChart<T> extends VioChartImpl<T> {
     constructor(center: ChartCenter, opts: VioChartCreateConfig) {
       super(opts);
       this.#center = center;
@@ -84,13 +85,13 @@ export class ChartCenter {
       let internalData = typeof data === "object" ? deepClone(data) : data;
       super.updateData(internalData);
     }
-    updateSubData(updateData: DimensionalityReduction<T>, coord: number, opts?: VioChartUpdateLowerOpts): void;
-    updateSubData(updateData: IntersectingDimension<T>, coord: (number | undefined)[], opts?: VioChartUpdateOpts): void;
+    updateSubData(updateData: DimensionalityReduction<T>, coord: number, opts?: ChartUpdateLowerOption): void;
+    updateSubData(updateData: IntersectingDimension<T>, coord: (number | undefined)[], opts?: ChartUpdateOption): void;
     /** @override */
     updateSubData(
       updateData: IntersectingDimension<T>,
       coord: number | (number | undefined)[],
-      opts?: VioChartUpdateLowerOpts | VioChartUpdateOpts,
+      opts?: ChartUpdateLowerOption | ChartUpdateOption,
     ): void {
       if (!this.#center) return;
       this.#center.ctrl.writeChart(this.id, {
@@ -134,6 +135,6 @@ export type {
  * @public
  * @category Chart
  */
-export type CenterCreateChartConfig<T = unknown> = VioChartCreateOpts & {
+export type CenterCreateChartOption<T = unknown> = ChartCreateOption & {
   onUpdate?(): MaybePromise<RequestUpdateRes<T>>;
 };

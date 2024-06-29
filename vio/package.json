@@ -7,7 +7,8 @@
     "local:build": "pnpm build && pnpm dts:build && pnpm ci:api-check -l",
     "dts:build": "rollup -c build/rollup-type.config.js",
     "ci:build": "pnpm build --environment PROD && pnpm dts:build --environment PROD",
-    "ci:api-check": "api-extractor run -vc api-extractor.jsonc",
+    "ci:api-check": "api-extractor run -vc build/api-extractor.jsonc",
+    "type-check": "tsc --noEmit",
     "build": "rollup -c build/rollup.config.js"
   },
   "keywords": [],

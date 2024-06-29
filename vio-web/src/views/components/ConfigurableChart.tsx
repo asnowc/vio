@@ -102,7 +102,7 @@ export function ConfigurableChart(props: ConfigurableChartChartProps) {
     let data: undefined | any[];
     if (enableTimeline) {
       setDimensionIndexNames(updateDimensionIndexNames(true, chart));
-      data = chart.cacheData;
+      data = Array.from(chart.getCacheData());
       if (chart.dimension === 2 && data) {
         try {
           data = mapDimension(data, 2, [1, 0]);
@@ -311,10 +311,10 @@ function updateDimensionIndexNames(
     return new Date(item.time).toLocaleString();
   };
   if (timelineEnable) {
-    const timelineNames = Array.from(chart.eachTimeline()).map(formatTime);
+    const timelineNames = Array.from(chart.getCacheDateItem()).map(formatTime);
     indexNames = insertToArrBefore(indexNames, timelineNames, 1);
   } else {
-    if (chart.lastData) indexNames.push([formatTime(chart.lastData)]);
+    if (chart.lastDataItem) indexNames.push([formatTime(chart.lastDataItem)]);
   }
   return indexNames;
 }

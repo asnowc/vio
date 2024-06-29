@@ -98,11 +98,11 @@ function useRpcConnect() {
     retryCount: autoRetry.retryCount,
   };
 }
-type AutoRetryOpts = { maxRetry?: number; waitTime?: number };
+type AutoRetryOption = { maxRetry?: number; waitTime?: number };
 class AutoRetry {
   constructor(
     public onRetry: () => Promise<any> | any,
-    opts: AutoRetryOpts = {},
+    opts: AutoRetryOption = {},
   ) {
     this.maxRetry = opts.maxRetry ?? Infinity;
     this.waitTime = opts.waitTime ?? 3000;

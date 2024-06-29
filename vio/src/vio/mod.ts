@@ -1,7 +1,14 @@
 import { createVio } from "./vio.ts";
 
 export * from "./vio.ts";
-export * from "./classes/VioChart.ts";
+export type {
+  ChartCreateOption,
+  ChartDataItem,
+  ChartUpdateLowerOption,
+  ChartUpdateOption,
+  VioChart,
+  VioChartCreateConfig,
+} from "./classes/VioChart.ts";
 export * from "./classes/chart.ts";
 export * from "./classes/vio_tty.ts";
 export type { TTY } from "./classes/tty.ts";

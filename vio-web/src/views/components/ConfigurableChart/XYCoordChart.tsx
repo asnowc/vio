@@ -18,7 +18,7 @@ export function XYCoordChart(props: ChartCommonProps<number[] | number[][]>) {
   const baseOptions = useMemo(() => {
     return gen2DOption({
       title: chartMeta.title,
-      echartsOpts: staticOptions,
+      echartsOption: staticOptions,
       dimensionNames,
       xAxisIndexNames: dimensionIndexNames?.[1],
     });
@@ -77,18 +77,18 @@ function gen2DSeries(
 }
 function gen2DOption(param: {
   title?: string;
-  echartsOpts?: EChartsPruneOption;
+  echartsOption?: EChartsPruneOption;
   dimensionNames?: ChartCommonProps<unknown>["dimensionNames"];
   xAxisIndexNames?: (string | undefined)[];
 }): EChartsPruneOption {
-  const { title, dimensionNames = {}, echartsOpts, xAxisIndexNames } = param;
+  const { title, dimensionNames = {}, echartsOption, xAxisIndexNames } = param;
   return {
-    ...echartsOpts,
+    ...echartsOption,
     title: {
       text: title,
-      ...echartsOpts?.title,
+      ...echartsOption?.title,
     },
-    yAxis: { ...echartsOpts?.yAxis, type: "value", name: dimensionNames[0] },
-    xAxis: { ...echartsOpts?.xAxis, type: "category", name: dimensionNames[1], data: xAxisIndexNames as string[] },
+    yAxis: { ...echartsOption?.yAxis, type: "value", name: dimensionNames[0] },
+    xAxis: { ...echartsOption?.xAxis, type: "category", name: dimensionNames[1], data: xAxisIndexNames as string[] },
   };
 }

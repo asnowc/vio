@@ -17,7 +17,7 @@ export function GaugePie(props: ChartCommonProps<number | number[]>) {
   const baseOptions = useMemo(() => {
     return genOption({
       title: chartMeta.title,
-      echartsOpts: staticOptions,
+      echartsOption: staticOptions,
     });
   }, [chartMeta.title, staticOptions]);
 
@@ -116,13 +116,13 @@ function genGaugeSeriesData(data: any[], opts: { xIndexNames?: (string | undefin
   return gaugeData;
 }
 
-function genOption(param: { title?: string; echartsOpts?: EChartsPruneOption }): EChartsPruneOption {
-  const { title, echartsOpts } = param;
+function genOption(param: { title?: string; echartsOption?: EChartsPruneOption }): EChartsPruneOption {
+  const { title, echartsOption } = param;
   return {
-    ...echartsOpts,
+    ...echartsOption,
     title: {
       text: title,
-      ...echartsOpts?.title,
+      ...echartsOption?.title,
     },
   };
 }

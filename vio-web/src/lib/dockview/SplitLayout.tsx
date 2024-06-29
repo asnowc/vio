@@ -27,7 +27,7 @@ export function useSplitLayout(direction: "horizontal" | "vertical", props: UseS
         container.appendChild(dom);
       }
     };
-    const appPanel = (id: string, opts?: AddSplitPanelOpts) => {
+    const appPanel = (id: string, opts?: AddSplitPanelOption) => {
       return api.addPanel({ ...opts, id, component: "default" });
     };
     return { dom, api, setIntoDom, appPanel };
@@ -40,11 +40,11 @@ export function useSplitLayout(direction: "horizontal" | "vertical", props: UseS
 type UseSplitLayoutProps = {
   hideBorder?: boolean;
 };
-type AddSplitPanelOpts = Pick<
+type AddSplitPanelOption = Pick<
   AddSplitviewComponentOptions,
   "maximumSize" | "minimumSize" | "size" | "index" | "params"
 >;
-export type SplitPanelConfig = Pick<AddSplitPanelOpts, "maximumSize" | "minimumSize" | "size"> & {
+export type SplitPanelConfig = Pick<AddSplitPanelOption, "maximumSize" | "minimumSize" | "size"> & {
   children: ReactNode;
   id: string;
 };

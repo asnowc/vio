@@ -1,6 +1,6 @@
-import { expect } from "vitest";
+import { expect, vi } from "vitest";
 import { connectWebsocket } from "../../src/lib/http_server/mod.ts";
-import { CenterCreateChartConfig } from "@asnc/vio";
+import { CenterCreateChartOption } from "@asnc/vio";
 import { ChartUpdateData, ChartInfo, ChartCreateInfo, VioServerExposed } from "../../src/client.ts";
 import { createWebSocketCpc } from "cpcall/web";
 import { afterTime } from "evlib";
@@ -12,7 +12,7 @@ test("flow", async function ({ vio, connector }) {
   let allCharts = await caller.getCharts(); //客户端获取所有图信息
   expect(allCharts).toEqual({ list: [] });
 
-  const config: CenterCreateChartConfig<number> = { meta: { chartType: "progress" }, maxCacheSize: 20 };
+  const config: CenterCreateChartOption<number> = { meta: { chartType: "progress" }, maxCacheSize: 20 };
   const chart = vio.chart.create<number>(1, config); //创建
   expect(chart).toMatchObject(config);
   expect(chart.dimension).toBe(1);
@@ -40,7 +40,7 @@ test("update", async function ({ vio, connector }) {
   const { cpc, clientApi } = connector;
   const caller = cpc.genCaller<VioServerExposed>();
 
-  const config: CenterCreateChartConfig<number> = { maxCacheSize: 20 };
+  const config: CenterCreateChartOption<number> = { maxCacheSize: 20 };
   const chart = vio.chart.create<number>(1, config); //创建
 
   const find = ({ list }: { list: ChartInfo<any>[] }) => list.find((item) => item.id === chart.id);
@@ -62,8 +62,12 @@ test("update", async function ({ vio, connector }) {
 
   vio.chart.disposeChart(chart);
 });
+test("request update", async function ({ vio, connector }) {
+  const onRequest = vi.fn();
+  vio.chart.create(1,{})
+});
 test("cache", async function ({ vio }) {
-  const config: CenterCreateChartConfig<number> = { maxCacheSize: 4 };
+  const config: CenterCreateChartOption<number> = { maxCacheSize: 4 };
   const chart = vio.chart.create<number>(1, config); //创建
 
   for (let i = 0; i < chart.maxCacheSize; i++) {

@@ -11,16 +11,16 @@ import type {
   TtyWriteTextType,
   VioFileData,
 } from "../api_type/tty.type.ts";
-import { VioChart } from "./VioChart.ts";
+import { VioChart, VioChartImpl } from "./VioChart.ts";
 import { createTypeErrorDesc } from "evlib/errors";
 
 /** @public */
-export type WriteTtyTextOpts = {
+export type WriteTtyTextOption = {
   msgType?: TtyWriteTextType;
   content?: string;
 };
 /** @public */
-export type TtyReadFileOpts = {
+export type TtyReadFileOption = {
   mime?: string;
   title?: string;
   /** 文件大小限制，单位字节 */
@@ -44,13 +44,13 @@ export abstract class TTY {
   writeTable(data: any[][], header?: string[]): void {
     return this.write({ type: "table", data, header } satisfies TtyOutputData.Table);
   }
-  writeText(title: string, opts: TtyWriteTextType | WriteTtyTextOpts = {}): void {
+  writeText(title: string, option: TtyWriteTextType | WriteTtyTextOption = {}): void {
     let content: string | undefined;
     let msgType: TtyOutputData.Text["msgType"] | undefined;
-    if (typeof opts === "string") msgType = opts;
+    if (typeof option === "string") msgType = option;
     else {
-      content = opts.content;
-      msgType = opts.msgType;
+      content = option.content;
+      msgType = option.msgType;
     }
 
     return this.write({
@@ -61,13 +61,13 @@ export abstract class TTY {
     } satisfies TtyOutputData.Text);
   }
   writeUiLink(ui: VioChart<number>): void {
-    if (!(ui instanceof VioChart)) throw new Error("Unsupported UI object");
+    if (!(ui instanceof VioChartImpl)) throw new Error("Unsupported UI object");
     this.write({ type: "link", uiType: "chart", id: ui.id } satisfies TtyOutputData.UILink);
   }
   /** 读取任意数据 */
   abstract read<T = unknown>(config: TtyInputsReq): Promise<T>;
-  async readFile(opts: TtyReadFileOpts = {}): Promise<VioFileData> {
-    return this.read({ type: "file", mime: opts.mime, maxSize: opts.maxByteSize });
+  async readFile(option: TtyReadFileOption = {}): Promise<VioFileData> {
+    return this.read({ type: "file", mime: option.mime, maxSize: option.maxByteSize });
   }
 
   /** 提示读取文本 */

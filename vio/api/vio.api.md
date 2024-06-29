@@ -8,26 +8,50 @@
 
 import { Duplex } from 'node:stream';
 
+// @public
+export type CenterCreateChartOption<T = unknown> = ChartCreateOption & {
+    onUpdate?(): MaybePromise<RequestUpdateRes<T>>;
+};
+
 // @public (undocumented)
 export class ChartCenter {
     // Warning: (ae-forgotten-export) The symbol "ChartController" needs to be exported by the entry point index.d.ts
     constructor(ctrl: ChartController);
     // (undocumented)
-    create<T = any>(dimension: 1, config: CreateChartOpts): VioChart<T>;
+    get chartsNumber(): number;
     // (undocumented)
-    create<T = any>(dimension: 2, config: CreateChartOpts): VioChart<T[]>;
+    create<T = any>(dimension: 1, options?: CenterCreateChartOption<T>): VioChart<T>;
     // (undocumented)
-    create<T = any>(dimension: 3, config: CreateChartOpts): VioChart<T[][]>;
+    create<T = any>(dimension: 2, options?: CenterCreateChartOption<T[]>): VioChart<T[]>;
     // (undocumented)
-    create<T = any>(dimension: number, config: CreateChartOpts): VioChart<T>;
+    create<T = any>(dimension: 3, options?: CenterCreateChartOption<T[][]>): VioChart<T[][]>;
+    // (undocumented)
+    create<T = any>(dimension: number, options?: CenterCreateChartOption<T>): VioChart<T>;
     // (undocumented)
     disposeChart(chart: VioChart<unknown>): void;
     get(chartId: number): VioChart<unknown> | undefined;
     getAll(): IterableIterator<VioChart<unknown>>;
-    getAllInfo<T = any>(): ChartInfo<T>[];
-    getInfo(chartId: number): ChartInfo<unknown> | undefined;
+    // (undocumented)
+    requestUpdate<T>(chartId: number): MaybePromise<RequestUpdateRes<T>>;
     // (undocumented)
     static TTY_DEFAULT_CACHE_SIZE: number;
+}
+
+// @public
+export type ChartCreateOption = {
+    meta?: VioChartMeta;
+    dimensionIndexNames?: Record<number, ArrayLike<string | undefined> | undefined>;
+    maxCacheSize?: number;
+};
+
+// @public (undocumented)
+export interface ChartDataItem<T = number> {
+    // (undocumented)
+    data: T;
+    // (undocumented)
+    name?: string;
+    // (undocumented)
+    time: number;
 }
 
 // @public
@@ -93,12 +117,21 @@ export namespace ChartMeta {
 }
 
 // @public (undocumented)
+export type ChartUpdateLowerOption = {
+    dimensionIndexNames?: string;
+    timeName?: string;
+};
+
+// @public (undocumented)
+export type ChartUpdateOption = {
+    dimensionIndexNames?: Record<number, ArrayLike<string | undefined> | null>;
+    timeName?: string;
+};
+
+// @public (undocumented)
 export type ClassToInterface<T extends object> = {
     [key in keyof T]: T[key];
 };
-
-// @public
-export type CreateChartOpts = Omit<VioChartCreateConfig, "id" | "dimension">;
 
 // @public
 export function createVio(): Vio;
@@ -130,12 +163,26 @@ export type FileData = {
 export type IntersectingDimension<T> = T extends Array<infer P> ? P | IntersectingDimension<P> : never;
 
 // @public (undocumented)
+export type MaybePromise<T> = T | Promise<T>;
+
+// @public (undocumented)
 export type RawImageData = {
     width: number;
     height: number;
     data: Uint8Array;
     channel: number;
     separate?: boolean;
+};
+
+// @public (undocumented)
+export type RequestUpdateRes<T> = {
+    ok: true;
+    data: T;
+} | {
+    ok: false;
+} | {
+    ok: boolean;
+    data?: T;
 };
 
 // @public (undocumented)
@@ -153,10 +200,10 @@ export abstract class TTY {
     pick<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[]): Promise<T>;
     // Warning: (ae-forgotten-export) The symbol "TtyInputsReq" needs to be exported by the entry point index.d.ts
     abstract read<T = unknown>(config: TtyInputsReq): Promise<T>;
-    // Warning: (ae-forgotten-export) The symbol "TtyReadFileOpts" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "TtyReadFileOption" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    readFile(opts?: TtyReadFileOpts): Promise<FileData>;
+    readFile(option?: TtyReadFileOption): Promise<FileData>;
     readText(title: string, max?: number): Promise<string>;
     readText(max?: number): Promise<string>;
     select<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[], config?: {
@@ -169,10 +216,10 @@ export abstract class TTY {
     writeImage(imageData: EncodedImageData | RawImageData): void;
     // (undocumented)
     writeTable(data: any[][], header?: string[]): void;
-    // Warning: (ae-forgotten-export) The symbol "WriteTtyTextOpts" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "WriteTtyTextOption" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    writeText(title: string, opts?: TtyWriteTextType | WriteTtyTextOpts): void;
+    writeText(title: string, option?: TtyWriteTextType | WriteTtyTextOption): void;
     // (undocumented)
     writeUiLink(ui: VioChart<number>): void;
 }
@@ -208,6 +255,8 @@ export interface TtyReadResolver {
     // (undocumented)
     dispose(): void;
     // (undocumented)
+    input(data: any): boolean;
+    // (undocumented)
     reject(requestId: number, reason: any): boolean;
     // (undocumented)
     resolve(requestId: number, data: any): boolean;
@@ -232,59 +281,27 @@ export interface Vio extends TTY {
 }
 
 // @public
-export class VioChart<T = number> {
-    constructor(config: VioChartCreateConfig);
+export interface VioChart<T = number> {
     // (undocumented)
-    get cacheData(): T[];
+    cachedSize: number;
     // (undocumented)
-    get cachedSize(): number;
-    // (undocumented)
-    get data(): T | undefined;
-    // (undocumented)
+    data?: T;
     readonly dimension: number;
-    // (undocumented)
     readonly dimensionIndexNames: Readonly<Record<number, (string | undefined)[] | undefined>>;
-    // (undocumented)
-    eachTimeline(): Generator<SinglyLinkList<{
-        data: T;
-        name?: string | undefined;
-        time: number;
-    }>, void, unknown>;
-    // (undocumented)
-    getCacheData(): Generator<T, void, void>;
-    // (undocumented)
-    get headData(): SinglyLinkList<{
-        data: T;
-        name?: string | undefined;
-        time: number;
-    }> | undefined;
+    getCacheData(): IterableIterator<T>;
     // (undocumented)
     readonly id: number;
-    // Warning: (ae-forgotten-export) The symbol "SinglyLinkList" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    get lastData(): SinglyLinkList<{
-        data: T;
-        name?: string | undefined;
-        time: number;
-    }> | undefined;
-    // (undocumented)
-    get maxCacheSize(): number;
-    set maxCacheSize(size: number);
+    maxCacheSize: number;
     // (undocumented)
     readonly meta: VioChartMeta;
-    // (undocumented)
     updateData(data: T, timeAxisName?: string): void;
-    updateSubData(updateData: DimensionalityReduction<T>, coord: number, opts?: VioChartUpdateLowerOpts): void;
 }
 
-// @public (undocumented)
-export type VioChartCreateConfig = {
+// @public
+export type VioChartCreateConfig = ChartCreateOption & {
     id: number;
     dimension: number;
-    meta?: VioChartMeta;
-    dimensionIndexNames?: Record<number, ArrayLike<string | undefined> | undefined>;
-    maxCacheSize?: number;
 };
 
 // @public (undocumented)
@@ -294,18 +311,6 @@ export type VioChartMeta = ChartMeta.Progress | ChartMeta.Gauge | ChartMeta.Line
 
 // @public (undocumented)
 export type VioChartType = VioChartMeta["chartType"];
-
-// @public (undocumented)
-export type VioChartUpdateLowerOpts = {
-    dimensionIndexNames?: string;
-    timeName?: string;
-};
-
-// @public (undocumented)
-export type VioChartUpdateOpts = {
-    dimensionIndexNames?: Record<number, ArrayLike<string | undefined> | null>;
-    timeName?: string;
-};
 
 // @public
 export class VioHttpServer {

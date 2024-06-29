@@ -6,9 +6,5 @@ export const ThemControl = function ThemControl() {
   const config = useAppConfig();
   const themeName = useListenableData(config.themeNameChange, (theme) => theme, config.themeName);
   const isDark = themeName === "dark";
-  return (
-    <div onClick={() => config.changeTheme(isDark ? "light" : "light")} style={{ cursor: "pointer" }}>
-      {isDark ? <MoonOutlined /> : <SunOutlined />}
-    </div>
-  );
+  return <div style={{ cursor: "pointer" }}>{isDark ? <MoonOutlined /> : <SunOutlined />}</div>;
 };
