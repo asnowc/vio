@@ -51,7 +51,7 @@ export async function connectVioServer(host: string) {
 
   const clientApi = createMockClientApi();
   cpc.setObject(clientApi);
-  const serverApi = cpc.genCaller<VioServerExposed>();
+  const serverApi: MakeCallers<VioServerExposed> = cpc.genCaller<VioServerExposed>();
 
   return { cpc, clientApi, serverApi };
 }

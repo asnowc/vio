@@ -1,12 +1,17 @@
-import type { ProxyOptions, UserConfig } from "vite";
+import type { ProxyOptions, UserConfig, AliasOptions } from "vite";
+import { defineProject } from "vitest/config";
 import path from "node:path";
-const dir = import.meta.dirname;
+const root = import.meta.dirname;
 
-const src = path.resolve(dir, "src");
+const src = path.resolve(root, "src");
+const alias: AliasOptions = [
+  { find: /^@(?=\/)/, replacement: path.resolve(src) },
+  { find: "@asnc/vio/client", replacement: path.resolve(root, "../vio/src/client.ts") },
+];
 
 const config: UserConfig = {
   resolve: {
-    alias: [{ find: /^@(?=\/)/, replacement: path.resolve(src) }],
+    alias,
   },
   build: {
     target: "es2017",
@@ -41,4 +46,9 @@ function genProxies(origin: string): Record<string, string | ProxyOptions> {
   };
 }
 
-export default config;
+export default {
+  ...config,
+  ...defineProject({
+    test: {},
+  }),
+};

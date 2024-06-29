@@ -58,12 +58,9 @@ export class ChartClientAgent<T = number> extends VioChartImpl<T> {
     super(config);
   }
   readonly changeEvent = new EventTrigger<void>();
-  updateData(data: T, name?: string | undefined): void {
-    super.updateData(data, name);
-    this.changeEvent.emit();
-  }
-  updateSubData(updateData: DimensionalityReduction<T>, coord: number, opts?: ChartUpdateLowerOption): void {
-    super.updateSubData(updateData, coord, opts);
+  updateData(data: T, timeName?: string | undefined): void {
+    const timeStamp = Date.now();
+    this.pushCache({ data: data, timestamp: timeStamp, timeName: timeName });
     this.changeEvent.emit();
   }
 }

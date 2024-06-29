@@ -3,7 +3,7 @@ import { LinkedCacheQueue } from "evlib/data_struct";
 import { deepClone } from "evlib";
 import { IndexRecord, indexRecordToArray } from "../../lib/array_like.ts";
 
-export class VioChartImpl<T = number> implements VioChart<T> {
+export abstract class VioChartImpl<T = number> implements VioChart<T> {
   constructor(config: VioChartCreateConfig) {
     const { dimensionIndexNames = {}, dimension, maxCacheSize = 0, meta } = config;
     this.#cache = new LinkedCacheQueue<ChartDataItem<T>>(maxCacheSize);
@@ -41,6 +41,9 @@ export class VioChartImpl<T = number> implements VioChart<T> {
   get headDataItem(): Readonly<ChartDataItem<T>> | undefined {
     return this.#cache.head;
   }
+  protected pushCache(item: ChartDataItem<T>) {
+    this.#cache.push(item);
+  }
   /** 遍历时间维度上的数据 */
   getCacheDateItem(): Generator<Readonly<ChartDataItem<T>>, void, void> {
     return this.#cache[Symbol.iterator]();
@@ -52,9 +55,7 @@ export class VioChartImpl<T = number> implements VioChart<T> {
     }
   }
   /** 更新图表数据。并将数据推入缓存 */
-  updateData(data: T, timeAxisName?: string): void {
-    this.#cache.push({ data, time: Date.now(), name: timeAxisName });
-  }
+  abstract updateData(data: T, timeName?: string): void;
 
   private updateLowerOneDimension(updateData: IntersectingDimension<T>, coord: number, coordName?: string) {
     const current = this.data!;
@@ -75,9 +76,9 @@ export class VioChartImpl<T = number> implements VioChart<T> {
     }
   }
   /** 降一个维度更新数据 */
-  updateSubData(updateData: DimensionalityReduction<T>, coord: number, option?: ChartUpdateLowerOption): void;
+  protected updateSubData(updateData: DimensionalityReduction<T>, coord: number, option?: ChartUpdateLowerOption): void;
   // updateSubData(updateData: IntersectingDimension<T>, coord: (number | undefined)[], option?: ChartUpdateLowerOption): void;
-  updateSubData(
+  protected updateSubData(
     updateData: IntersectingDimension<T>,
     coord: (number | undefined)[] | number,
     option: ChartUpdateLowerOption | ChartUpdateOption = {},
@@ -110,7 +111,7 @@ export interface VioChart<T = number> {
   /** 获取缓存中的数据 */
   getCacheData(): IterableIterator<T>;
   /** 更新图表数据。并将数据推入缓存 */
-  updateData(data: T, timeAxisName?: string): void;
+  updateData(data: T, timeName?: string): void;
   /** 维度刻度名称 */
   readonly dimensionIndexNames: Readonly<Record<number, (string | undefined)[] | undefined>>;
 
@@ -167,6 +168,6 @@ export type ChartUpdateLowerOption = {
  */
 export interface ChartDataItem<T = number> {
   data: T;
-  name?: string;
-  time: number;
+  timeName?: string;
+  timestamp: number;
 }

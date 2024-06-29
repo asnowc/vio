@@ -10,7 +10,8 @@ import { Duplex } from 'node:stream';
 
 // @public
 export type CenterCreateChartOption<T = unknown> = ChartCreateOption & {
-    onUpdate?(): MaybePromise<RequestUpdateRes<T>>;
+    onRequestUpdate?(): MaybePromise<T>;
+    updateThrottle?: number;
 };
 
 // @public (undocumented)
@@ -49,9 +50,9 @@ export interface ChartDataItem<T = number> {
     // (undocumented)
     data: T;
     // (undocumented)
-    name?: string;
+    timeName?: string;
     // (undocumented)
-    time: number;
+    timestamp: number;
 }
 
 // @public
@@ -176,13 +177,15 @@ export type RawImageData = {
 
 // @public (undocumented)
 export type RequestUpdateRes<T> = {
-    ok: true;
-    data: T;
-} | {
     ok: false;
 } | {
+    ok: true;
+    value: T;
+    timestamp: number;
+} | {
     ok: boolean;
-    data?: T;
+    value?: T;
+    timestamp: number;
 };
 
 // @public (undocumented)
@@ -295,7 +298,7 @@ export interface VioChart<T = number> {
     maxCacheSize: number;
     // (undocumented)
     readonly meta: VioChartMeta;
-    updateData(data: T, timeAxisName?: string): void;
+    updateData(data: T, timeName?: string): void;
 }
 
 // @public

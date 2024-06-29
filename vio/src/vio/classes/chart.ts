@@ -6,14 +6,7 @@ import type {
 } from "../api_type/chart.type.ts";
 import { UniqueKeyMap } from "evlib/data_struct";
 import { deepClone } from "evlib";
-import {
-  ChartUpdateLowerOption,
-  ChartUpdateOption,
-  VioChart,
-  VioChartImpl,
-  VioChartCreateConfig,
-  ChartCreateOption,
-} from "./VioChart.ts";
+import { ChartUpdateLowerOption, ChartUpdateOption, VioChart, VioChartImpl, ChartCreateOption } from "./VioChart.ts";
 import { indexRecordToArray } from "../../lib/array_like.ts";
 import { ChartController } from "../api_type.ts";
 import { MaybePromise } from "../../type.ts";
@@ -42,18 +35,12 @@ export class ChartCenter {
   create<T = any>(dimension: 2, options?: CenterCreateChartOption<T[]>): VioChart<T[]>;
   create<T = any>(dimension: 3, options?: CenterCreateChartOption<T[][]>): VioChart<T[][]>;
   create<T = any>(dimension: number, options?: CenterCreateChartOption<T>): VioChart<T>;
-  create(dimension: number, options: CenterCreateChartOption<any>): VioChart<any> {
+  create(dimension: number, options?: CenterCreateChartOption<any>): VioChart<any> {
     let chartId = this.#instanceMap.allocKeySet(null as any);
-    const { maxCacheSize = ChartCenter.TTY_DEFAULT_CACHE_SIZE } = options;
-    const chart = new ChartCenter.Chart(this, {
-      ...options,
-      id: chartId,
-      dimension,
-      maxCacheSize,
-    });
+    const chart = new ChartCenter.Chart(this, chartId, dimension, options);
     this.#instanceMap.set(chartId, chart);
     this.ctrl.createChart({
-      meta: options.meta,
+      meta: chart.meta,
       dimension: chart.dimension,
       id: chartId,
       dimensionIndexNames: indexRecordToArray(chart.dimensionIndexNames, chart.dimension),
@@ -63,7 +50,7 @@ export class ChartCenter {
   }
   requestUpdate<T>(chartId: number): MaybePromise<RequestUpdateRes<T>> {
     const chart = this.#instanceMap.get(chartId);
-    if (!chart?.onUpdate) return { ok: false };
+    if (!chart) throw new Error(`Chart '${chartId}' dest not exist`);
     return chart.onUpdate() as MaybePromise<RequestUpdateRes<T>>;
   }
   disposeChart(chart: VioChart<unknown>) {
@@ -71,19 +58,68 @@ export class ChartCenter {
     chart.dispose();
   }
   private static Chart = class RpcVioChart<T> extends VioChartImpl<T> {
-    constructor(center: ChartCenter, opts: VioChartCreateConfig) {
-      super(opts);
+    constructor(center: ChartCenter, chartId: number, dimension: number, options: CenterCreateChartOption<T> = {}) {
+      const {
+        maxCacheSize = ChartCenter.TTY_DEFAULT_CACHE_SIZE,
+        onRequestUpdate: onUpdate,
+        updateThrottle = 0,
+      } = options;
+      super({
+        ...options,
+        id: chartId,
+        dimension,
+        maxCacheSize,
+      });
       this.#center = center;
+      this.#onUpdate = onUpdate;
+      this.#updateThrottle = updateThrottle;
     }
-    onUpdate?: () => MaybePromise<RequestUpdateRes<T>>;
+    #updateThrottle: number;
+    #lastData?: MaybePromise<RequestUpdateRes<T>>;
+
+    #onUpdate?: () => MaybePromise<T>;
+    onUpdate(): MaybePromise<RequestUpdateRes<T>> {
+      if (!this.#onUpdate) throw new Error("Requests for updates are not allowed");
+      const timestamp = Date.now();
+
+      if (this.#lastData) {
+        if (this.#lastData instanceof Promise) return this.#lastData;
+        if (timestamp - this.#lastData.timestamp <= this.#updateThrottle) return this.#lastData;
+      }
+
+      const value = this.#onUpdate();
+      let res: MaybePromise<RequestUpdateRes<T>>;
+      if (value instanceof Promise)
+        res = value.then(
+          (value): RequestUpdateRes<T> => {
+            let res = { value, timestamp: timestamp } as const;
+            this.pushCache({ data: value, timestamp });
+            this.#lastData = res;
+            return res;
+          },
+          (e) => {
+            this.#lastData = undefined;
+            throw e;
+          },
+        );
+      else {
+        res = { value: value, timestamp: timestamp };
+        this.pushCache({ data: value, timestamp });
+      }
+      this.#lastData = res;
+      return res;
+    }
     #center?: ChartCenter;
     /** @override */
-    updateData(data: T, timeAxisName?: string) {
+    updateData(data: T, timeName?: string): void {
       if (!this.#center) return;
-      this.#center.ctrl.writeChart(this.id, { value: data, timeAxisName: timeAxisName });
-      if (this.maxCacheSize <= 0) return;
       let internalData = typeof data === "object" ? deepClone(data) : data;
-      super.updateData(internalData);
+
+      const timestamp = Date.now();
+      this.pushCache({ data: internalData, timestamp, timeName });
+
+      const writeData: ChartUpdateData<any> = { value: internalData, timestamp: timestamp };
+      this.#center.ctrl.writeChart(this.id, writeData);
     }
     updateSubData(updateData: DimensionalityReduction<T>, coord: number, opts?: ChartUpdateLowerOption): void;
     updateSubData(updateData: IntersectingDimension<T>, coord: (number | undefined)[], opts?: ChartUpdateOption): void;
@@ -94,11 +130,12 @@ export class ChartCenter {
       opts?: ChartUpdateLowerOption | ChartUpdateOption,
     ): void {
       if (!this.#center) return;
+      const timestamp = Date.now();
       this.#center.ctrl.writeChart(this.id, {
         value: updateData,
-        timeAxisName: opts?.timeName,
         coord: coord,
         dimensionIndexNames: opts?.dimensionIndexNames,
+        timestamp: timestamp,
       } as ChartUpdateData);
       if (this.maxCacheSize <= 0) return;
       //@ts-ignore
@@ -136,5 +173,8 @@ export type {
  * @category Chart
  */
 export type CenterCreateChartOption<T = unknown> = ChartCreateOption & {
-  onUpdate?(): MaybePromise<RequestUpdateRes<T>>;
+  /** 主动请求更新的回调函数 */
+  onRequestUpdate?(): MaybePromise<T>;
+  /** 请求更新节流。单位毫秒 */
+  updateThrottle?: number;
 };

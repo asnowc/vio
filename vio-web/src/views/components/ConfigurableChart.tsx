@@ -15,6 +15,7 @@ import {
   PieChartOutlined,
 } from "@ant-design/icons";
 import { Rule } from "antd/es/form/index.js";
+import { ChartDataItem } from "@asnc/vio/client";
 
 type ChartDefine = {
   name: string;
@@ -306,9 +307,9 @@ function updateDimensionIndexNames(
 ): Record<number, (string | undefined)[] | undefined> {
   let indexNames = indexRecordToArray(chart.dimensionIndexNames, chart.dimension) as (string | undefined)[][];
 
-  const formatTime = (item: { time: number; name?: string }) => {
-    if (item.name) return item.name;
-    return new Date(item.time).toLocaleString();
+  const formatTime = (item: Readonly<ChartDataItem<unknown>>) => {
+    if (item.timeName) return item.timeName;
+    return new Date(item.timestamp).toLocaleString();
   };
   if (timelineEnable) {
     const timelineNames = Array.from(chart.getCacheDateItem()).map(formatTime);

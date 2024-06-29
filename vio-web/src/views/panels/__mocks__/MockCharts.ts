@@ -68,7 +68,7 @@ export function startMockUpdateData(
 ) {
   return setInterval(() => {
     const randomData = genArr(...dimensionIndexSizes);
-    api.writeChart(id, { value: randomData });
+    api.writeChart(id, { value: randomData, timestamp: Date.now() });
   }, time);
 }
 export function useStartMockUpdateData(

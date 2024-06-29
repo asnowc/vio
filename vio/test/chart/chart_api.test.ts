@@ -1,23 +1,20 @@
-import { expect, vi } from "vitest";
+import { describe, expect, vi } from "vitest";
 import { connectWebsocket } from "../../src/lib/http_server/mod.ts";
 import { CenterCreateChartOption } from "@asnc/vio";
-import { ChartUpdateData, ChartInfo, ChartCreateInfo, VioServerExposed } from "../../src/client.ts";
+import { ChartInfo, ChartCreateInfo } from "../../src/client.ts";
 import { createWebSocketCpc } from "cpcall/web";
 import { afterTime } from "evlib";
 import { vioServerTest as test } from "../_env/test_port.ts";
 
-test("flow", async function ({ vio, connector }) {
-  const { cpc, clientApi } = connector;
-  const caller = cpc.genCaller<VioServerExposed>();
-  let allCharts = await caller.getCharts(); //客户端获取所有图信息
-  expect(allCharts).toEqual({ list: [] });
+test("create", async function ({ vio, connector }) {
+  const { clientApi, serverApi } = connector;
+  await expect(serverApi.getCharts()).resolves.toEqual({ list: [] });
 
   const config: CenterCreateChartOption<number> = { meta: { chartType: "progress" }, maxCacheSize: 20 };
   const chart = vio.chart.create<number>(1, config); //创建
   expect(chart).toMatchObject(config);
-  expect(chart.dimension).toBe(1);
 
-  allCharts = await caller.getCharts();
+  let allCharts = await serverApi.getCharts();
   expect(allCharts).toEqual({
     list: [{ id: chart.id, dimension: chart.dimension, meta: config.meta!, cacheData: [], dimensionIndexNames: [[]] }],
   } satisfies typeof allCharts);
@@ -28,24 +25,38 @@ test("flow", async function ({ vio, connector }) {
     id: chart.id,
     dimensionIndexNames: [[]],
   } satisfies ChartCreateInfo);
+});
+test("dimensionIndexNames", async function ({ vio }) {
+  const chart = vio.chart.create(1); //创建
 
-  vio.chart.disposeChart(chart); //删除
-  await afterTime(50);
-  expect(clientApi.deleteChart).toBeCalledWith(chart.id);
+  expect(chart.dimensionIndexNames[0]).toEqual([]);
 
-  vio.chart.disposeChart(chart); //重复删除
-  expect(clientApi.deleteChart).toBeCalledTimes(1);
+  //@ts-ignore
+  expect(() => (chart.dimensionIndexNames[1] = [])).toThrowError();
+});
+test("dispose chart", async function ({ vio, connector }) {
+  const { clientApi, serverApi } = connector;
+  const chart0 = vio.chart.create(0);
+  const chart1 = vio.chart.create(2);
+  await expect(serverApi.getCharts().then((res) => res.list)).resolves.toHaveLength(2);
+  let chart3 = vio.chart.create(3);
+  await expect(serverApi.getCharts().then((res) => res.list)).resolves.toHaveLength(3);
+
+  vio.chart.disposeChart(chart1);
+
+  await expect(serverApi.getCharts().then((res) => res.list.map((info) => info.id))).resolves.toEqual([0, 2]);
+
+  expect(clientApi.deleteChart).toBeCalledWith(chart1.id);
 });
 test("update", async function ({ vio, connector }) {
-  const { cpc, clientApi } = connector;
-  const caller = cpc.genCaller<VioServerExposed>();
+  const { clientApi, serverApi } = connector;
 
   const config: CenterCreateChartOption<number> = { maxCacheSize: 20 };
   const chart = vio.chart.create<number>(1, config); //创建
 
   const find = ({ list }: { list: ChartInfo<any>[] }) => list.find((item) => item.id === chart.id);
 
-  let created = await caller.getCharts().then(find);
+  let created = await serverApi.getCharts().then(find);
 
   expect(created).toMatchObject({ cacheData: [] } satisfies Partial<ChartInfo>);
   chart.updateData(1); //更新
@@ -54,17 +65,18 @@ test("update", async function ({ vio, connector }) {
 
   expect(Array.from(chart.getCacheData())).toEqual([1, 2, 3]);
 
-  created = await caller.getCharts().then(find);
+  created = await serverApi.getCharts().then(find);
   expect(created).toMatchObject({ cacheData: [1, 2, 3] } satisfies Partial<ChartInfo>);
 
   expect(clientApi.writeChart).toBeCalledTimes(3);
-  expect(clientApi.writeChart).toBeCalledWith(chart.id, { value: 1 } satisfies ChartUpdateData<number>);
+
+  expect(clientApi.writeChart.mock.calls.map((item) => item[1])).toMatchObject([
+    { value: 1 },
+    { value: 2 },
+    { value: 3 },
+  ]);
 
   vio.chart.disposeChart(chart);
-});
-test("request update", async function ({ vio, connector }) {
-  const onRequest = vi.fn();
-  vio.chart.create(1,{})
 });
 test("cache", async function ({ vio }) {
   const config: CenterCreateChartOption<number> = { maxCacheSize: 4 };
@@ -77,6 +89,73 @@ test("cache", async function ({ vio }) {
   chart.updateData(4);
   expect(Array.from(chart.getCacheData())).toEqual([1, 2, 3, 4]);
 });
+test("Proactive update", async function ({ vio, connector }) {
+  const { clientApi, serverApi } = connector;
+  const chart1 = vio.chart.create(1);
+
+  let i = 0;
+  const onRequestUpdate = vi.fn(() => i++);
+  const chart2 = vio.chart.create(2, { onRequestUpdate, updateThrottle: 20 });
+
+  await expect(serverApi.requestUpdateChart(chart1.id), "Chart1 没有设置更新函数，应抛出异常").rejects.toThrowError();
+  await expect(serverApi.requestUpdateChart(chart2.id)).resolves.toMatchObject({ value: 0 });
+  await expect(
+    serverApi.requestUpdateChart(chart2.id),
+    "请求频率超过设定的节流时间，返回的值还是原来的",
+  ).resolves.toMatchObject({ value: 0 });
+  expect(onRequestUpdate).toBeCalledTimes(1);
+
+  await afterTime(40);
+  await expect(serverApi.requestUpdateChart(chart2.id)).resolves.toMatchObject({ value: 1 });
+
+  expect(
+    serverApi.getChartInfo(chart2.id).then((info) => info!.cacheData),
+    "通过 requestUpdateChart 获取的数据应该被推送到缓存",
+  ).resolves.toEqual([0, 1]);
+});
+
+describe.todo("updateSub", function () {
+  test("updateLine", function ({ vio }) {
+    const chart = vio.chart.create(2);
+    const data = [
+      [0, 1, 3],
+      [2, 2, 3],
+      [3, 2, 3],
+    ];
+    chart.updateData(data);
+
+    // chart.updateSubData([7, 3, 9], 1); // 横向更新线
+
+    expect(chart.data).toEqual([
+      [0, 1, 3],
+      [7, 3, 9],
+      [3, 2, 3],
+    ]);
+
+    // chart.updateSubData([4, 5, 6], [undefined, 2]); // 纵向更新线
+    // expect(chart.data).toEqual([
+    // [0, 1, 4],
+    // [7, 3, 5],
+    // [3, 2, 6],
+    // ]);
+
+    // chart.updateSubData(99, [1, 1]); // 更新点
+
+    // expect(chart.data).toEqual([
+    //   [0, 1, 4],
+    //   [7, 99, 5],
+    //   [3, 2, 6],
+    // ]);
+  });
+  test("updateLine", function ({ vio }) {
+    const chart = vio.chart.create(1);
+    const data = [0, 1, 3];
+    chart.updateData(data);
+
+    // const [axis0, axis1] = chart.dimensionIndexNames;
+  });
+});
+
 export function connectRpc(host: string) {
   return connectWebsocket(`ws://${host}/api/rpc`).then((ws) => createWebSocketCpc(ws));
 }

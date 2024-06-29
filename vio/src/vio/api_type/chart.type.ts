@@ -21,7 +21,10 @@ export type ChartCreateInfo = Pick<ChartInfo, "id" | "dimension"> & {
 };
 
 export type ChartUpdateData<T = number> = {
+  /** 时间刻度名称 */
   timeAxisName?: string;
+  /** 时间刻度(时间戳) */
+  timestamp: number;
 } & (
   | {
       coord: number | (number | undefined)[];
@@ -46,7 +49,7 @@ export type DimensionalityReduction<T> = T extends Array<infer P> ? P : never;
 export type VioChartType = VioChartMeta["chartType"];
 
 /** @public */
-export type RequestUpdateRes<T> = { ok: true; data: T } | { ok: false } | { ok: boolean; data?: T };
+export type RequestUpdateRes<T> = { value: T; timestamp: number };
 
 /** @public */
 export type VioChartMeta =
