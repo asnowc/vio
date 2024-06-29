@@ -1,5 +1,8 @@
-/** 一个图表的信息
- * @public */
+/**
+ * 一个图表的信息
+ * @public
+ * @category Chart
+ */
 export interface ChartInfo<T = number> {
   id: number;
   /** 维度 */
@@ -41,6 +44,9 @@ export type DimensionalityReduction<T> = T extends Array<infer P> ? P : never;
 
 /** @public */
 export type VioChartType = VioChartMeta["chartType"];
+
+/** @public */
+export type RequestUpdateRes<T> = { ok: true; data: T } | { ok: false } | { ok: boolean; data?: T };
 
 /** @public */
 export type VioChartMeta =

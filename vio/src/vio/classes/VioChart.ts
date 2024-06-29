@@ -2,14 +2,15 @@ import type { DimensionalityReduction, IntersectingDimension, VioChartMeta } fro
 import { LinkedCacheQueue } from "evlib/data_struct";
 import { deepClone } from "evlib";
 import { IndexRecord, indexRecordToArray } from "../../lib/array_like.ts";
-
-/** VIO VioChart
+/**
+ * VIO Chart
  * @public
+ * @category Chart
  */
 export class VioChart<T = number> {
   constructor(config: VioChartCreateConfig) {
     const { dimensionIndexNames = {}, dimension, maxCacheSize = 0, meta } = config;
-    this.#cache = new LinkedCacheQueue<{ data: T; name?: string; time: number }>(maxCacheSize);
+    this.#cache = new LinkedCacheQueue<ChartDataItem<T>>(maxCacheSize);
     this.dimension = dimension;
     this.id = config.id;
 
@@ -24,24 +25,41 @@ export class VioChart<T = number> {
     this.dimensionIndexNames = finalDimensionIndexNames;
     this.meta = { ...meta };
   }
-  #cache;
-  get cachedSize() {
+  #cache: LinkedCacheQueue<ChartDataItem<T>>;
+  /** 已缓存的数据长度 */
+  get cachedSize(): number {
     return this.#cache.size;
+  } /** 缓存容量 */
+  get maxCacheSize(): number {
+    return this.#cache.maxSize;
   }
-  get data() {
-    return this.lastData?.data;
+  set maxCacheSize(size: number) {
+    this.#cache.maxSize = size;
   }
-  get lastData() {
+  get data(): T | undefined {
+    return this.lastDataItem?.data;
+  }
+  get lastDataItem(): Readonly<ChartDataItem<T>> | undefined {
     return this.#cache.last;
   }
-  get headData() {
+  get headDataItem(): Readonly<ChartDataItem<T>> | undefined {
     return this.#cache.head;
   }
+  /** @deprecated 改用 headDataItem */
+  get headData(): Readonly<ChartDataItem<T>> | undefined {
+    return this.#cache.head;
+  }
+  /** 遍历时间维度上的数据 */
+  private eachTimeline(): Generator<Readonly<ChartDataItem<T>>, void, void> {
+    return this.#cache[Symbol.iterator]();
+  }
+  /** 获取缓存中的数据 */
   *getCacheData(): Generator<T, void, void> {
     for (const item of this.#cache) {
       yield item.data;
     }
   }
+  /** 更新图表数据。并将数据推入缓存 */
   updateData(data: T, timeAxisName?: string): void {
     this.#cache.push({ data, time: Date.now(), name: timeAxisName });
   }
@@ -80,41 +98,61 @@ export class VioChart<T = number> {
     throw new Error("未实现");
     // this.updateData(data);
   }
-  get maxCacheSize(): number {
-    return this.#cache.maxSize;
-  }
-  set maxCacheSize(size: number) {
-    this.#cache.maxSize = size;
-  }
-  eachTimeline() {
-    return this.#cache[Symbol.iterator]();
-  }
+  /** 维度刻度名称 */
   readonly dimensionIndexNames: Readonly<Record<number, (string | undefined)[] | undefined>>;
-  get cacheData(): T[] {
-    return Array.from(this.getCacheData());
-  }
+
+  /** 维度数量 */
   readonly dimension: number;
   readonly id: number;
   readonly meta: VioChartMeta;
 }
-/** @public */
-export type VioChartCreateConfig = {
+/**
+ * VioChart 创建配置
+ * @public
+ * @category Chart
+ */
+export type VioChartCreateConfig = VioChartCreateOpts & {
   id: number;
   dimension: number;
+};
+/**
+ * VioChart 创建可选项
+ * @public
+ * @category Chart
+ */
+export type VioChartCreateOpts = {
+  /** {@inheritdoc VioChart.meta} */
   meta?: VioChartMeta;
-  /** 维度刻度名称 */
+  /** {@inheritdoc VioChart.dimensionIndexNames} */
   dimensionIndexNames?: Record<number, ArrayLike<string | undefined> | undefined>;
+  /** {@inheritdoc VioChart.maxCacheSize} */
   maxCacheSize?: number;
 };
-/** @public */
+/**
+ * @public
+ * @category Chart
+ */
 export type VioChartUpdateOpts = {
-  /** 与坐标对应 */
+  /** {@inheritdoc VioChart.dimensionIndexNames} */
   dimensionIndexNames?: Record<number, ArrayLike<string | undefined> | null>;
   /** 时间轴刻度名称 */
   timeName?: string;
 };
-/** @public */
+/**
+ * @public
+ * @category Chart
+ */
 export type VioChartUpdateLowerOpts = {
   dimensionIndexNames?: string;
+  /** {@inheritdoc VioChartUpdateOpts.timeName} */
   timeName?: string;
 };
+/**
+ * @public
+ * @category Chart
+ */
+export interface ChartDataItem<T = number> {
+  data: T;
+  name?: string;
+  time: number;
+}

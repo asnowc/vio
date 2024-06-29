@@ -106,6 +106,10 @@ class VioTtyImpl extends CacheTty implements VioTty {
   #resolvers: Record<number, InternalReadResolver>;
   /** 等待发送的读取请求队列 */
   #waitingSendQueue = new LinkedQueue<ReadingHandle>();
+  #input(data: any): boolean {
+    // TODO: 方案待定
+    return false;
+  }
 
   static TtyReadResolver = class InternalReadResolver implements TtyReadResolver {
     constructor(reader: TtyReader, ttyId: number, resolvers: Record<number, InternalReadResolver>) {
@@ -122,6 +126,10 @@ class VioTtyImpl extends CacheTty implements VioTty {
     #waitingResolverMap = new UniqueKeyMap<ReadingHandle>(0xffff_ffff);
     get waitingSize() {
       return this.#waitingResolverMap.size;
+    }
+    input(data: any): boolean {
+      if (!this.#tty) return false;
+      return this.#tty.#input(data);
     }
     resolve(requestId: number, data: any): boolean {
       const hd = this.#waitingResolverMap.take(requestId);
@@ -248,6 +256,7 @@ export interface TtyReadResolver {
   // disable(): void;
   resolve(requestId: number, data: any): boolean;
   reject(requestId: number, reason: any): boolean;
+  input(data: any): boolean;
   waitingSize: number;
 }
 

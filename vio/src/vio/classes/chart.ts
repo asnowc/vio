@@ -1,52 +1,48 @@
-import type { ChartInfo, ChartUpdateData, DimensionalityReduction, IntersectingDimension } from "../api_type/chart.type.ts";
+import type {
+  ChartUpdateData,
+  DimensionalityReduction,
+  IntersectingDimension,
+  RequestUpdateRes,
+} from "../api_type/chart.type.ts";
 import { UniqueKeyMap } from "evlib/data_struct";
 import { deepClone } from "evlib";
-import { VioChartUpdateLowerOpts, VioChartUpdateOpts, VioChart, VioChartCreateConfig } from "./VioChart.ts";
+import {
+  VioChartUpdateLowerOpts,
+  VioChartUpdateOpts,
+  VioChart,
+  VioChartCreateConfig,
+  VioChartCreateOpts,
+} from "./VioChart.ts";
 import { indexRecordToArray } from "../../lib/array_like.ts";
 import { ChartController } from "../api_type.ts";
+import { MaybePromise } from "../../type.ts";
 
-function getChartInfo<T>(chart: VioChart<T>): ChartInfo<T> {
-  return {
-    meta: chart.meta,
-    dimension: chart.dimension,
-    id: chart.id,
-    cacheData: chart.cacheData,
-    dimensionIndexNames: indexRecordToArray(chart.dimensionIndexNames, chart.dimension),
-  };
-}
-/** @public */
+/**
+ * @public
+ * @category Chart
+ */
 export class ChartCenter {
   static TTY_DEFAULT_CACHE_SIZE = 20;
   constructor(private ctrl: ChartController) {}
-  #instanceMap = new UniqueKeyMap<VioChart<unknown>>(2 ** 32);
-  /** 获取指定索引的 Chart. 如果不存在，则创建后返回 */
+  #instanceMap = new UniqueKeyMap<RpcVioChart>(2 ** 32);
+  /** 获取指定索引的 Chart */
   get(chartId: number): VioChart<unknown> | undefined {
     return this.#instanceMap.get(chartId);
   }
   /** 获取所有已创建的 Chart */
-  getAll() {
+  getAll(): IterableIterator<VioChart<unknown>> {
     return this.#instanceMap.values();
   }
-  /** 获取指定索引的 Chart 数据. 如果不存在，则创建后返回 */
-  getInfo(chartId: number): ChartInfo<unknown> | undefined {
-    const chart = this.#instanceMap.get(chartId);
-    if (chart) return getChartInfo(chart);
+  get chartsNumber() {
+    return this.#instanceMap.size;
   }
-  /** 获取所有已创建的 Chart 数据 */
-  getAllInfo<T = any>(): ChartInfo<T>[] {
-    const list: ChartInfo<any>[] = new Array(this.#instanceMap.size);
-    let i = 0;
-    for (const chart of this.#instanceMap.values()) {
-      list[i++] = getChartInfo(chart);
-    }
-    return list;
-  }
-  create<T = any>(dimension: 1, config: CreateChartOpts): VioChart<T>;
-  create<T = any>(dimension: 2, config: CreateChartOpts): VioChart<T[]>;
-  create<T = any>(dimension: 3, config: CreateChartOpts): VioChart<T[][]>;
-  create<T = any>(dimension: number, config: CreateChartOpts): VioChart<T>;
-  create(dimension: number, config: CreateChartOpts): VioChart<any> {
-    let chartId = this.#instanceMap.allowKeySet(null as any);
+
+  create<T = any>(dimension: 1, config: CenterCreateChartConfig<T>): VioChart<T>;
+  create<T = any>(dimension: 2, config: CenterCreateChartConfig<T[]>): VioChart<T[]>;
+  create<T = any>(dimension: 3, config: CenterCreateChartConfig<T[][]>): VioChart<T[][]>;
+  create<T = any>(dimension: number, config: CenterCreateChartConfig<T>): VioChart<T>;
+  create(dimension: number, config: CenterCreateChartConfig<any>): VioChart<any> {
+    let chartId = this.#instanceMap.allocKeySet(null as any);
     const { maxCacheSize = ChartCenter.TTY_DEFAULT_CACHE_SIZE } = config;
     const chart = new ChartCenter.Chart(this, {
       ...config,
@@ -64,6 +60,11 @@ export class ChartCenter {
 
     return chart;
   }
+  requestUpdate<T>(chartId: number): MaybePromise<RequestUpdateRes<T>> {
+    const chart = this.#instanceMap.get(chartId);
+    if (!chart?.onUpdate) return { ok: false };
+    return chart.onUpdate() as MaybePromise<RequestUpdateRes<T>>;
+  }
   disposeChart(chart: VioChart<unknown>) {
     if (!(chart instanceof ChartCenter.Chart)) throw new Error("This chart does not belong to the center");
     chart.dispose();
@@ -73,11 +74,9 @@ export class ChartCenter {
       super(opts);
       this.#center = center;
     }
-    get cacheData(): T[] {
-      return Array.from(this.getCacheData());
-    }
+    onUpdate?: () => MaybePromise<RequestUpdateRes<T>>;
     #center?: ChartCenter;
-
+    /** @override */
     updateData(data: T, timeAxisName?: string) {
       if (!this.#center) return;
       this.#center.ctrl.writeChart(this.id, { value: data, timeAxisName: timeAxisName });
@@ -85,9 +84,9 @@ export class ChartCenter {
       let internalData = typeof data === "object" ? deepClone(data) : data;
       super.updateData(internalData);
     }
-
     updateSubData(updateData: DimensionalityReduction<T>, coord: number, opts?: VioChartUpdateLowerOpts): void;
     updateSubData(updateData: IntersectingDimension<T>, coord: (number | undefined)[], opts?: VioChartUpdateOpts): void;
+    /** @override */
     updateSubData(
       updateData: IntersectingDimension<T>,
       coord: number | (number | undefined)[],
@@ -117,6 +116,9 @@ export class ChartCenter {
     }
   };
 }
+
+type RpcVioChart = InstanceType<(typeof ChartCenter)["Chart"]>;
+
 export type {
   ChartInfo,
   DimensionalityReduction,
@@ -124,7 +126,14 @@ export type {
   ChartMeta,
   VioChartMeta,
   VioChartType,
+  RequestUpdateRes,
 } from "../api_type/chart.type.ts";
-/**  VioChart 构造函数的选项
- * @public */
-export type CreateChartOpts = Omit<VioChartCreateConfig, "id" | "dimension">;
+
+/**
+ * VioChart 构造函数的选项
+ * @public
+ * @category Chart
+ */
+export type CenterCreateChartConfig<T = unknown> = VioChartCreateOpts & {
+  onUpdate?(): MaybePromise<RequestUpdateRes<T>>;
+};
