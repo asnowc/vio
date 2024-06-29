@@ -1,9 +1,10 @@
-//纯输出数据
-/** @public */
+/**
+ * @public
+ * @category TTY
+ */
 export type TtyWriteTextType = "warn" | "log" | "error" | "info";
 
-/** 终端输出消息
- */
+/** 终端输出数据 */
 export namespace TtyOutputData {
   export interface Text {
     type: "text";
@@ -65,7 +66,11 @@ export namespace TtyInputReq {
     [key: string | number]: any;
   }
 }
-/** @public */
+
+/**
+ * @public
+ * @category TTY
+ */
 export type RawImageData = {
   /** 图像宽度 */
   width: number;
@@ -83,12 +88,16 @@ export type RawImageData = {
 /**
  * 编码的图像数据，如 jpg、png等
  * @public
+ * @category TTY
  */
 export type EncodedImageData = {
   data: Uint8Array;
   mime: string;
 };
-/** @public */
+/**
+ * @public
+ * @category TTY
+ */
 export type VioFileData = {
   name: string;
   data: Uint8Array;
@@ -106,9 +115,14 @@ export type TtyInputsReq =
   | TtyInputReq.Confirm
   | TtyInputReq.File
   | TtyInputReq.Select
-  | TtyOutputData.Custom;
-
-/** @public */
+  | TtyInputReq.Custom;
+/**
+ * @public
+ * @category TTY
+ */
 export type SelectKey = string | number;
-/** @public */
+/**
+ * @public
+ * @category TTY
+ */
 export type SelectItem<T extends SelectKey = SelectKey> = { value: T; label?: string };

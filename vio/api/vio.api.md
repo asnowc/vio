@@ -6,8 +6,6 @@
 
 /// <reference types="node" />
 
-import { Duplex } from 'node:stream';
-
 // @public
 export type CenterCreateChartOption<T = unknown> = ChartCreateOption & {
     onRequestUpdate?(): MaybePromise<T>;
@@ -138,6 +136,10 @@ export type ClassToInterface<T extends object> = {
 export function createVio(): Vio;
 
 // @public (undocumented)
+const _default: Vio;
+export default _default;
+
+// @public (undocumented)
 export type DimensionalityReduction<T> = T extends Array<infer P> ? P : never;
 
 // @public (undocumented)
@@ -177,14 +179,7 @@ export type RawImageData = {
 
 // @public (undocumented)
 export type RequestUpdateRes<T> = {
-    ok: false;
-} | {
-    ok: true;
     value: T;
-    timestamp: number;
-} | {
-    ok: boolean;
-    value?: T;
     timestamp: number;
 };
 
@@ -203,8 +198,6 @@ export abstract class TTY {
     pick<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[]): Promise<T>;
     // Warning: (ae-forgotten-export) The symbol "TtyInputsReq" needs to be exported by the entry point index.d.ts
     abstract read<T = unknown>(config: TtyInputsReq): Promise<T>;
-    // Warning: (ae-forgotten-export) The symbol "TtyReadFileOption" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     readFile(option?: TtyReadFileOption): Promise<FileData>;
     readText(title: string, max?: number): Promise<string>;
@@ -219,10 +212,8 @@ export abstract class TTY {
     writeImage(imageData: EncodedImageData | RawImageData): void;
     // (undocumented)
     writeTable(data: any[][], header?: string[]): void;
-    // Warning: (ae-forgotten-export) The symbol "WriteTtyTextOption" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    writeText(title: string, option?: TtyWriteTextType | WriteTtyTextOption): void;
+    writeText(title: string, option?: TtyWriteTextType | TTyWriteTextOption): void;
     // (undocumented)
     writeUiLink(ui: VioChart<number>): void;
 }
@@ -233,8 +224,7 @@ export class TtyCenter {
     constructor(writeTty: TtyWriterFn);
     delete(tty: VioTty): boolean;
     get(ttyId: number): VioTty;
-    // Warning: (ae-forgotten-export) The symbol "VioTtyImpl" needs to be exported by the entry point index.d.ts
-    getAll(): IterableIterator<VioTtyImpl>;
+    getAll(): IterableIterator<VioTty>;
     // (undocumented)
     getCreated(index: number): VioTty | undefined;
     // (undocumented)
@@ -254,6 +244,13 @@ export interface TtyReader {
 }
 
 // @public (undocumented)
+export type TtyReadFileOption = {
+    mime?: string;
+    title?: string;
+    maxByteSize?: number;
+};
+
+// @public (undocumented)
 export interface TtyReadResolver {
     // (undocumented)
     dispose(): void;
@@ -266,6 +263,12 @@ export interface TtyReadResolver {
     // (undocumented)
     waitingSize: number;
 }
+
+// @public (undocumented)
+export type TTyWriteTextOption = {
+    msgType?: TtyWriteTextType;
+    content?: string;
+};
 
 // @public (undocumented)
 export type TtyWriteTextType = "warn" | "log" | "error" | "info";

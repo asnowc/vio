@@ -7,7 +7,10 @@ import { withPromise, WithPromise } from "evlib";
 type TtyWriterFn = (ttyId: number, data: TtyOutputsData) => void;
 type TtyReadFn = VioClientExposed["sendTtyReadRequest"];
 
-/** @public */
+/**
+ * @public
+ * @category TTY
+ */
 export class TtyCenter {
   static TTY_DEFAULT_CACHE_SIZE = 20;
   constructor(private writeTty: TtyWriterFn) {}
@@ -36,7 +39,7 @@ export class TtyCenter {
     return this.#instanceMap.get(index);
   }
   /** 获取所有已创建的 TTY */
-  getAll() {
+  getAll(): IterableIterator<VioTty> {
     return this.#instanceMap.values();
   }
   setReader(ttyId: number, reader: TtyReader): TtyReadResolver {
@@ -57,7 +60,7 @@ export class TtyCenter {
 
   #resolver: Record<number, InternalReadResolver> = {};
   /** 删除指定索引的 TTY */
-  delete(tty: VioTty) {
+  delete(tty: VioTty): boolean {
     if (!(tty instanceof VioTtyImpl)) return false;
     if (this.#instanceMap.get(tty.ttyIndex) === tty) {
       tty.dispose();
@@ -238,19 +241,28 @@ type InternalReadResolver = InstanceType<typeof VioTtyImpl.TtyReadResolver>;
 
 type ReadingHandle = WithPromise<unknown> & { config: TtyInputsReq };
 
-/** @public */
+/**
+ * @public
+ * @category TTY
+ */
 export interface VioTty extends TTY {
   cachedSize: number;
   cacheSize: number;
   getCache(): IterableIterator<TtyOutputsData>;
   disposed: boolean;
 }
-/** @public */
+/**
+ * @public
+ * @category TTY
+ */
 export interface TtyReader {
   read: TtyReadFn;
   dispose?(): void;
 }
-/** @public */
+/**
+ * @public
+ * @category TTY
+ */
 export interface TtyReadResolver {
   dispose(): void;
   // disable(): void;

@@ -1,5 +1,5 @@
 import { describe, expect, beforeEach } from "vitest";
-import { connectWebsocket } from "../../src/lib/http_server/mod.ts";
+import { connectWebsocket } from "../../src/lib/websocket.ts";
 import { TtyOutputsData, VioServerExposed, TtyOutputData, TtyInputReq } from "../../src/client.ts";
 import { createWebSocketCpc } from "cpcall/web";
 import { afterTime } from "evlib";

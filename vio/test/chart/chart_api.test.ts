@@ -1,5 +1,5 @@
 import { describe, expect, vi } from "vitest";
-import { connectWebsocket } from "../../src/lib/http_server/mod.ts";
+import { connectWebsocket } from "../../src/lib/websocket.ts";
 import { CenterCreateChartOption } from "@asnc/vio";
 import { ChartInfo, ChartCreateInfo } from "../../src/client.ts";
 import { createWebSocketCpc } from "cpcall/web";

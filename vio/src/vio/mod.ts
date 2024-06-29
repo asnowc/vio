@@ -11,7 +11,7 @@ export type {
 } from "./classes/VioChart.ts";
 export * from "./classes/chart.ts";
 export * from "./classes/vio_tty.ts";
-export type { TTY } from "./classes/tty.ts";
+export type { TTY, TTyWriteTextOption, TtyReadFileOption } from "./classes/tty.ts";
 /**
  * @public
  */

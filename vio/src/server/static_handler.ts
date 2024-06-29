@@ -1,8 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { runtime } from "../const.ts";
-import { TransformStream, type ReadableStream } from "node:stream/web";
 import { withPromise } from "evlib";
+import { platformApi } from "./platform_api.ts";
 
 type MaybePromise<T> = T extends Promise<any> ? T | Awaited<T> : T | Promise<T>;
 export class FileServerHandler {
@@ -13,7 +12,7 @@ export class FileServerHandler {
   async getResponse(pathname: string): Promise<Response | undefined> {
     const info = await this.getFileInfo(pathname);
     if (!info) return;
-    return this.#responseFile(info);
+    return platformApi.responseFile(info);
   }
   private async getFileInfo(pathname: string) {
     if (pathname === "/") pathname = "/index.html";
@@ -47,17 +46,7 @@ export class FileServerHandler {
     }
     return info;
   }
-  async #responseFile(info: FileStatusCache) {
-    const filename = info.filename;
-    const fd = await readFileStream(filename);
 
-    let headers: Record<string, string> = {
-      "content-length": info.size,
-    };
-    if (info.mime) headers["content-type"] = info.mime;
-
-    return new Response(pipeFileStream(fd), { status: 200, headers: headers });
-  }
   #mime: Record<string, string> = {};
 }
 
@@ -79,36 +68,3 @@ interface FileStatusCache {
   mime?: string;
   filename: string;
 }
-
-async function* pipeFileStream(fd: FileStreamHandle) {
-  try {
-    yield* fd.readable;
-  } finally {
-    await fd.close();
-  }
-}
-
-interface FileStreamHandle {
-  readable: ReadableStream<Uint8Array>;
-  close(): Promise<void>;
-}
-function readFileStreamNode(pathname: string): Promise<FileStreamHandle> {
-  return fs.open(pathname).then((fd) => {
-    const trans = new TransformStream<any, Uint8Array>({
-      transform(chunk, controller) {
-        if (chunk instanceof ArrayBuffer) {
-          const data = new Uint8Array(chunk, 0, chunk.byteLength);
-          controller.enqueue(data);
-        } else if (chunk instanceof Uint8Array) controller.enqueue(chunk);
-        else controller.error(new Error("不支持的数据: " + String(chunk)));
-      },
-    });
-
-    return { readable: fd.readableWebStream({ type: "bytes" }).pipeThrough(trans), close: () => fd.close() };
-  });
-}
-function readFileStreamDeno(pathname: string): Promise<FileStreamHandle> {
-  //@ts-ignore
-  return Deno.open(pathname);
-}
-const readFileStream = runtime === "deno" ? readFileStreamDeno : readFileStreamNode;

@@ -3,7 +3,7 @@
     "@asnc/vio": "./vio/src/mod.ts"
   },
   "compilerOptions": {
-    "lib": ["deno.ns"]
+    "lib": ["deno.window"]
   },
   "lock": false,
   "nodeModulesDir": false

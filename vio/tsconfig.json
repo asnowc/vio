@@ -4,11 +4,11 @@
     "lib": ["ESNext"],
     "types": [],
     "paths": {
-      "@asnc/vio": ["./src/mod.ts"]
+      "@asnc/vio": ["./src/mod_node.ts"]
     },
     "declaration": true,
     "skipLibCheck": true,
     "baseUrl": "."
   },
-  "exclude": ["node_modules", "temp", "/dist"]
+  "exclude": ["node_modules", "temp", "/dist", "src/mod_deno.ts"]
 }

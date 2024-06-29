@@ -14,20 +14,28 @@ import type {
 import { VioChart, VioChartImpl } from "./VioChart.ts";
 import { createTypeErrorDesc } from "evlib/errors";
 
-/** @public */
-export type WriteTtyTextOption = {
+/**
+ * @public
+ * @category TTY
+ */
+export type TTyWriteTextOption = {
   msgType?: TtyWriteTextType;
   content?: string;
 };
-/** @public */
+/**
+ * @public
+ * @category TTY
+ */
 export type TtyReadFileOption = {
   mime?: string;
   title?: string;
   /** 文件大小限制，单位字节 */
   maxByteSize?: number;
 };
-/** 终端实例
+/**
+ * 终端实例
  * @public
+ * @category TTY
  */
 export abstract class TTY {
   /** 写入任意数据 */
@@ -44,7 +52,7 @@ export abstract class TTY {
   writeTable(data: any[][], header?: string[]): void {
     return this.write({ type: "table", data, header } satisfies TtyOutputData.Table);
   }
-  writeText(title: string, option: TtyWriteTextType | WriteTtyTextOption = {}): void {
+  writeText(title: string, option: TtyWriteTextType | TTyWriteTextOption = {}): void {
     let content: string | undefined;
     let msgType: TtyOutputData.Text["msgType"] | undefined;
     if (typeof option === "string") msgType = option;

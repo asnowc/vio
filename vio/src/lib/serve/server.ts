@@ -1,4 +1,6 @@
-import { HttpServer, ServeHandler, ServeOptions } from "./server.ts";
+import { ServeOptions, ServeHandler } from "./type.ts";
+import { HttpServer } from "./HttpServer.ts";
+
 export function serve(handler: ServeHandler): HttpServer;
 export function serve(opts: ServeOptions, handler: ServeHandler): HttpServer;
 export function serve(handler_opts: ServeHandler | ServeOptions, handler?: ServeHandler) {
@@ -8,6 +10,3 @@ export function serve(handler_opts: ServeHandler | ServeOptions, handler?: Serve
   HttpServer.listen(serve);
   return serve;
 }
-
-export type { HttpServer, NetAddr, ServeHandler, ServeHandlerInfo, ServeOptions } from "./server.ts";
-export { upgradeWebSocket } from "./server.ts";

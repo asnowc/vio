@@ -1,15 +1,11 @@
-import type { HttpServer, ServeHandlerInfo, WebSocket } from "../lib/http_server/mod.ts";
+import type { WebSocket } from "../lib/deno/http.ts";
 import { Vio, Disposable } from "../vio/vio.ts";
 import { Router, createRequestContext } from "./router.ts";
 import { FileServerHandler } from "./static_handler.ts";
-import { packageDir, runtime } from "../const.ts";
+import { packageDir } from "../const.ts";
 import path from "node:path";
-
-const httpApi: typeof import("../lib/http_server/mod.ts") = await (() => {
-  //@ts-ignore
-  if (runtime === "deno") return Deno;
-  return import("../lib/http_server/mod.ts");
-})();
+import { HttpServer, ServeHandlerInfo } from "../lib/deno/http.ts";
+import { platformApi } from "./platform_api.ts";
 
 const DEFAULT_VIO_ASSETS_DIR = path.resolve(packageDir, "assets/web");
 
@@ -32,7 +28,7 @@ export class VioHttpServer {
     });
     router.set("/api/rpc", ({ request: req }) => {
       if (req.headers.get("Upgrade") !== "websocket") return new Response(undefined, { status: 400 });
-      const { response, socket: websocket } = httpApi.upgradeWebSocket(req);
+      const { response, socket: websocket } = platformApi.upgradeWebSocket(req);
       this.#ontWebSocketConnect(websocket);
       return response;
     });
@@ -89,7 +85,7 @@ export class VioHttpServer {
   listen(port?: number, hostname?: string): Promise<void> {
     if (this.#serve) throw new Error("");
     return new Promise<void>((resolve) => {
-      this.#serve = httpApi.serve({ hostname, port, onListen: () => resolve() }, this.#handler);
+      this.#serve = platformApi.serve({ hostname, port, onListen: () => resolve() }, this.#handler);
       if (!this.#ref) this.#serve.unref();
     });
   }

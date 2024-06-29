@@ -34,7 +34,6 @@
     "./dist/**/*.d.ts"
   ],
   "exports": {
-    ".": "./dist/mod.js",
-    "./client": "./dist/client.js"
+    ".": "./dist/mod_node.js"
   }
 }

@@ -27,7 +27,7 @@ export class ChartCenter {
   getAll(): IterableIterator<VioChart<unknown>> {
     return this.#instanceMap.values();
   }
-  get chartsNumber() {
+  get chartsNumber(): number {
     return this.#instanceMap.size;
   }
 

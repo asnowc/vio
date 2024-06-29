@@ -1,5 +1,6 @@
 {
   "deno.enable": true,
+  "deno.config": "./vio/deno.json",
   "deno.enablePaths": ["./scripts"],
   "cSpell.words": ["cpcall", "dockview", "echarts", "flexcol", "flexrow"],
   "code-runner.executorMap": {

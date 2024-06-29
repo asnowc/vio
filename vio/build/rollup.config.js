@@ -10,7 +10,11 @@ if (dev) {
 //@ts-ignore
 export const rootDir = path.resolve(import.meta.dirname, "..");
 
-export const baseInput = { mod: "./src/mod.ts", client: "./src/client.ts" };
+export const baseInput = {
+  mod_node: "./src/mod_node.ts",
+  serve: "./src/lib/serve.ts",
+  websocket: "./src/lib/websocket.ts",
+};
 const inputs = Object.entries(baseInput).map(([k, v]) => [k, path.resolve(rootDir, v)]);
 
 export default defineEvConfig({

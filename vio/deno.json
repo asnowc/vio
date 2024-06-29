@@ -1,0 +1,9 @@
+{
+  "name": "@asn/vio",
+  "version": "0.0.1",
+  "exports": "./src/mod_deno.ts",
+  "tasks": {
+    "gen-doc": "deno doc --html --output=temp --name=VIO src/mod.ts",
+    "publish-dry": "deno publish --dry-run"
+  }
+}
