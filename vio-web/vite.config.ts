@@ -7,6 +7,7 @@ const src = path.resolve(root, "src");
 const alias: AliasOptions = [
   { find: /^@(?=\/)/, replacement: path.resolve(src) },
   { find: "@asnc/vio/client", replacement: path.resolve(root, "../vio/src/client.ts") },
+  { find: /^@asnc\/vio\//, replacement: path.resolve(root, "../vio/src") + "/" },
 ];
 
 const config: UserConfig = {

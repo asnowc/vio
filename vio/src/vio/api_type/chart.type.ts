@@ -5,39 +5,48 @@
  */
 export interface ChartInfo<T = number> {
   id: number;
-  /** 维度 */
-  dimension: number;
   cacheList: ChartDataItem<T>[];
-  /** 维度刻度名称 */
-  dimensionIndexNames: ((string | undefined)[] | undefined)[];
+  /** 维度数量。不包含时间维度 */
+  dimension: number;
+  /** 维度信息 */
+  dimensions: DimensionInfo[];
   meta: VioChartMeta;
 }
-/** @public */
-export type ChartCreateInfo = Pick<ChartInfo, "id" | "dimension"> & {
-  meta?: VioChartMeta;
-  /** 维度刻度名称 */
-  dimensionIndexNames?: ((string | undefined)[] | undefined)[];
-};
+/**
+ * 维度的信息
+ * @public
+ * @category Chart
+ */
+export interface DimensionInfo {
+  /** 维度名称 */
+  name?: string;
+  /** 维度单位 */
+  unitName?: string;
+  indexNames?: string[];
+}
 
-export type ChartUpdateData<T = number> = {
+/** @public */
+export type ChartCreateInfo = Pick<ChartInfo, "id" | "dimension" | "dimensions"> & {
+  meta?: VioChartMeta;
+};
+type ChartUpdateCommonData = {
   /** 时间刻度名称 */
   timeAxisName?: string;
   /** 时间刻度(时间戳) */
   timestamp: number;
-} & (
+};
+export type ChartUpdateData<T = number> = ChartUpdateCommonData & {
+  coord?: undefined;
+  data: T;
+};
+export type ChartUpdateSubData<T = number> =
+  | ChartUpdateCommonData
   | {
       coord: number | (number | undefined)[];
-      dimensionIndexNames?: (string | null | undefined)[];
       data: IntersectingDimension<T>;
     }
-  | { coord: number; dimensionIndexNames?: string; data: DimensionalityReduction<T> }
-  | {
-      coord?: undefined;
-      /** 维度刻度名称 */
-      dimensionIndexNames?: ((string | undefined | null)[] | undefined | null)[];
-      data: T;
-    }
-);
+  | { coord: number; data: DimensionalityReduction<T> };
+
 /** @public */
 export type IntersectingDimension<T> = T extends Array<infer P> ? P | IntersectingDimension<P> : never;
 
@@ -76,6 +85,7 @@ export type VioChartMeta =
 export namespace ChartMeta {
   /* 一维图 */
   export type Common = {
+    title?: string;
     enableTimeline?: boolean;
     requestInternal?: number;
   };
@@ -83,7 +93,6 @@ export namespace ChartMeta {
   /** 进度条 */
   export interface Progress extends Common {
     chartType: "progress";
-    title?: string;
     color?: string;
   }
   /** 仪表盘 */
@@ -91,7 +100,6 @@ export namespace ChartMeta {
     chartType: "gauge";
     min: number;
     max: number;
-    title?: string;
     unit?: string;
   }
   /** 时间线/时间节点 */
@@ -105,23 +113,19 @@ export namespace ChartMeta {
   /** 折/曲线图 */
   export interface Line extends Common {
     chartType: "line";
-    title?: string;
   }
   /** 柱状图 */
   export interface Bar extends Common {
     chartType: "bar";
-    title?: string;
     sort?: 0 | 1;
   }
 
   /** 饼图 */
   export interface Pie extends Common {
     chartType: "pie";
-    title?: string;
   }
   /** 散点图 */
   export interface Scatter extends Common {
     chartType: "scatter";
-    title?: string;
   }
 }

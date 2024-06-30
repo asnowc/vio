@@ -1,7 +1,7 @@
 import { describe, expect, vi } from "vitest";
 import { connectWebsocket } from "../../src/lib/websocket.ts";
 import { CenterCreateChartOption } from "@asnc/vio";
-import { ChartInfo, ChartCreateInfo } from "../../src/client.ts";
+import { ChartInfo, ChartCreateInfo, DimensionInfo } from "../../src/client.ts";
 import { createWebSocketCpc } from "cpcall/web";
 import { afterTime } from "evlib";
 import { vioServerTest as test } from "../_env/test_port.ts";
@@ -22,7 +22,7 @@ test("create", async function ({ vio, connector }) {
         dimension: chart.dimension,
         meta: config.meta!,
         cacheList: [],
-        dimensionIndexNames: [[]],
+        dimensions: [{}],
       },
     ],
   } satisfies typeof allCharts);
@@ -31,16 +31,13 @@ test("create", async function ({ vio, connector }) {
     meta: config.meta!,
     dimension: chart.dimension,
     id: chart.id,
-    dimensionIndexNames: [[]],
+    dimensions: [{}],
   } satisfies ChartCreateInfo);
 });
-test("dimensionIndexNames", async function ({ vio }) {
-  const chart = vio.chart.create(1); //创建
-
-  expect(chart.dimensionIndexNames[0]).toEqual([]);
-
-  //@ts-ignore
-  expect(() => (chart.dimensionIndexNames[1] = [])).toThrowError();
+test("dimensionsInfo", async function ({ vio }) {
+  const chart = vio.chart.create(2, { dimensions: { 1: { name: "Y" } } }); //创建
+  expect(chart.dimensions.length).toBe(2);
+  expect(chart.dimensions[1]).toMatchObject({ name: "Y" } satisfies DimensionInfo);
 });
 test("dispose chart", async function ({ vio, connector }) {
   const { clientApi, serverApi } = connector;

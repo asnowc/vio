@@ -28,7 +28,7 @@ function getChartInfo<T>(chart: VioChart<T>): ChartInfo<T> {
     dimension: chart.dimension,
     id: chart.id,
     cacheList: Array.from(chart.getCacheDateItem()),
-    dimensionIndexNames: indexRecordToArray(chart.dimensionIndexNames, chart.dimension),
+    dimensions: indexRecordToArray(chart.dimensions),
   };
 }
 class RpcServerExposed implements VioServerExposed {

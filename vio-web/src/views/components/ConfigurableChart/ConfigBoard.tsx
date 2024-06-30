@@ -1,9 +1,9 @@
 import React, { ReactNode, useMemo, useRef, useState } from "react";
 import { Button, Form, FormInstance, Input, InputNumber, Select, Switch, Tooltip } from "antd";
-import { CloseOutlined, RedoOutlined, SettingOutlined } from "@ant-design/icons";
+import { CloseOutlined, SettingOutlined } from "@ant-design/icons";
 import { Title } from "@/components/Title.tsx";
-import { ChartMeta } from "@asnc/vio/client";
 import { CHART_TYPE_RENDER_MAP } from "./const.ts";
+import { ChartConfig } from "./type.ts";
 export const CHARTS_OPTIONS = Object.entries(CHART_TYPE_RENDER_MAP).map(
   ([value, item]): { label?: ReactNode; value: string } => {
     let label: ReactNode = undefined;
@@ -23,12 +23,6 @@ export const CHARTS_OPTIONS = Object.entries(CHART_TYPE_RENDER_MAP).map(
     };
   },
 );
-export interface ChartConfig extends ChartMeta.Common {
-  chartType?: string;
-  echartsOption?: object;
-  echartsSeries?: object;
-  requestUpdate?: boolean;
-}
 
 interface ConfigBoardProps {
   onChange?(values: ChartConfig): void;

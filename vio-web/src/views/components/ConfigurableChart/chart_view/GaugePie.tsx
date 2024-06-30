@@ -6,35 +6,46 @@ import {
   PieSeriesOption,
 } from "@/lib/echarts.ts";
 import { ChartCommonProps } from "../type.ts";
-import { useLayoutEffect, useMemo } from "react";
-import { toDim } from "../../../panels/lib/getDim.ts";
+import { useContext, useLayoutEffect, useMemo } from "react";
 import { ChartMeta } from "@asnc/vio/client";
+import { errorCollector } from "@/services/ErrorLog.ts";
 
 export function GaugePie(props: ChartCommonProps<number | number[]>) {
-  const { resizeDep, dimensionIndexNames, staticOptions, chartMeta, staticSeries, chartType } = props;
+  const { resizeDep, staticOptions, chartMeta, staticSeries, dataList, dimensions } = props;
+  const { chartType, title } = chartMeta;
 
   const { chartElement, echarts, resize, isReady } = useEChart({ resizeDep });
+  const errorCtrl = useContext(errorCollector);
   const baseOptions = useMemo(() => {
     return genOption({
-      title: chartMeta.title,
+      title: title,
       echartsOption: staticOptions,
     });
-  }, [chartMeta.title, staticOptions]);
+  }, [title, staticOptions]);
+  const data = useMemo(() => {
+    const data = dataList[dataList.length - 1]?.data;
+    if (typeof data === "number") return [data];
+    else if (data instanceof Array) {
+      return data;
+    } else {
+      errorCtrl.error("GaugePie 图表数据校验不通过");
+      return [];
+    }
+  }, [dataList]);
+  const xIndexNames = useMemo(() => {
+    return dimensions[1].indexNames ?? [];
+  }, [dimensions]);
 
   const series = useMemo((): EChartsPruneSeries | undefined => {
-    const data = props.data;
-    if (!["pie", "gauge"].includes(chartType)) return { type: "gauge" };
-    if (typeof data !== "number" && !(data instanceof Array)) return { type: chartType as any };
+    if (!chartType || !["pie", "gauge"].includes(chartType)) return { type: "gauge" };
 
     const meta = chartMeta as ChartMeta.Gauge;
-
-    const data1D = toDim(data, 1)!;
     let series: GaugeSeriesOption | PieSeriesOption | undefined;
     switch (chartType) {
       case "pie":
         series = {
           ...(staticSeries as PieSeriesOption | undefined),
-          data: genPieSeriesData(data1D, { xIndexNames: dimensionIndexNames?.[1] }),
+          data: genPieSeriesData(data, { xIndexNames }),
           type: "pie",
           id: "pie0",
         };
@@ -42,7 +53,7 @@ export function GaugePie(props: ChartCommonProps<number | number[]>) {
       case "gauge":
         series = {
           ...(staticSeries as GaugeSeriesOption | undefined),
-          data: genGaugeSeriesData(data1D, { xIndexNames: dimensionIndexNames?.[1] }),
+          data: genGaugeSeriesData(data, { xIndexNames }),
           type: "gauge",
           id: "gauge0",
           max: meta.max ?? 100,
@@ -53,7 +64,7 @@ export function GaugePie(props: ChartCommonProps<number | number[]>) {
     }
 
     return series;
-  }, [props.data, dimensionIndexNames, staticSeries, chartMeta, chartType]);
+  }, [data, xIndexNames, staticSeries, chartMeta, chartType]);
 
   useLayoutEffect(() => {
     echarts.setOption<EChartsPruneOption>(

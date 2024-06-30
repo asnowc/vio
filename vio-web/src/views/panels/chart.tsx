@@ -10,7 +10,7 @@ export function VioChart({ api, containerApi, params }: IDockviewPanelProps<{ ch
   const chartCenter = useVioApi().chart;
   const { chartId } = params;
   function getChart() {
-    let chart = chartCenter.chartsMap.get(chartId);
+    let chart = chartCenter.get(chartId);
     if (!chart) chart = new ChartClientAgent({ dimension: 1, id: chartId });
     return chart;
   }

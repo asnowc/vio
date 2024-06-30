@@ -13,7 +13,7 @@ export async function memoryChart(vio: Vio) {
       enableTimeline: true,
       requestInternal: 2000,
     },
-    dimensionIndexNames: [, indexNames],
+    dimensions: [, { indexNames }],
     updateThrottle: 1000,
     onRequestUpdate: () => {
       const data = process.memoryUsage();

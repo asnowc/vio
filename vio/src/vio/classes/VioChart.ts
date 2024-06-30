@@ -1,25 +1,41 @@
-import type { ChartDataItem, DimensionalityReduction, IntersectingDimension, VioChartMeta } from "../api_type.ts";
+import type {
+  ChartDataItem,
+  DimensionInfo,
+  DimensionalityReduction,
+  IntersectingDimension,
+  VioChartMeta,
+} from "../api_type.ts";
 import { LinkedCacheQueue } from "evlib/data_struct";
 import { deepClone } from "evlib";
-import { IndexRecord, indexRecordToArray } from "../../lib/array_like.ts";
+import { IndexRecord } from "../../lib/array_like.ts";
 import { MaybePromise } from "../../type.ts";
 
 export abstract class VioChartImpl<T = number> implements VioChart<T> {
   constructor(config: VioChartCreateConfig<T>) {
-    const { dimensionIndexNames = {}, dimension, maxCacheSize = 0, meta, onRequestUpdate, updateThrottle = 0 } = config;
+    const { dimensions, dimension, maxCacheSize = 0, meta, onRequestUpdate, updateThrottle = 0 } = config;
+    if (!(dimension >= 0)) throw new RangeError("dimension must be a positive integer");
     this.#cache = new LinkedCacheQueue<ChartDataItem<T>>(maxCacheSize);
     this.dimension = dimension;
     this.id = config.id;
 
-    const finalDimensionIndexNames: IndexRecord<(string | undefined)[]> = { length: dimension };
-
-    for (let i = 0; i < dimension; i++) {
-      const indexNames = dimensionIndexNames[i];
-      if (indexNames) finalDimensionIndexNames[i] = indexRecordToArray(indexNames, indexNames.length);
-      else finalDimensionIndexNames[i] = [];
+    const finalDimension: IndexRecord<DimensionInfo> = { length: dimension };
+    Object.defineProperty(finalDimension, "length", {
+      value: dimension,
+      configurable: false,
+      enumerable: true,
+      writable: false,
+    });
+    if (dimensions) {
+      for (let i = 0; i < dimension; i++) {
+        const item = dimensions[i];
+        finalDimension[i] = typeof item === "object" && item ? item : {};
+      }
+    } else {
+      for (let i = 0; i < dimension; i++) {
+        finalDimension[i] = {};
+      }
     }
-    Object.freeze(finalDimensionIndexNames);
-    this.dimensionIndexNames = finalDimensionIndexNames;
+    this.dimensions = finalDimension;
     this.meta = { ...meta };
     this.updateThrottle = updateThrottle;
     this.onRequestUpdate = onRequestUpdate;
@@ -66,7 +82,7 @@ export abstract class VioChartImpl<T = number> implements VioChart<T> {
   /** 更新图表数据。并将数据推入缓存 */
   abstract updateData(data: T, timeName?: string): void;
 
-  private updateLowerOneDimension(updateData: IntersectingDimension<T>, coord: number, coordName?: string) {
+  private updateLowerOneDimension(updateData: IntersectingDimension<T>, coord: number) {
     const current = this.data!;
     if (!current) throw new Error("Data no exist");
     if (!(current instanceof Array)) throw new Error("Unable to update data for dimension 0");
@@ -78,31 +94,20 @@ export abstract class VioChartImpl<T = number> implements VioChart<T> {
       else data[i] = typeof current[i] === "object" ? deepClone(current[i]) : current[i];
     }
     this.updateData(data as T);
-    if (coordName !== undefined) {
-      let axis = this.dimensionIndexNames[0]!;
-      //@ts-ignore
-      axis[coord] = coordName;
-    }
   }
   /** 降一个维度更新数据 */
   protected updateSubData(updateData: DimensionalityReduction<T>, coord: number, option?: ChartUpdateLowerOption): void;
   // updateSubData(updateData: IntersectingDimension<T>, coord: (number | undefined)[], option?: ChartUpdateLowerOption): void;
-  protected updateSubData(
-    updateData: IntersectingDimension<T>,
-    coord: (number | undefined)[] | number,
-    option: ChartUpdateLowerOption | ChartUpdateOption = {},
-  ): void {
-    const { dimensionIndexNames } = option;
+  protected updateSubData(updateData: IntersectingDimension<T>, coord: (number | undefined)[] | number): void {
     if (typeof coord === "number") {
-      return this.updateLowerOneDimension(updateData, coord, dimensionIndexNames as string);
+      return this.updateLowerOneDimension(updateData, coord);
     }
     //TODO: 实现更细维度的数据更新
     throw new Error("未实现");
     // this.updateData(data);
   }
-  /** 维度刻度名称 */
-  readonly dimensionIndexNames: Readonly<Record<number, (string | undefined)[] | undefined>>;
-
+  /** 维度信息 */
+  readonly dimensions: IndexRecord<DimensionInfo>;
   /** 维度数量 */
   readonly dimension: number;
   readonly id: number;
@@ -127,9 +132,8 @@ export interface VioChart<T = number> {
   getCacheData(): IterableIterator<T>;
   /** 更新图表数据。并将数据推入缓存 */
   updateData(data: T, timeName?: string): void;
-  /** 维度刻度名称 */
-  readonly dimensionIndexNames: Readonly<Record<number, (string | undefined)[] | undefined>>;
-
+  /** 维度信息 */
+  readonly dimensions: ArrayLike<DimensionInfo>;
   /** 维度数量 */
   readonly dimension: number;
   readonly id: number;
@@ -159,8 +163,8 @@ export type VioChartCreateConfig<T = unknown> = ChartCreateOption & {
 export type ChartCreateOption = {
   /** {@inheritdoc VioChart.meta} */
   meta?: VioChartMeta;
-  /** {@inheritdoc VioChart.dimensionIndexNames} */
-  dimensionIndexNames?: Record<number, ArrayLike<string | undefined> | undefined>;
+  /** {@inheritdoc VioChart.dimensions} */
+  dimensions?: Record<number, DimensionInfo | undefined>;
   /** {@inheritdoc VioChart.maxCacheSize} */
   maxCacheSize?: number;
 };
@@ -169,8 +173,6 @@ export type ChartCreateOption = {
  * @category Chart
  */
 export type ChartUpdateOption = {
-  /** {@inheritdoc VioChart.dimensionIndexNames} */
-  dimensionIndexNames?: Record<number, ArrayLike<string | undefined> | null>;
   /** 时间轴刻度名称 */
   timeName?: string;
 };
@@ -179,7 +181,6 @@ export type ChartUpdateOption = {
  * @category Chart
  */
 export type ChartUpdateLowerOption = {
-  dimensionIndexNames?: string;
   /** {@inheritdoc ChartUpdateOption.timeName} */
   timeName?: string;
 };

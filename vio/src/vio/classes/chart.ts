@@ -1,5 +1,6 @@
 import type {
   ChartUpdateData,
+  ChartUpdateSubData,
   DimensionalityReduction,
   IntersectingDimension,
   RequestUpdateRes,
@@ -43,7 +44,7 @@ export class ChartCenter {
       meta: chart.meta,
       dimension: chart.dimension,
       id: chartId,
-      dimensionIndexNames: indexRecordToArray(chart.dimensionIndexNames, chart.dimension),
+      dimensions: indexRecordToArray(chart.dimensions),
     });
 
     return chart;
@@ -125,10 +126,10 @@ export class ChartCenter {
       const timestamp = Date.now();
       this.#center.ctrl.writeChart(this.id, {
         data: updateData,
-        coord: coord,
-        dimensionIndexNames: opts?.dimensionIndexNames,
+        coord: coord as any,
+        timeAxisName: opts?.timeName,
         timestamp: timestamp,
-      } as ChartUpdateData);
+      } satisfies ChartUpdateSubData<T>);
       if (this.maxCacheSize <= 0) return;
       //@ts-ignore
       super.updateSubData(updateData, coord, opts);

@@ -3,7 +3,8 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@asnc/vio/client": ["./node_modules/@asnc/vio/src/client.ts"]
+      "@asnc/vio/client": ["./node_modules/@asnc/vio/src/client.ts"],
+      "@asnc/vio/*": ["./node_modules/@asnc/vio/src/*"]
     }
   }
 }
