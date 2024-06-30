@@ -59,11 +59,7 @@ export class ChartCenter {
   }
   private static Chart = class RpcVioChart<T> extends VioChartImpl<T> {
     constructor(center: ChartCenter, chartId: number, dimension: number, options: CenterCreateChartOption<T> = {}) {
-      const {
-        maxCacheSize = ChartCenter.TTY_DEFAULT_CACHE_SIZE,
-        onRequestUpdate: onUpdate,
-        updateThrottle = 0,
-      } = options;
+      const { maxCacheSize = ChartCenter.TTY_DEFAULT_CACHE_SIZE } = options;
       super({
         ...options,
         id: chartId,
@@ -71,28 +67,24 @@ export class ChartCenter {
         maxCacheSize,
       });
       this.#center = center;
-      this.#onUpdate = onUpdate;
-      this.#updateThrottle = updateThrottle;
     }
-    #updateThrottle: number;
     #lastData?: MaybePromise<RequestUpdateRes<T>>;
 
-    #onUpdate?: () => MaybePromise<T>;
     onUpdate(): MaybePromise<RequestUpdateRes<T>> {
-      if (!this.#onUpdate) throw new Error("Requests for updates are not allowed");
+      if (!this.onRequestUpdate) throw new Error("Requests for updates are not allowed");
       const timestamp = Date.now();
 
       if (this.#lastData) {
         if (this.#lastData instanceof Promise) return this.#lastData;
-        if (timestamp - this.#lastData.timestamp <= this.#updateThrottle) return this.#lastData;
+        if (timestamp - this.#lastData.timestamp <= this.updateThrottle) return this.#lastData;
       }
 
-      const value = this.#onUpdate();
+      const value = this.onRequestUpdate();
       let res: MaybePromise<RequestUpdateRes<T>>;
       if (value instanceof Promise)
         res = value.then(
-          (value): RequestUpdateRes<T> => {
-            let res = { value, timestamp: timestamp } as const;
+          (value): Readonly<RequestUpdateRes<T>> => {
+            let res = { data: value, timestamp: timestamp } as const;
             this.pushCache({ data: value, timestamp });
             this.#lastData = res;
             return res;
@@ -103,7 +95,7 @@ export class ChartCenter {
           },
         );
       else {
-        res = { value: value, timestamp: timestamp };
+        res = { data: value, timestamp: timestamp };
         this.pushCache({ data: value, timestamp });
       }
       this.#lastData = res;
@@ -118,7 +110,7 @@ export class ChartCenter {
       const timestamp = Date.now();
       this.pushCache({ data: internalData, timestamp, timeName });
 
-      const writeData: ChartUpdateData<any> = { value: internalData, timestamp: timestamp };
+      const writeData: ChartUpdateData<any> = { data: internalData, timestamp: timestamp, timeAxisName: timeName };
       this.#center.ctrl.writeChart(this.id, writeData);
     }
     updateSubData(updateData: DimensionalityReduction<T>, coord: number, opts?: ChartUpdateLowerOption): void;
@@ -132,7 +124,7 @@ export class ChartCenter {
       if (!this.#center) return;
       const timestamp = Date.now();
       this.#center.ctrl.writeChart(this.id, {
-        value: updateData,
+        data: updateData,
         coord: coord,
         dimensionIndexNames: opts?.dimensionIndexNames,
         timestamp: timestamp,
@@ -165,6 +157,7 @@ export type {
   VioChartMeta,
   VioChartType,
   RequestUpdateRes,
+  ChartDataItem,
 } from "../api_type/chart.type.ts";
 
 /**

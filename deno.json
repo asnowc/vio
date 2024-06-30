@@ -1,6 +1,6 @@
 {
   "imports": {
-    "@asnc/vio": "./vio/src/mod.ts"
+    "@asnc/vio": "./vio/src/mod_deno.ts"
   },
   "compilerOptions": {
     "lib": ["deno.window"]

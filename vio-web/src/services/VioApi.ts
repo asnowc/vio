@@ -105,12 +105,14 @@ export class VioRpcApi {
       this.chart.setCache(list);
     });
     this.tty.init(this.#serverApi!);
+    this.chart.init(this.#serverApi);
     cpc.closeEvent.finally(() => {
       this.status = RpcConnectStatus.disconnected;
-      this.statusChange.emit(this.status);
       this.#cpc = null;
       this.#serverApi = undefined;
-      this.tty.clearAllReading();
+      this.tty.init();
+      this.chart.init();
+      this.statusChange.emit(this.status);
     });
   }
 }

@@ -56,7 +56,7 @@ export interface ChartDataItem<T = number> {
 // @public
 export interface ChartInfo<T = number> {
     // (undocumented)
-    cacheData: T[];
+    cacheList: ChartDataItem<T>[];
     dimension: number;
     dimensionIndexNames: ((string | undefined)[] | undefined)[];
     // (undocumented)
@@ -67,7 +67,7 @@ export interface ChartInfo<T = number> {
 
 // @public (undocumented)
 export namespace ChartMeta {
-    export interface Bar {
+    export interface Bar extends Common {
         // (undocumented)
         chartType: "bar";
         // (undocumented)
@@ -75,7 +75,12 @@ export namespace ChartMeta {
         // (undocumented)
         title?: string;
     }
-    export interface Gauge {
+    // (undocumented)
+    export type Common = {
+        enableTimeline?: boolean;
+        requestInternal?: number;
+    };
+    export interface Gauge extends Common {
         // (undocumented)
         chartType: "gauge";
         // (undocumented)
@@ -87,19 +92,19 @@ export namespace ChartMeta {
         // (undocumented)
         unit?: string;
     }
-    export interface Line {
+    export interface Line extends Common {
         // (undocumented)
         chartType: "line";
         // (undocumented)
         title?: string;
     }
-    export interface Pie {
+    export interface Pie extends Common {
         // (undocumented)
         chartType: "pie";
         // (undocumented)
         title?: string;
     }
-    export interface Progress {
+    export interface Progress extends Common {
         // (undocumented)
         chartType: "progress";
         // (undocumented)
@@ -107,7 +112,7 @@ export namespace ChartMeta {
         // (undocumented)
         title?: string;
     }
-    export interface Scatter {
+    export interface Scatter extends Common {
         // (undocumented)
         chartType: "scatter";
         // (undocumented)
@@ -179,7 +184,7 @@ export type RawImageData = {
 
 // @public (undocumented)
 export type RequestUpdateRes<T> = {
-    value: T;
+    data: T;
     timestamp: number;
 };
 
@@ -296,18 +301,24 @@ export interface VioChart<T = number> {
     readonly dimensionIndexNames: Readonly<Record<number, (string | undefined)[] | undefined>>;
     getCacheData(): IterableIterator<T>;
     // (undocumented)
+    getCacheDateItem(): IterableIterator<Readonly<ChartDataItem<T>>>;
+    // (undocumented)
     readonly id: number;
     // (undocumented)
     maxCacheSize: number;
     // (undocumented)
     readonly meta: VioChartMeta;
+    onRequestUpdate?: () => MaybePromise<T>;
     updateData(data: T, timeName?: string): void;
+    updateThrottle: number;
 }
 
 // @public
-export type VioChartCreateConfig = ChartCreateOption & {
+export type VioChartCreateConfig<T = unknown> = ChartCreateOption & {
     id: number;
     dimension: number;
+    onRequestUpdate?(): MaybePromise<T>;
+    updateThrottle?: number;
 };
 
 // @public (undocumented)

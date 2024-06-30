@@ -1,7 +1,7 @@
 import { IDockviewPanelProps } from "dockview";
 import React, { useEffect, useReducer } from "react";
 import { ChartClientAgent, useVioApi } from "@/services/VioApi.ts";
-import { ConfigurableChart } from "../components/ConfigurableChart.tsx";
+import { ConfigurableChart } from "../components/ConfigurableChart/mod.ts";
 import { useForceUpdate } from "@/hooks/forceUpdate.ts";
 import { useListenable } from "@/hooks/event.ts";
 import { ReactErrorBoundary } from "@/components/ErrorHander.tsx";

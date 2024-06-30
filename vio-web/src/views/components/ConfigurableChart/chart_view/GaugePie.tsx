@@ -5,9 +5,9 @@ import {
   GaugeSeriesOption,
   PieSeriesOption,
 } from "@/lib/echarts.ts";
-import { ChartCommonProps } from "./type.ts";
+import { ChartCommonProps } from "../type.ts";
 import { useLayoutEffect, useMemo } from "react";
-import { toDim } from "../../panels/lib/getDim.ts";
+import { toDim } from "../../../panels/lib/getDim.ts";
 import { ChartMeta } from "@asnc/vio/client";
 
 export function GaugePie(props: ChartCommonProps<number | number[]>) {

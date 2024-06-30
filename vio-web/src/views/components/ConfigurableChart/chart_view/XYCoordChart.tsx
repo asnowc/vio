@@ -1,7 +1,7 @@
 import { EChartsPruneOption, EChartsPruneSeries, useEChart } from "@/lib/echarts.ts";
-import { ChartCommonProps } from "./type.ts";
+import { ChartCommonProps } from "../type.ts";
 import { useLayoutEffect, useMemo } from "react";
-import { toDim } from "../../panels/lib/getDim.ts";
+import { toDim } from "../../../panels/lib/getDim.ts";
 const DISPLAY_ONLY = ["line", "bar", "scatter"];
 export function XYCoordChart(props: ChartCommonProps<number[] | number[][]>) {
   const {

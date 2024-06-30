@@ -15,11 +15,19 @@ import { createWebSocketCpc } from "cpcall/web";
 import { MaybePromise } from "../type.ts";
 import { indexRecordToArray } from "../lib/array_like.ts";
 function getChartInfo<T>(chart: VioChart<T>): ChartInfo<T> {
+  const cacheData: T[] = new Array(chart.cachedSize);
+  const timestamps: number[] = new Array(chart.cachedSize);
+  let i = 0;
+  for (const item of chart.getCacheDateItem()) {
+    cacheData[i] = item.data;
+    timestamps[i] = item.timestamp;
+    i++;
+  }
   return {
     meta: chart.meta,
     dimension: chart.dimension,
     id: chart.id,
-    cacheData: Array.from(chart.getCacheData()),
+    cacheList: Array.from(chart.getCacheDateItem()),
     dimensionIndexNames: indexRecordToArray(chart.dimensionIndexNames, chart.dimension),
   };
 }

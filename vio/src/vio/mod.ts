@@ -3,7 +3,6 @@ import { createVio } from "./vio.ts";
 export * from "./vio.ts";
 export type {
   ChartCreateOption,
-  ChartDataItem,
   ChartUpdateLowerOption,
   ChartUpdateOption,
   VioChart,

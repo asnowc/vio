@@ -4,12 +4,20 @@ import process from "node:process";
 export async function memoryChart(vio: Vio) {
   const indexNames = ["external", "heapUsed", "heapTotal", "rss"] as (keyof NodeJS.MemoryUsage)[];
   const chart = vio.chart.create(2, {
-    meta: { chartType: "line", title: "内存", min: 0, max: 4 * 1024, unit: "MB" },
+    meta: {
+      chartType: "line",
+      title: "内存",
+      min: 0,
+      max: 4 * 1024,
+      unit: "MB",
+      enableTimeline: true,
+      requestInternal: 2000,
+    },
     dimensionIndexNames: [, indexNames],
+    updateThrottle: 1000,
+    onRequestUpdate: () => {
+      const data = process.memoryUsage();
+      return indexNames.map((key) => data[key] / 1024 / 1024);
+    },
   });
-  const id = setInterval(() => {
-    const data = process.memoryUsage();
-    chart.updateData(indexNames.map((key) => data[key] / 1024 / 1024));
-  }, 2000);
-  return () => clearInterval(id);
 }

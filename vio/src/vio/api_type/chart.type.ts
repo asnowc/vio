@@ -7,8 +7,7 @@ export interface ChartInfo<T = number> {
   id: number;
   /** 维度 */
   dimension: number;
-  cacheData: T[];
-
+  cacheList: ChartDataItem<T>[];
   /** 维度刻度名称 */
   dimensionIndexNames: ((string | undefined)[] | undefined)[];
   meta: VioChartMeta;
@@ -29,14 +28,14 @@ export type ChartUpdateData<T = number> = {
   | {
       coord: number | (number | undefined)[];
       dimensionIndexNames?: (string | null | undefined)[];
-      value: IntersectingDimension<T>;
+      data: IntersectingDimension<T>;
     }
-  | { coord: number; dimensionIndexNames?: string; value: DimensionalityReduction<T> }
+  | { coord: number; dimensionIndexNames?: string; data: DimensionalityReduction<T> }
   | {
       coord?: undefined;
       /** 维度刻度名称 */
       dimensionIndexNames?: ((string | undefined | null)[] | undefined | null)[];
-      value: T;
+      data: T;
     }
 );
 /** @public */
@@ -47,9 +46,21 @@ export type DimensionalityReduction<T> = T extends Array<infer P> ? P : never;
 
 /** @public */
 export type VioChartType = VioChartMeta["chartType"];
+/**
+ * @public
+ * @category Chart
+ */
+export interface ChartDataItem<T = number> {
+  data: T;
+  timestamp: number;
+  timeName?: string;
+}
 
 /** @public */
-export type RequestUpdateRes<T> = { value: T; timestamp: number };
+export type RequestUpdateRes<T> = {
+  data: T;
+  timestamp: number;
+};
 
 /** @public */
 export type VioChartMeta =
@@ -64,15 +75,19 @@ export type VioChartMeta =
 /** @public */
 export namespace ChartMeta {
   /* 一维图 */
+  export type Common = {
+    enableTimeline?: boolean;
+    requestInternal?: number;
+  };
 
   /** 进度条 */
-  export interface Progress {
+  export interface Progress extends Common {
     chartType: "progress";
     title?: string;
     color?: string;
   }
   /** 仪表盘 */
-  export interface Gauge {
+  export interface Gauge extends Common {
     chartType: "gauge";
     min: number;
     max: number;
@@ -88,24 +103,24 @@ export namespace ChartMeta {
   /* 二维图 */
 
   /** 折/曲线图 */
-  export interface Line {
+  export interface Line extends Common {
     chartType: "line";
     title?: string;
   }
   /** 柱状图 */
-  export interface Bar {
+  export interface Bar extends Common {
     chartType: "bar";
     title?: string;
     sort?: 0 | 1;
   }
 
   /** 饼图 */
-  export interface Pie {
+  export interface Pie extends Common {
     chartType: "pie";
     title?: string;
   }
   /** 散点图 */
-  export interface Scatter {
+  export interface Scatter extends Common {
     chartType: "scatter";
     title?: string;
   }

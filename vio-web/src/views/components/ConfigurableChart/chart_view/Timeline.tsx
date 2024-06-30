@@ -1,6 +1,6 @@
 import { Timeline, TimelineItemProps } from "antd";
 import React, { useMemo } from "react";
-import { ChartCommonProps } from "./type.ts";
+import { ChartCommonProps } from "../type.ts";
 import { LoadingOutlined } from "@ant-design/icons";
 import { useThemeToken } from "@/services/AppConfig.ts";
 //TODO: 实现待定
