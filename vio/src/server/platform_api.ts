@@ -6,7 +6,7 @@ type HttpApi = {
     response: Response;
   };
   serve(option: ServeOptions, handler: ServeHandler): HttpServer;
-  responseFile(opts: ResponseFileInfo): Promise<Response>;
+  responseFileHandler: ResponseFileHandler;
 };
 function unset(...args: any[]): never {
   throw new Error("Unset http api");
@@ -15,12 +15,13 @@ function unset(...args: any[]): never {
 export const platformApi: HttpApi = {
   upgradeWebSocket: unset,
   serve: unset,
-  responseFile: unset,
+  responseFileHandler: { getResponse: unset, noCache: true },
 };
-
-export interface ResponseFileInfo {
-  filename: string;
-  size: string;
-  mime?: string;
-  headers?: Record<string, string>;
+export interface ResponseFileHandler {
+  getResponse(
+    filename: string,
+    requestHeader: Headers,
+    responseHeaderInit: Record<string, string>,
+  ): Promise<Response | null> | Response | null;
+  noCache: boolean;
 }

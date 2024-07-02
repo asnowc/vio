@@ -10,16 +10,23 @@ import { platformApi } from "./platform_api.ts";
 const DEFAULT_VIO_ASSETS_DIR = path.resolve(packageDir, "assets/web");
 
 /**
+ * @public
+ */
+export interface VioHttpServerOption {
+  vioStaticDir?: string;
+  staticSetHeaders?: Record<string, string>;
+}
+/**
  * 启动 vio http 服务器
  * @public
  */
 export class VioHttpServer {
   constructor(
     private vio: Vio,
-    opts: { vioStaticDir?: string } = {},
+    opts: VioHttpServerOption = {},
   ) {
-    const { vioStaticDir = DEFAULT_VIO_ASSETS_DIR } = opts;
-    if (vioStaticDir) this.#staticFileHandler = new FileServerHandler(vioStaticDir);
+    const { vioStaticDir = DEFAULT_VIO_ASSETS_DIR, staticSetHeaders } = opts;
+    if (vioStaticDir) this.#staticFileHandler = new FileServerHandler(vioStaticDir, { setHeaders: staticSetHeaders });
 
     const router = new Router();
     router.set("/api/test", function () {
@@ -44,7 +51,7 @@ export class VioHttpServer {
       return handler(context);
     }
     if (this.#staticFileHandler) {
-      const response = await this.#staticFileHandler.getResponse(pathname);
+      const response = await this.#staticFileHandler.getResponse(pathname, req.headers);
       if (response) return response;
     }
     return new Response(null, { status: 404 });

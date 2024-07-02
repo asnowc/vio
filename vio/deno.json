@@ -5,5 +5,8 @@
   "tasks": {
     "gen-doc": "deno doc --html --output=temp --name=VIO src/mod.ts",
     "publish-dry": "deno publish --dry-run"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window"]
   }
 }

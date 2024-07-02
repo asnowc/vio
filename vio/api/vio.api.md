@@ -39,7 +39,7 @@ export class ChartCenter {
 // @public
 export type ChartCreateOption = {
     meta?: VioChartMeta;
-    dimensionIndexNames?: Record<number, ArrayLike<string | undefined> | undefined>;
+    dimensions?: Record<number, DimensionInfo | undefined>;
     maxCacheSize?: number;
 };
 
@@ -58,7 +58,7 @@ export interface ChartInfo<T = number> {
     // (undocumented)
     cacheList: ChartDataItem<T>[];
     dimension: number;
-    dimensionIndexNames: ((string | undefined)[] | undefined)[];
+    dimensions: DimensionInfo[];
     // (undocumented)
     id: number;
     // (undocumented)
@@ -72,11 +72,10 @@ export namespace ChartMeta {
         chartType: "bar";
         // (undocumented)
         sort?: 0 | 1;
-        // (undocumented)
-        title?: string;
     }
     // (undocumented)
     export type Common = {
+        title?: string;
         enableTimeline?: boolean;
         requestInternal?: number;
     };
@@ -88,47 +87,35 @@ export namespace ChartMeta {
         // (undocumented)
         min: number;
         // (undocumented)
-        title?: string;
-        // (undocumented)
         unit?: string;
     }
     export interface Line extends Common {
         // (undocumented)
         chartType: "line";
-        // (undocumented)
-        title?: string;
     }
     export interface Pie extends Common {
         // (undocumented)
         chartType: "pie";
-        // (undocumented)
-        title?: string;
     }
     export interface Progress extends Common {
         // (undocumented)
         chartType: "progress";
         // (undocumented)
         color?: string;
-        // (undocumented)
-        title?: string;
     }
     export interface Scatter extends Common {
         // (undocumented)
         chartType: "scatter";
-        // (undocumented)
-        title?: string;
     }
 }
 
 // @public (undocumented)
 export type ChartUpdateLowerOption = {
-    dimensionIndexNames?: string;
     timeName?: string;
 };
 
 // @public (undocumented)
 export type ChartUpdateOption = {
-    dimensionIndexNames?: Record<number, ArrayLike<string | undefined> | null>;
     timeName?: string;
 };
 
@@ -298,7 +285,7 @@ export interface VioChart<T = number> {
     // (undocumented)
     data?: T;
     readonly dimension: number;
-    readonly dimensionIndexNames: Readonly<Record<number, (string | undefined)[] | undefined>>;
+    readonly dimensions: ArrayLike<DimensionInfo>;
     getCacheData(): IterableIterator<T>;
     // (undocumented)
     getCacheDateItem(): IterableIterator<Readonly<ChartDataItem<T>>>;
@@ -331,9 +318,7 @@ export type VioChartType = VioChartMeta["chartType"];
 
 // @public
 export class VioHttpServer {
-    constructor(vio: Vio, opts?: {
-        vioStaticDir?: string;
-    });
+    constructor(vio: Vio, opts?: VioHttpServerOption);
     // (undocumented)
     close(): Promise<void>;
     // (undocumented)
@@ -342,6 +327,14 @@ export class VioHttpServer {
     ref(): void;
     // (undocumented)
     unref(): void;
+}
+
+// @public (undocumented)
+export interface VioHttpServerOption {
+    // (undocumented)
+    staticSetHeaders?: Record<string, string>;
+    // (undocumented)
+    vioStaticDir?: string;
 }
 
 // @public (undocumented)
@@ -355,6 +348,10 @@ export interface VioTty extends TTY {
     // (undocumented)
     getCache(): IterableIterator<TtyOutputsData>;
 }
+
+// Warnings were encountered during analysis:
+//
+// dist/mod_node.d.ts:299:5 - (ae-forgotten-export) The symbol "DimensionInfo" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

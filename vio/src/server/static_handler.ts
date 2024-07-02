@@ -1,52 +1,29 @@
-import fs from "node:fs/promises";
 import path from "node:path";
-import { withPromise } from "evlib";
 import { platformApi } from "./platform_api.ts";
 
-type MaybePromise<T> = T extends Promise<any> ? T | Awaited<T> : T | Promise<T>;
 export class FileServerHandler {
-  constructor(readonly rootDir: string) {
+  constructor(
+    readonly rootDir: string,
+    option: FileServerOption = {},
+  ) {
     this.#mime = { ...MIME };
+    const { setHeaders } = option;
+    this.#serHEaders = setHeaders ? { ...setHeaders } : {};
   }
-  #cache = new Map<string, MaybePromise<FileStatusCache | undefined>>();
-  async getResponse(pathname: string): Promise<Response | undefined> {
-    const info = await this.getFileInfo(pathname);
-    if (!info) return;
-    return platformApi.responseFile(info);
-  }
-  private async getFileInfo(pathname: string) {
+  async getResponse(pathname: string, reqHeaders: Headers): Promise<Response | undefined> {
     if (pathname === "/") pathname = "/index.html";
+    const filename = this.rootDir + pathname;
+    const response = await platformApi.responseFileHandler.getResponse(filename, reqHeaders, this.#serHEaders);
+    if (!response) return;
 
-    let info = this.#cache.get(pathname);
-    if (info === undefined) {
-      const resolver = withPromise<FileStatusCache | undefined>();
-      this.#cache.set(pathname, resolver.promise as any);
-
-      const baseDir = this.rootDir + pathname;
-
-      let checkPath = baseDir;
-
-      info = await fs.stat(checkPath).then(
-        (stat) => {
-          if (!stat.isFile()) return;
-          const { ext } = path.parse(checkPath);
-          return { size: stat.size.toString(), mime: this.#mime[ext], filename: checkPath };
-        },
-        () => undefined,
-      );
-      if (info) {
-        this.#cache.set(pathname, info);
-        resolver.resolve(info);
-        return info;
-      } else {
-        this.#cache.delete(pathname);
-        resolver.resolve(undefined);
-        return undefined;
-      }
+    const { ext } = path.parse(pathname);
+    const mime = this.#mime[ext];
+    if (mime) {
+      response.headers.set("content-type", mime);
     }
-    return info;
+    return response;
   }
-
+  #serHEaders: Record<string, string>;
   #mime: Record<string, string> = {};
 }
 
@@ -63,8 +40,6 @@ const MIME = (function (): Record<string, string> {
     return map;
   }, {});
 })();
-interface FileStatusCache {
-  size: string;
-  mime?: string;
-  filename: string;
+export interface FileServerOption {
+  setHeaders?: Record<string, string>;
 }
