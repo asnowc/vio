@@ -6,7 +6,7 @@ import { ConnectControl, LayoutControl } from "./actions/mod.ts";
 import { TtyBar, DebugBar, ChartBar } from "./panels/mod.ts";
 import { useThemeToken } from "@/services/AppConfig.ts";
 import { useListenableData } from "@/hooks/event.ts";
-import { DEV_MODE } from "@/const.ts";
+import { DEV_MODE, E2E_SELECT_CLASS } from "@/const.ts";
 
 export function LeftSideBarMenu() {
   const viewApi = useViewApi();
@@ -15,6 +15,7 @@ export function LeftSideBarMenu() {
   const colors = useThemeToken();
   return (
     <flex-col
+      class={`${E2E_SELECT_CLASS.fn_bar_menu}`}
       style={{
         gap: 12,
         width: 38,

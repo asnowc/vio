@@ -45,10 +45,11 @@ export interface ConfigurableChartChartProps {
   chart: ChartClientAgent<any>;
   chartSize?: object;
   visible?: boolean;
+  className?: string;
 }
 
 export function ConfigurableChart(props: ConfigurableChartChartProps) {
-  const { chart, chartSize, visible } = props;
+  const { chart, chartSize, visible, className } = props;
   const [resizeDep2, resizeChart] = useReducer(() => ({}), {});
 
   const [boardConfig, setBoardConfig] = useState<ChartConfig>({});
@@ -104,7 +105,7 @@ export function ConfigurableChart(props: ConfigurableChartChartProps) {
   }, [boardConfig.echartsOption]);
 
   return (
-    <flex-row style={{ height: "100%" }}>
+    <flex-row class={className} style={{ height: "100%" }}>
       {/* <div style={{ whiteSpace: "break-spaces", overflow: "auto" }}>{genDebug()}</div> */}
       <div style={{ flex: 1, overflow: "hidden" }}>
         <Render

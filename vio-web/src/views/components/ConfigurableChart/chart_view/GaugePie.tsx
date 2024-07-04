@@ -33,7 +33,7 @@ export function GaugePie(props: ChartCommonProps<number | number[]>) {
     }
   }, [dataList]);
   const xIndexNames = useMemo(() => {
-    return dimensions[1].indexNames ?? [];
+    return dimensions[0].indexNames ?? [];
   }, [dimensions]);
 
   const series = useMemo((): EChartsPruneSeries | undefined => {

@@ -1,5 +1,6 @@
 import { vioServerTest as test, waitPageConnect } from "../../test.ts";
 import { afterTime } from "evlib";
+import { E2E_SELECT_CLASS } from "../e2e_select_class.ts";
 const { expect, beforeEach } = test;
 
 beforeEach(async ({ appPage, vioServerInfo: { visitUrl } }) => {
@@ -7,7 +8,6 @@ beforeEach(async ({ appPage, vioServerInfo: { visitUrl } }) => {
   await waitPageConnect(appPage);
 });
 test("output text", async function ({ vioServerInfo: { vio: tty }, appPage: page }) {
-  await afterTime(1000); //等待连接
   expect(tty.viewerNumber).toBe(1);
 
   tty.writeText("default title");
@@ -22,8 +22,12 @@ test("output text", async function ({ vioServerInfo: { vio: tty }, appPage: page
   await expect(page.getByText(textFlag).count(), "警告被隐藏，其余显示").resolves.toBe(3);
 });
 
-test.skip("output image", async function ({ vioServerInfo: { vio: tty } }) {
-  tty.writeImage;
+test("output image", async function ({ vioServerInfo: { vio: tty }, appPage: page }) {
+  const ttyPanel = page.locator(`.${E2E_SELECT_CLASS.panel}`).first();
+  const pngData = await ttyPanel.screenshot();
+  tty.writeImage({ mime: "image/png", data: pngData });
+  await afterTime(500);
+  await expect(ttyPanel.locator("img").count()).resolves.toBe(1);
 });
 test.skip("output ui link", async function ({ vioServerInfo: { vio: tty } }) {
   tty.writeUiLink;

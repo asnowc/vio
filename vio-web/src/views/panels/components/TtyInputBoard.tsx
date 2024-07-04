@@ -7,6 +7,7 @@ import { INPUT_TYPE_INFO } from "./tty/const.tsx";
 import { useAntdStatic } from "@/hooks/msg.ts";
 import { TtyInputReq } from "@asnc/vio/client";
 import { useAsync } from "@/hooks/async.ts";
+import { E2E_SELECT_CLASS } from "@/const.ts";
 
 export type TtyInputBoardProps = {
   ttyAgent: TtyClientAgent;
@@ -66,7 +67,10 @@ export function TtyInputBoard(props: TtyInputBoardProps) {
   const { loading: readEnableLoading, run: onInputRequestChange } = useAsync(onInputEnableChange);
 
   return (
-    <flex-row style={{ height: "100%", overflow: "hidden", padding: "0 8px" }}>
+    <flex-row
+      class={E2E_SELECT_CLASS.panels.tty_input}
+      style={{ height: "100%", overflow: "hidden", padding: "0 8px" }}
+    >
       <Tabs
         size="small"
         items={tabItem}

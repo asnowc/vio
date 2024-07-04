@@ -1,5 +1,7 @@
 import { SelectItem } from "@asnc/vio";
+import fs from "node:fs/promises";
 import { vioServerTest as test, waitPageConnect } from "../../test.ts";
+import { E2E_SELECT_CLASS } from "../e2e_select_class.ts";
 const { expect, beforeEach, describe } = test;
 
 describe("test content", function () {
@@ -60,9 +62,23 @@ describe("test content", function () {
     await sendBtn.click();
     await expect(p3).resolves.toEqual([1, 2]);
   });
-  test.skip("file", async function ({ appPage: page, vioServerInfo: { vio } }) {
+  test("file", async function ({ appPage: page, vioServerInfo: { vio } }) {
     const tty = vio;
-    //TODO
+    const promise = tty.readFile();
+
+    const inputArea = page.locator(`.${E2E_SELECT_CLASS.panels.tty_input}`);
+    await page.getByRole("tab", { name: "file 文件" }).locator("div").first(); //切换到文件栏
+
+    const filename = import.meta.filename;
+    await inputArea.locator("input[type='file']").last().setInputFiles(filename); //设置文件
+
+    await inputArea.getByRole("button", { name: "发 送" }).click();
+
+    const fileInfo = await promise;
+    const stat = await fs.stat(filename);
+
+    expect(fileInfo.data.byteLength).toBe(stat.size);
+    expect(typeof fileInfo.name).toBe("string");
   });
 });
 describe("reading dispatch", function () {

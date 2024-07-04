@@ -14,6 +14,7 @@ import { TooltipBtn } from "../../components/TooltipBtn.tsx";
 import { Button, Input } from "antd";
 import { useAutoScroll } from "@/hooks/auto_scroll.ts";
 import { useAsync } from "@/hooks/async.ts";
+import { E2E_SELECT_CLASS } from "@/const.ts";
 
 export function TtyOutputBoard(props: { ttyAgent: TtyClientAgent; visible?: boolean }) {
   const { ttyAgent, visible = true } = props;
@@ -62,6 +63,7 @@ export function TtyOutputBoard(props: { ttyAgent: TtyClientAgent; visible?: bool
 
   return (
     <flex-col
+      class={E2E_SELECT_CLASS.panels.tty_output}
       style={{
         height: "100%",
         backgroundColor: colors.colorBgBase,

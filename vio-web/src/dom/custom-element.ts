@@ -7,8 +7,8 @@ customElements.define("flex-row", FlexRowElement);
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      "flex-col": JSX.IntrinsicElements["div"];
-      "flex-row": JSX.IntrinsicElements["div"];
+      "flex-col": Omit<JSX.IntrinsicElements["code"], "className"> & { class?: string };
+      "flex-row": Omit<JSX.IntrinsicElements["code"], "className"> & { class?: string };
       grid: JSX.IntrinsicElements["div"];
     }
   }
