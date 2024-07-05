@@ -1,5 +1,5 @@
 import React, { PropsWithChildren, createContext, useContext, useEffect, useMemo } from "react";
-import { useECharts, EChartsInitOpts as EChartsInitOption , EChartsProps, EChartLocaleObject } from "echarts-comp/react";
+import { useECharts, EChartsInitOpts as EChartsInitOption, EChartsProps, EChartLocaleObject } from "echarts-comp/react";
 interface ChartsContext {
   locale: string | EChartLocaleObject;
   theme: string | object;

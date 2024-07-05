@@ -40,7 +40,7 @@ export const XYCoordChart = memo(function XYCoordChart(props: ChartCommonProps<n
     return opts;
   }, [title, staticOptions, dimensions, timeline]);
 
-  const series = useMemo((): EChartsPruneSeries | EChartsPruneSeries[] => {
+  const series = useMemo((): EChartsPruneOption["series"] => {
     if (!chartType || !DISPLAY_ONLY.includes(chartType)) return { type: "line" };
     const series = gen2DSeries(chartType, dataList, dimensions, {
       timeLineData: timeline,
@@ -51,7 +51,7 @@ export const XYCoordChart = memo(function XYCoordChart(props: ChartCommonProps<n
 
   useLayoutEffect(() => {
     echarts.setOption<EChartsPruneOption>(
-      { ...baseOptions, series: series as EChartsPruneOption["series"] },
+      { ...baseOptions, series: series },
       {
         // notMerge: true,
         replaceMerge: ["series", "yAxis", "xAxis"],

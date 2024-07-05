@@ -40,6 +40,16 @@ import {
   LegendComponentOption,
   DataZoomComponent,
   DataZoomComponentOption,
+  VisualMapComponent,
+  VisualMapComponentOption,
+  TimelineComponent,
+  TimelineComponentOption,
+  ToolboxComponent,
+  ToolboxComponentOption,
+  MarkPointComponent,
+  MarkPointComponentOption,
+  ParallelComponent,
+  ParallelComponentOption,
 } from "echarts-comp/components";
 
 type EChartsComponents =
@@ -47,12 +57,29 @@ type EChartsComponents =
   | TooltipComponentOption
   | GridComponentOption
   | LegendComponentOption
-  | DataZoomComponentOption;
+  | DataZoomComponentOption
+  | VisualMapComponentOption
+  | TimelineComponentOption
+  | ToolboxComponentOption
+  | MarkPointComponentOption
+  // | ParallelComponentOption;
 
 use(CanvasRenderer);
 use(LabelLayout);
 use(UniversalTransition);
-use([TitleComponent, TooltipComponent, GridComponent, TransformComponent, LegendComponent, DataZoomComponent]);
+use([
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  TransformComponent,
+  LegendComponent,
+  DataZoomComponent,
+  VisualMapComponent,
+  TimelineComponent,
+  ToolboxComponent,
+  MarkPointComponent,
+  ParallelComponent,
+]);
 
 export type EChartsPruneOption = ComposeOption<EChartsPruneSeries | EChartsComponents> & EChartsCoreOption;
 export * from "echarts-comp/core";

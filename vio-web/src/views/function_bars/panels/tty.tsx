@@ -60,6 +60,7 @@ export const TtyBar = function TtySideBar() {
           ttys.map((info) => {
             return (
               <div
+                key={info.ttyId}
                 onClick={() => {
                   const panel = viewApi.getOpenedTtyPanel(info.ttyId);
                   if (!panel) viewApi.openTtyPanel(info.ttyId);
