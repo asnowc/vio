@@ -7,6 +7,7 @@ import { TtyBar, DebugBar, ChartBar } from "./panels/mod.ts";
 import { useThemeToken } from "@/services/AppConfig.ts";
 import { useListenableData } from "@/hooks/event.ts";
 import { DEV_MODE, E2E_SELECT_CLASS } from "@/const.ts";
+import { ThemControl } from "./actions/ThemeControl.tsx";
 
 export function LeftSideBarMenu() {
   const viewApi = useViewApi();
@@ -40,7 +41,7 @@ export function LeftSideBarMenu() {
         </Tooltip>
       ))}
       <flex-col style={{ flex: 1, justifyContent: "end", alignItems: "center" }}>
-        {/* //TODO: DocView 无法动态切换主题  <ThemControl /> */}
+        <ThemControl />
         <LayoutControl />
         <ConnectControl />
       </flex-col>

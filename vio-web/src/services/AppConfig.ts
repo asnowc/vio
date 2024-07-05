@@ -9,12 +9,12 @@ export class AppConfig implements AppWebConfig {
     return new this(userConfig);
   }
   readonly rpcConnect: RpcConnectConfig;
-  readonly themeName: AppThemeName;
+  themeName: AppThemeName;
   readonly themeNameChange = new EventTrigger<AppThemeName>();
-  private changeTheme(theme: AppThemeName) {
+  changeTheme(theme: AppThemeName) {
     if (theme === this.themeName) return;
-    // this.themeName = theme;
-    // this.themeNameChange.emit(theme);
+    this.themeName = theme;
+    this.themeNameChange.emit(theme);
   }
   constructor(config: AppWebConfig) {
     this.themeName = config.themeName;
