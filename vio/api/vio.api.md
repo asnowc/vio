@@ -190,8 +190,7 @@ export abstract class TTY {
     pick<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[]): Promise<T>;
     // Warning: (ae-forgotten-export) The symbol "TtyInputsReq" needs to be exported by the entry point index.d.ts
     abstract read<T = unknown>(config: TtyInputsReq): Promise<T>;
-    // (undocumented)
-    readFile(option?: TtyReadFileOption): Promise<FileData>;
+    readFiles(option?: TtyReadFileOption): Promise<FileData[]>;
     readText(title: string, max?: number): Promise<string>;
     readText(max?: number): Promise<string>;
     select<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[], config?: {
@@ -235,11 +234,13 @@ export interface TtyReader {
     read: TtyReadFn;
 }
 
-// @public (undocumented)
+// @public
 export type TtyReadFileOption = {
     mime?: string;
     title?: string;
     maxByteSize?: number;
+    maxNumber?: number;
+    minNumber?: number;
 };
 
 // @public (undocumented)
@@ -351,7 +352,7 @@ export interface VioTty extends TTY {
 
 // Warnings were encountered during analysis:
 //
-// dist/mod_node.d.ts:299:5 - (ae-forgotten-export) The symbol "DimensionInfo" needs to be exported by the entry point index.d.ts
+// dist/mod_node.d.ts:305:5 - (ae-forgotten-export) The symbol "DimensionInfo" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

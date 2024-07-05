@@ -64,7 +64,7 @@ describe("test content", function () {
   });
   test("file", async function ({ appPage: page, vioServerInfo: { vio } }) {
     const tty = vio;
-    const promise = tty.readFile();
+    const promise = tty.readFiles();
 
     const inputArea = page.locator(`.${E2E_SELECT_CLASS.panels.tty_input}`);
     await page.getByRole("tab", { name: "file 文件" }).locator("div").first(); //切换到文件栏
@@ -74,7 +74,8 @@ describe("test content", function () {
 
     await inputArea.getByRole("button", { name: "发 送" }).click();
 
-    const fileInfo = await promise;
+    const fileList = await promise;
+    const fileInfo = fileList[0];
     const stat = await fs.stat(filename);
 
     expect(fileInfo.data.byteLength).toBe(stat.size);

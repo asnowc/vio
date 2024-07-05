@@ -23,14 +23,20 @@ export type TTyWriteTextOption = {
   content?: string;
 };
 /**
+ * 请求输入文件的选项
  * @public
  * @category TTY
  */
 export type TtyReadFileOption = {
+  /** 文件 MIME 类型 */
   mime?: string;
   title?: string;
-  /** 文件大小限制，单位字节 */
+  /** 单个文件大小限制，单位字节 */
   maxByteSize?: number;
+  /** 最大上传文件数量 */
+  maxNumber?: number;
+  /** 最小上传文件数量 */
+  minNumber?: number;
 };
 /**
  * 终端实例
@@ -74,8 +80,18 @@ export abstract class TTY {
   }
   /** 读取任意数据 */
   abstract read<T = unknown>(config: TtyInputsReq): Promise<T>;
-  async readFile(option: TtyReadFileOption = {}): Promise<VioFileData> {
-    return this.read({ type: "file", mime: option.mime, maxSize: option.maxByteSize });
+  /** 请求输入文件 */
+  async readFiles(option: TtyReadFileOption = {}): Promise<VioFileData[]> {
+    return this.read<TtyInputReq.FileResult>({
+      type: "file",
+      title: option.title,
+      mime: option.mime,
+      maxSize: option.maxByteSize,
+      maxNumber: option.maxNumber,
+      minNumber: option.minNumber,
+    }).then(({ list }) => {
+      return list;
+    });
   }
 
   /** 提示读取文本 */

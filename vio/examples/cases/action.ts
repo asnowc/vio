@@ -21,7 +21,10 @@ export async function inputSelect(tty: TTY) {
       let val: Promise<string | boolean>;
       switch (type) {
         case "file":
-          val = tty.readFile().then(({ data, mime, name }) => JSON.stringify({ mime, name, len: data.byteLength }));
+          val = tty
+            .readFiles()
+            .then((items) => items.map(({ data, mime, name }) => ({ mime, name, len: data.byteLength })))
+            .then(JSON.stringify);
           break;
         case "text":
           val = tty.readText();

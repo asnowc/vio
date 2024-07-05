@@ -39,7 +39,14 @@ export namespace TtyInputReq {
     mime?: string;
     /** 文件大小限制，单位字节 */
     maxSize?: number;
-  } /** 请求选择 */
+    maxNumber?: number;
+    minNumber?: number;
+  }
+  export type FileResult = {
+    list: VioFileData[];
+  };
+
+  /** 请求选择 */
   export interface Select {
     type: "select";
     options: SelectItem[];
