@@ -16,8 +16,8 @@
   "license": "MIT",
   "devDependencies": {
     "@eavid/lib-node": "^2.1.2",
-    "@types/node": "^20.14.2",
-    "evlib": "^2.5.1",
+    "@types/node": "^20.14.10",
+    "evlib": "^2.6.1",
     "rollup-plugin-dts": "^6.1.1"
   },
   "dependencies": {

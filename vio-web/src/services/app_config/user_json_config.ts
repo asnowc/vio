@@ -1,4 +1,4 @@
-import { checkType, patchObject, typeChecker, TypeCheckFnCheckResult } from "evlib";
+import { checkType, patchObject, typeChecker, TypeCheckFnCheckResult, TypeCheckOptions } from "evlib";
 const { optional, numberRange } = typeChecker;
 
 export type AppThemeName = "dark" | "light";
@@ -55,7 +55,7 @@ export async function getAppWebConfig(): Promise<AppWebConfig> {
           raw,
           optional({
             connectHost: optional.string,
-            connectProtocol: (val, opts): TypeCheckFnCheckResult => {
+            connectProtocol: (val: any): TypeCheckFnCheckResult => {
               if ([undefined, "ws", "wss"].includes(val)) return;
               return { error: "connectProtocol must be 'ws' of 'wss'" };
             },

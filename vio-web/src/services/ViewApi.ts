@@ -1,8 +1,7 @@
 import { createContext, useContext } from "react";
 import { DockviewApi, IDockviewPanel } from "dockview";
 import { panels } from "../views/panels/mod.ts";
-import { ParameterTypeError } from "evlib/errors";
-import { EventTrigger } from "evlib";
+import { EventTrigger, ParameterTypeError } from "evlib";
 
 export class ViewApi {
   constructor(viewApi: DockviewApi) {

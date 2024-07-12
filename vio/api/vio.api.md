@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 // @public
 export type CenterCreateChartOption<T = unknown> = ChartCreateOption & {
     onRequestUpdate?(): MaybePromise<T>;

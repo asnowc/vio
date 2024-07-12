@@ -12,7 +12,7 @@ import type {
   VioFileData,
 } from "../api_type/tty.type.ts";
 import { VioChart, VioChartImpl } from "./VioChart.ts";
-import { createTypeErrorDesc } from "evlib/errors";
+import { createTypeErrorDesc } from "evlib";
 
 /**
  * @public
