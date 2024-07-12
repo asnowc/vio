@@ -27,7 +27,10 @@ class NodeResponseFile implements ResponseFileHandler {
     resHeaders = { ...resHeaders };
     if (!this.noCache) {
       const resp = checkResponse304(stat, reqHeaders, resHeaders);
-      if (resp) return resp;
+      if (resp) {
+        fd.close();
+        return resp;
+      }
       resHeaders["Last-Modified"] = stat.mtime.toUTCString();
     }
     resHeaders["content-length"] = stat.size.toString();
