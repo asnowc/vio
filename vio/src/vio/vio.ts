@@ -51,11 +51,10 @@ class VioImpl extends TTY implements Vio {
     const { clientApi, cpc } = initWebsocket(this, websocket);
 
     const viewer = this.joinViewer(clientApi, (viewer) => {
-      cpc.disable();
-      cpc.caller.end();
+      cpc.close();
       onDispose?.(viewer);
     });
-    cpc.closeEvent.finally(() => viewer.dispose());
+    cpc.onClose.finally(() => viewer.dispose()).catch(() => {});
     return viewer;
   }
 

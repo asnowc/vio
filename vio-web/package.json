@@ -17,7 +17,7 @@
     "@ant-design/icons": "^5.3.7",
     "@asnc/vio": "workspace:^",
     "antd": "^5.18.1",
-    "cpcall": "^0.5.2",
+    "cpcall": "^0.6.0",
     "dockview": "^1.14.2",
     "echarts-comp": "^0.3.0",
     "evlib": "^2.5.1",

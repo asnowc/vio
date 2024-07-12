@@ -9,7 +9,7 @@ import {
   ChartDataItem,
 } from "@asnc/vio/client";
 import { EventTrigger } from "evlib";
-import { MakeCallers } from "cpcall/web";
+import { MakeCallers } from "cpcall";
 
 export class ChartsDataCenterService implements ChartController {
   constructor() {}

@@ -6,7 +6,7 @@ import {
   VioClientExposed,
   VioServerExposed,
 } from "@asnc/vio/client";
-import { CpCall, MakeCallers, createWebSocketCpc } from "cpcall/web";
+import { CpCall, MakeCallers, createWebSocketCpc } from "cpcall";
 import { connectWebsocket, WsConnectConfig } from "../lib/websocket.ts";
 import React, { createContext } from "react";
 import { TtyViewService } from "./vio_api/TtyViewService.ts";
@@ -106,14 +106,16 @@ export class VioRpcApi {
     });
     this.tty.init(this.#serverApi!);
     this.chart.init(this.#serverApi);
-    cpc.closeEvent.finally(() => {
-      this.status = RpcConnectStatus.disconnected;
-      this.#cpc = null;
-      this.#serverApi = undefined;
-      this.tty.init();
-      this.chart.init();
-      this.statusChange.emit(this.status);
-    });
+    cpc.onClose
+      .finally(() => {
+        this.status = RpcConnectStatus.disconnected;
+        this.#cpc = null;
+        this.#serverApi = undefined;
+        this.tty.init();
+        this.chart.init();
+        this.statusChange.emit(this.status);
+      })
+      .catch(() => {});
   }
 }
 //@ts-ignore

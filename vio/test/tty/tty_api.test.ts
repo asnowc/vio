@@ -1,7 +1,7 @@
 import { describe, expect, beforeEach } from "vitest";
 import { connectWebsocket } from "../../src/lib/websocket.ts";
 import { TtyOutputsData, VioServerExposed, TtyOutputData, TtyInputReq } from "../../src/client.ts";
-import { createWebSocketCpc } from "cpcall/web";
+import { createWebSocketCpc } from "cpcall";
 import { afterTime } from "evlib";
 import { vioServerTest as test, VioServerTestContext as TestContext } from "../_env/test_port.ts";
 
@@ -78,6 +78,8 @@ test("重新获取输入权", async function ({ vio, connectVioSever }) {
   await expect(c1.serverApi.setTtyReadEnable(0, true), "tty0 成功获取输入权").resolves.toBe(true);
 
   expect(c1.clientApi.sendTtyReadRequest, "应收到一次请求").toBeCalledTimes(1);
+
+  c1.cpc.onClose.catch(() => {});
   c1.cpc.dispose(); // 模拟断开连接
 
   const c2 = await connectVioSever(); //模拟重新连接

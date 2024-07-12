@@ -2,7 +2,7 @@ import { describe, expect, vi } from "vitest";
 import { connectWebsocket } from "../../src/lib/websocket.ts";
 import { CenterCreateChartOption } from "@asnc/vio";
 import { ChartInfo, ChartCreateInfo, DimensionInfo } from "../../src/client.ts";
-import { createWebSocketCpc } from "cpcall/web";
+import { createWebSocketCpc } from "cpcall";
 import { afterTime } from "evlib";
 import { vioServerTest as test } from "../_env/test_port.ts";
 

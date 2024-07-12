@@ -1,9 +1,8 @@
 import { test, vi } from "vitest";
 import { Vio, VioHttpServer, createVio } from "@asnc/vio";
 import process from "node:process";
-import { CpCall, MakeCallers } from "cpcall";
+import { CpCall, MakeCallers, createWebSocketCpc } from "cpcall";
 import { connectWebsocket } from "../../src/lib/websocket.ts";
-import { createWebSocketCpc } from "cpcall/web";
 import "@asnc/vio";
 import { VioClientExposed, VioServerExposed } from "../../src/client.ts";
 const BASE_PORT = 7001;

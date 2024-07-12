@@ -6,12 +6,13 @@ test("connect-disconnect", async function ({ vio, connector }) {
   const { cpc } = connector;
   expect(vio.viewerNumber).toBe(1);
 
-  await Promise.all([cpc.disable(), cpc.caller.end()]);
-
+  await cpc.close();
+  await afterTime();
   expect(vio.viewerNumber).toBe(0);
 });
 test("connect-dispose", async function ({ vio, connector }) {
   const { cpc } = connector;
+  cpc.onClose.catch(() => {});
   expect(vio.viewerNumber).toBe(1);
 
   cpc.dispose();

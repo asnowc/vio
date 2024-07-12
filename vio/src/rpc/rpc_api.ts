@@ -1,4 +1,4 @@
-import { CpCall, MakeCallers } from "cpcall";
+import { CpCall, MakeCallers, createWebSocketCpc } from "cpcall";
 import type {
   VioClientExposed,
   ChartInfo,
@@ -11,7 +11,6 @@ import type {
 import { TtyCenter, ChartCenter, Vio } from "../vio/mod.ts";
 import { RequestUpdateRes, TtyReadResolver, VioChart } from "../vio/classes/mod.ts";
 import type { WebSocket } from "../lib/deno/http.ts";
-import { createWebSocketCpc } from "cpcall/web";
 import { MaybePromise } from "../type.ts";
 import { indexRecordToArray } from "../lib/array_like.ts";
 function getChartInfo<T>(chart: VioChart<T>): ChartInfo<T> {

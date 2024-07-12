@@ -15,13 +15,13 @@
   "author": "Eavid",
   "license": "MIT",
   "devDependencies": {
+    "@eavid/lib-node": "^2.1.2",
     "@types/node": "^20.14.2",
-    "rollup-plugin-dts": "^6.1.1",
     "evlib": "^2.5.1",
-    "@eavid/lib-node": "^2.1.2"
+    "rollup-plugin-dts": "^6.1.1"
   },
   "dependencies": {
-    "cpcall": "^0.5.2"
+    "cpcall": "^0.6.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
