@@ -1,7 +1,8 @@
 export * from "./api_type/chart.type.ts";
 export * from "./api_type/tty.type.ts";
 
-import type { ChartCreateInfo, ChartInfo, ChartUpdateData } from "./api_type/chart.type.ts";
+import { MaybePromise } from "../type.ts";
+import type { ChartCreateInfo, ChartInfo, ChartUpdateData, RequestUpdateRes } from "./api_type/chart.type.ts";
 import type { TtyOutputsData, TtyInputsReq } from "./api_type/tty.type.ts";
 
 export interface VioClientExposed extends ChartController {
@@ -24,15 +25,20 @@ export interface ChartController {
 
 export interface VioServerExposed {
   /** 获取所有图表的信息 */
-  getCharts(): { list: ChartInfo<any>[] };
+  getCharts(): MaybePromise<{ list: ChartInfo<any>[] }>;
   /** 获取指定图表的信息 */
-  getChartInfo(id: number): ChartInfo | undefined;
+  getChartInfo(chartId: number): MaybePromise<ChartInfo | undefined>;
+  /** 主动请求更新图 */
+  requestUpdateChart(chartId: number): MaybePromise<RequestUpdateRes<any>>;
+
   /** 获取 TTY 输出缓存日志 */
-  getTtyCache(ttyId: number): TtyOutputsData[];
+  getTtyCache(ttyId: number): MaybePromise<TtyOutputsData[]>;
   /** 切换 TTY 读取权限 */
-  setTtyReadEnable(ttyId: number, enable: boolean): boolean;
+  setTtyReadEnable(ttyId: number, enable: boolean): MaybePromise<boolean>;
   /** 解决 tty 输入请求 */
-  resolveTtyReadRequest(ttyId: number, requestId: number, res: any): boolean;
+  resolveTtyReadRequest(ttyId: number, requestId: number, res: any): MaybePromise<boolean>;
   /** 拒绝 tty 输入请求 */
-  rejectTtyReadRequest(ttyId: number, requestId: number, reason?: any): boolean;
+  rejectTtyReadRequest(ttyId: number, requestId: number, reason?: any): MaybePromise<boolean>;
+
+  inputTty(ttyId: number, data: any): MaybePromise<boolean>;
 }

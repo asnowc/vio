@@ -1,4 +1,4 @@
-import { TtyInputsReq, TtyOutputData, TtyOutputsData } from "@asnc/vio/client";
+import { TtyInputsReq, TtyOutputData, TtyOutputsData } from "@asla/vio/client";
 import { EventTrigger } from "evlib";
 import { LinkedCacheQueue, LinkedQueue, LoopUniqueId } from "evlib/data_struct";
 
@@ -38,7 +38,7 @@ export class TtyViewService {
   getAll(): Iterable<TtyClientAgent> {
     return Object.values(this.#ttys) as TtyClientAgent[];
   }
-  clearAllReading() {
+  private clearAllReading() {
     for (const tty of Object.values(this.#ttys)) {
       tty.clearReading();
     }
@@ -53,9 +53,13 @@ export class TtyViewService {
     }
     return res;
   }
-  init(resolver: TtyResolver) {
-    for (const iterator of Object.values(this.#ttys)) {
-      iterator.setReadEnable(false);
+  init(resolver?: TtyResolver) {
+    if (resolver) {
+      for (const iterator of Object.values(this.#ttys)) {
+        iterator.setReadEnable(false);
+      }
+    } else {
+      this.clearAllReading();
     }
     this.resolver = resolver;
   }

@@ -8,14 +8,23 @@ import { AntdStaticProvider } from "./hooks/msg.ts";
 import { AppConfigProvider, AppConfig } from "./services/AppConfig.ts";
 import { DEV_MODE } from "./const.ts";
 import { useAsync } from "./hooks/async.ts";
+import { useForceUpdate } from "./hooks/forceUpdate.ts";
 
 const COLOR_PRIMARY = "#b25cfe";
 export default function Root() {
   const messageInstance = message.useMessage();
   const notice = notification.useNotification();
   const { loading, run, res: appConfig } = useAsync(() => AppConfig.load());
+  const forceUpdate = useForceUpdate();
   useEffect(() => {
-    run();
+    let configInstance: AppConfig | undefined;
+    const onChange = forceUpdate;
+    run().then((appConfig) => {
+      appConfig.themeNameChange.on(onChange);
+    });
+    return () => {
+      configInstance?.themeNameChange.off(onChange);
+    };
   }, []);
   if (import.meta.env.MODE === DEV_MODE && appConfig) console.warn("Root render");
 
@@ -58,7 +67,7 @@ export default function Root() {
       <AntdStaticProvider value={{ message: messageInstance[0], notice: notice[0] }}>
         {appConfig && (
           <AppConfigProvider value={appConfig}>
-            <DockView />
+            <DockView theme={themeName} />
           </AppConfigProvider>
         )}
       </AntdStaticProvider>

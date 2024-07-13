@@ -5,12 +5,12 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
 export function useListenable<T>(event: Listenable<T>, listener: (data: T) => void) {
   const listenerRef = useRef(listener);
   listenerRef.current = listener;
-  const proxyListener = useCallback((data: T) => listenerRef.current(data), []);
-
   useLayoutEffect(() => {
-    event.on(proxyListener);
+    const listener = event.on((data) => {
+      listenerRef.current(data);
+    });
     return () => {
-      event.off(proxyListener);
+      event.off(listener);
     };
   }, [event]);
 }

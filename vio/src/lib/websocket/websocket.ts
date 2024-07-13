@@ -3,7 +3,7 @@ import { OutgoingHttpHeaders, request } from "node:http";
 import { createHash } from "node:crypto";
 import { WS_STATUS, WebSocketResolver } from "./websocket_resolver.ts";
 import { Socket } from "node:net";
-
+import { WebSocket as SampleWebSocket } from "../deno/http.ts";
 function createWsConnection(url: string): Promise<Socket> {
   const req = request(url, {
     headers: {
@@ -51,12 +51,13 @@ export function genResponseWsHeader(oKey: string): Record<string, string> {
 function SHA1(str: string) {
   return createHash("sha1").update(str).digest().toString("base64");
 }
+
 /** 实现了 标准 WebSocket 部分接口 */
-export class WebSocket extends EventTarget {
+export class WebSocket extends EventTarget implements SampleWebSocket {
   constructor(socket: Duplex, opts: { openEvent?: boolean } = {}) {
     super();
 
-    this.resolver = new WebSocketResolver(socket, {
+    this.#resolver = new WebSocketResolver(socket, {
       onError: (err) => this.dispatchEvent(new Event("error")),
       onClose: () => this.dispatchEvent(new Event("close")),
       onMessage: (data) => {
@@ -71,19 +72,19 @@ export class WebSocket extends EventTarget {
       });
     }
   }
-  private resolver: WebSocketResolver;
+  #resolver: WebSocketResolver;
   readonly CONNECTING = WS_STATUS.CONNECTING;
   readonly OPEN = WS_STATUS.OPEN;
   get readyState() {
-    return this.resolver.status;
+    return this.#resolver.status;
   }
   binaryType = "arrayBuffer";
   close(): void {
     if (this.readyState !== this.OPEN) return;
-    this.resolver.close();
+    this.#resolver.close();
   }
   send(data: Uint8Array) {
-    this.resolver.send(data);
+    this.#resolver.send(data);
   }
 }
 export interface WebSocket extends EventTarget {

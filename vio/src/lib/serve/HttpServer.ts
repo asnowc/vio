@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse, createServer, STATUS_CODES } from "node:http";
 import type { Duplex } from "node:stream";
 import { Buffer } from "node:buffer";
-import { createHttpResHeaderFrame } from "../http/http_frame.ts";
+import { createHttpResHeaderFrame } from "../http_server/http/http_frame.ts";
 import {
   genUrl,
   nodeReqToInfo,
@@ -9,8 +9,10 @@ import {
   nodeReqToWebRequest,
   processResponse,
 } from "./node_http_transf.ts";
-import { WebSocket, genResponseWsHeader } from "../websocket/websocket.ts";
-import { genErrorInfo } from "../../parse_error.ts";
+import { WebSocket, genResponseWsHeader } from "../websocket.ts";
+import { genErrorInfo } from "../parse_error.ts";
+import type { NetAddr, ServeHandler, ServeHandlerInfo, ServeOptions, HttpServer as DenoHttpServer } from "./type.ts";
+
 function withResolvers<T>(): PromiseWithResolvers<T> {
   let obj: PromiseWithResolvers<any> = {} as any;
   obj.promise = new Promise(function (resolve, reject) {
@@ -20,7 +22,7 @@ function withResolvers<T>(): PromiseWithResolvers<T> {
   return obj;
 }
 /** @public */
-export class HttpServer {
+export class HttpServer implements DenoHttpServer {
   static listen(server: HttpServer) {
     server.#server.listen({ port: server.addr.port, host: server.addr.hostname });
   }
@@ -157,50 +159,4 @@ class UpgResponse extends Response {
     if (changeStatus)
       Reflect.defineProperty(this, "status", { value: status, configurable: false, writable: false, enumerable: true });
   }
-}
-
-/** @public */
-export type ServeHandler = (request: Request, info: ServeHandlerInfo) => Response | Promise<Response>;
-
-/** Additional information for an HTTP request and its connection.
- *
- * @public
- */
-export interface ServeHandlerInfo {
-  /** The remote address of the connection. */
-  remoteAddr: NetAddr;
-}
-/** @public   */
-export interface NetAddr {
-  transport: "tcp" | "udp";
-  hostname: string;
-  port: number;
-}
-export interface ServeOptions {
-  /** The port to listen on.
-   *
-   * @default {8000} */
-  port?: number;
-
-  /** A literal IP address or host name that can be resolved to an IP address.
-   *
-   * __Note about `0.0.0.0`__ While listening `0.0.0.0` works on all platforms,
-   * the browsers on Windows don't work with the address `0.0.0.0`.
-   * You should show the message like `server running on localhost:8080` instead of
-   * `server running on 0.0.0.0:8080` if your program supports Windows.
-   *
-   * @default {"0.0.0.0"} */
-  hostname?: string;
-
-  /** An {@linkcode AbortSignal} to close the server and all connections. */
-  signal?: AbortSignal;
-
-  /** Sets `SO_REUSEPORT` on POSIX systems. */
-  reusePort?: boolean;
-
-  /** The handler to invoke when route handlers throw an error. */
-  onError?: (error: unknown) => Response | Promise<Response>;
-
-  /** The callback which is called when the server starts listening. */
-  onListen?: (localAddr: NetAddr) => void;
 }

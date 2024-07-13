@@ -1,16 +1,17 @@
 import { IDockviewPanelProps } from "dockview";
 import React, { useEffect, useReducer } from "react";
 import { ChartClientAgent, useVioApi } from "@/services/VioApi.ts";
-import { ConfigurableChart } from "../components/ConfigurableChart.tsx";
+import { ConfigurableChart } from "../components/ConfigurableChart/mod.ts";
 import { useForceUpdate } from "@/hooks/forceUpdate.ts";
 import { useListenable } from "@/hooks/event.ts";
 import { ReactErrorBoundary } from "@/components/ErrorHander.tsx";
+import { E2E_SELECT_CLASS } from "@/const.ts";
 
 export function VioChart({ api, containerApi, params }: IDockviewPanelProps<{ chartId: number }>) {
   const chartCenter = useVioApi().chart;
   const { chartId } = params;
   function getChart() {
-    let chart = chartCenter.chartsMap.get(chartId);
+    let chart = chartCenter.get(chartId);
     if (!chart) chart = new ChartClientAgent({ dimension: 1, id: chartId });
     return chart;
   }
@@ -39,7 +40,12 @@ export function VioChart({ api, containerApi, params }: IDockviewPanelProps<{ ch
 
   return (
     <ReactErrorBoundary>
-      <ConfigurableChart chart={chartInstance} chartSize={resizeDep} visible={api.isVisible} />
+      <ConfigurableChart
+        className={`${E2E_SELECT_CLASS.panel} ${E2E_SELECT_CLASS.panels.chart}`}
+        chart={chartInstance}
+        chartSize={resizeDep}
+        visible={api.isVisible}
+      />
     </ReactErrorBoundary>
   );
 }

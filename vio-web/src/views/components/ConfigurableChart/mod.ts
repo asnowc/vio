@@ -1,3 +1,4 @@
-export * from "./XYCoordChart.tsx";
-export * from "./GaugePie.tsx";
+export * from "./ConfigurableChart.tsx";
+export * from "./ConfigBoard.tsx";
 export * from "./type.ts";
+export * from "./const.ts";

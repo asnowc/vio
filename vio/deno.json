@@ -1,0 +1,22 @@
+{
+  "name": "@asla/vio",
+  "version": "0.0.1",
+  "exports": "./src/mod_deno.ts",
+  "tasks": {
+    "gen-doc": "deno doc --html --output=temp --name=VIO src/mod.ts",
+    "publish-dry": "deno publish --dry-run --allow-dirty"
+  },
+  "imports": {
+    "jbod": "jsr:@asn/jbod@^0.5.0",
+    "evlib": "jsr:@asn/evlib@^2.6.1",
+    "cpcall": "jsr:@asn/cpcall@^0.6.0"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window"]
+  },
+  "publish": {
+    "include": ["README.md", "src/**/*.ts"]
+  },
+  "nodeModulesDir": false,
+  "lock": false
+}

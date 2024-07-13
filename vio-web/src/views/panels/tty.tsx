@@ -6,6 +6,7 @@ import { TtyInputBoard } from "./components/TtyInputBoard.tsx";
 import { useVioApi } from "@/services/VioApi.ts";
 import { DoubleSplitLayout } from "@/lib/dockview.tsx";
 import { ReactErrorBoundary } from "@/components/ErrorHander.tsx";
+import { E2E_SELECT_CLASS } from "@/const.ts";
 
 export function VioTty({ api, containerApi, params }: IDockviewPanelProps<{ index: number }>) {
   const [visible, setVisible] = useState(api.isVisible);
@@ -21,6 +22,7 @@ export function VioTty({ api, containerApi, params }: IDockviewPanelProps<{ inde
   return (
     <ReactErrorBoundary>
       <DoubleSplitLayout
+        className={`${E2E_SELECT_CLASS.panel} ${E2E_SELECT_CLASS.panels.chart}`}
         direction="vertical"
         hideBorder
         panels={[{ minimumSize: 30 }, { minimumSize: 30, defaultSize: 50 }]}

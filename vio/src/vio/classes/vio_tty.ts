@@ -7,7 +7,10 @@ import { withPromise, WithPromise } from "evlib";
 type TtyWriterFn = (ttyId: number, data: TtyOutputsData) => void;
 type TtyReadFn = VioClientExposed["sendTtyReadRequest"];
 
-/** @public */
+/**
+ * @public
+ * @category TTY
+ */
 export class TtyCenter {
   static TTY_DEFAULT_CACHE_SIZE = 20;
   constructor(private writeTty: TtyWriterFn) {}
@@ -36,7 +39,7 @@ export class TtyCenter {
     return this.#instanceMap.get(index);
   }
   /** 获取所有已创建的 TTY */
-  getAll() {
+  getAll(): IterableIterator<VioTty> {
     return this.#instanceMap.values();
   }
   setReader(ttyId: number, reader: TtyReader): TtyReadResolver {
@@ -57,7 +60,7 @@ export class TtyCenter {
 
   #resolver: Record<number, InternalReadResolver> = {};
   /** 删除指定索引的 TTY */
-  delete(tty: VioTty) {
+  delete(tty: VioTty): boolean {
     if (!(tty instanceof VioTtyImpl)) return false;
     if (this.#instanceMap.get(tty.ttyIndex) === tty) {
       tty.dispose();
@@ -106,6 +109,10 @@ class VioTtyImpl extends CacheTty implements VioTty {
   #resolvers: Record<number, InternalReadResolver>;
   /** 等待发送的读取请求队列 */
   #waitingSendQueue = new LinkedQueue<ReadingHandle>();
+  #input(data: any): boolean {
+    // TODO: 方案待定
+    return false;
+  }
 
   static TtyReadResolver = class InternalReadResolver implements TtyReadResolver {
     constructor(reader: TtyReader, ttyId: number, resolvers: Record<number, InternalReadResolver>) {
@@ -122,6 +129,10 @@ class VioTtyImpl extends CacheTty implements VioTty {
     #waitingResolverMap = new UniqueKeyMap<ReadingHandle>(0xffff_ffff);
     get waitingSize() {
       return this.#waitingResolverMap.size;
+    }
+    input(data: any): boolean {
+      if (!this.#tty) return false;
+      return this.#tty.#input(data);
     }
     resolve(requestId: number, data: any): boolean {
       const hd = this.#waitingResolverMap.take(requestId);
@@ -230,24 +241,34 @@ type InternalReadResolver = InstanceType<typeof VioTtyImpl.TtyReadResolver>;
 
 type ReadingHandle = WithPromise<unknown> & { config: TtyInputsReq };
 
-/** @public */
+/**
+ * @public
+ * @category TTY
+ */
 export interface VioTty extends TTY {
   cachedSize: number;
   cacheSize: number;
   getCache(): IterableIterator<TtyOutputsData>;
   disposed: boolean;
 }
-/** @public */
+/**
+ * @public
+ * @category TTY
+ */
 export interface TtyReader {
   read: TtyReadFn;
   dispose?(): void;
 }
-/** @public */
+/**
+ * @public
+ * @category TTY
+ */
 export interface TtyReadResolver {
   dispose(): void;
   // disable(): void;
   resolve(requestId: number, data: any): boolean;
   reject(requestId: number, reason: any): boolean;
+  input(data: any): boolean;
   waitingSize: number;
 }
 

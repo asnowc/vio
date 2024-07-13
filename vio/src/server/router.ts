@@ -1,4 +1,4 @@
-import { ServeHandlerInfo } from "../lib/http_server/mod.ts";
+import type { ServeHandlerInfo } from "../lib/deno/http.ts";
 
 export function createRequestContext(req: Request, info: ServeHandlerInfo): RequestContext {
   const url = new URL(req.url);

@@ -1,9 +1,9 @@
 import { test, vi } from "vitest";
-import { Vio, VioHttpServer, createVio } from "@asnc/vio";
+import { Vio, VioHttpServer, createVio } from "@asla/vio";
 import process from "node:process";
-import { CpCall, MakeCallers } from "cpcall";
-import { connectWebsocket } from "../../src/lib/http_server/mod.ts";
-import { createWebSocketCpc } from "cpcall/web";
+import { CpCall, MakeCallers, createWebSocketCpc } from "cpcall";
+import { connectWebsocket } from "../../src/lib/websocket.ts";
+import "@asla/vio";
 import { VioClientExposed, VioServerExposed } from "../../src/client.ts";
 const BASE_PORT = 7001;
 const VITEST_POOL_ID = parseInt(process.env.VITEST_POOL_ID ?? "0");
@@ -51,7 +51,7 @@ export async function connectVioServer(host: string) {
 
   const clientApi = createMockClientApi();
   cpc.setObject(clientApi);
-  const serverApi = cpc.genCaller<VioServerExposed>();
+  const serverApi: MakeCallers<VioServerExposed> = cpc.genCaller<VioServerExposed>();
 
   return { cpc, clientApi, serverApi };
 }

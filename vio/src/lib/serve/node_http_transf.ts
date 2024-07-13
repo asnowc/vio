@@ -1,7 +1,9 @@
+//@deno-ignore
+
 import { IncomingMessage, ServerResponse } from "node:http";
 import { ReadableStream, TransformStream } from "node:stream/web";
-import { ServeHandlerInfo } from "./server.ts";
 import { readableToReadableStream, writableToWritableStream } from "@eavid/lib-node/stream";
+import { ServeHandlerInfo } from "./type.ts";
 
 export function nodeReqToWebRequest(req: IncomingMessage, defaultUrl: string): Request {
   return new Request(genUrl(req, defaultUrl), nodeReqToWebReqInit(req));

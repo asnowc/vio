@@ -1,5 +1,5 @@
 import { BrowserContext, Page, test, WebSocket } from "@playwright/test";
-import { Vio, createVio, VioHttpServer } from "@asnc/vio";
+import { Vio, createVio, VioHttpServer } from "@asla/vio";
 import process from "node:process";
 import { env } from "./playwright.ci.config.ts";
 

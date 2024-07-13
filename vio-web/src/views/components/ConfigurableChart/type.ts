@@ -1,13 +1,18 @@
 import { EChartsPruneOption, EChartsPruneSeries } from "@/lib/echarts.ts";
-import { VioChartMeta } from "@asnc/vio/client";
+import { ChartDataItem, ChartMeta, DimensionInfo } from "@asla/vio/client";
 
 export interface ChartCommonProps<T> {
   resizeDep?: any[];
-  data: T;
-  chartMeta: VioChartMeta;
-  chartType: string;
-  dimensionIndexNames?: Record<number, (string | undefined)[] | undefined>;
-  dimensionNames?: Record<number, string | undefined>;
+  dataList: Readonly<ChartDataItem<T>>[];
+  chartMeta: ChartConfig;
+  dimension: number;
+  dimensions: ArrayLike<DimensionInfo>;
   staticOptions?: EChartsPruneOption;
   staticSeries?: EChartsPruneSeries;
+}
+export interface ChartConfig extends ChartMeta.Common {
+  chartType?: string;
+  echartsOption?: object;
+  echartsSeries?: object;
+  requestUpdate?: boolean;
 }

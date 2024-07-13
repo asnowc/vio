@@ -2,18 +2,19 @@ import { setInterval } from "evlib";
 
 import { ChartClientAgent, ChartsDataCenterService, useVioApi } from "@/services/VioApi.ts";
 import { useLayoutEffect, useMemo } from "react";
+import { DimensionInfo } from "@asla/vio/client";
 
 export class MockChart<T> extends ChartClientAgent<T> {
   constructor(
     private dimensionIndexSizes: number[],
     type: string,
-    dimensionIndexNames?: string[][],
+    dimensions?: Record<number, DimensionInfo | undefined>,
     private time: number = 2000,
   ) {
     super({
       dimension: dimensionIndexSizes.length + 1,
       id: 0,
-      dimensionIndexNames,
+      dimensions,
       maxCacheSize: 10,
       meta: { chartType: type, title: "xxx标题" },
     });
@@ -30,8 +31,12 @@ export class MockChart<T> extends ChartClientAgent<T> {
   dispose() {}
 }
 
-export function useMockChart(type: string, dimensionIndexNames: string[][], ...args: number[]) {
-  const chart = useMemo(() => new MockChart<number[][][]>(args, type, dimensionIndexNames), []);
+export function useMockChart(
+  type: string,
+  dimensions: Record<number, DimensionInfo | undefined>,
+  ...args: number[]
+) {
+  const chart = useMemo(() => new MockChart<number[][][]>(args, type, dimensions), []);
   useLayoutEffect(() => {
     chart.start();
     return () => chart.dispose();
@@ -68,7 +73,7 @@ export function startMockUpdateData(
 ) {
   return setInterval(() => {
     const randomData = genArr(...dimensionIndexSizes);
-    api.writeChart(id, { value: randomData });
+    api.writeChart(id, { data: randomData, timestamp: Date.now() });
   }, time);
 }
 export function useStartMockUpdateData(

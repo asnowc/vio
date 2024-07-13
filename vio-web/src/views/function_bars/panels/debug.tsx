@@ -18,7 +18,7 @@ export function DebugBar() {
   const displayLogs = useMemo(() => logs, [logs]);
   return (
     <flex-col style={{ gap: 14, height: "100%", overflow: "hidden" }}>
-      <Select options={filterOpts} mode="multiple" style={{ width: 200 }} placeholder="过滤类型" />
+      <Select options={filterOption} mode="multiple" style={{ width: 200 }} placeholder="过滤类型" />
       <flex-col style={{ gap: 4, overflow: "auto", flex: 1, padding: "0 8px" }}>
         {displayLogs.map(({ data, date, type, action, id }) => {
           const dateStr = new Date(date).toLocaleTimeString();
@@ -32,7 +32,7 @@ export function DebugBar() {
     </flex-col>
   );
 }
-const filterOpts: { label: ReactNode; value: string }[] = [
+const filterOption: { label: ReactNode; value: string }[] = [
   {
     label: (
       <Space>

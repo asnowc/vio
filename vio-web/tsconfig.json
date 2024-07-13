@@ -2,7 +2,9 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@asla/vio/client": ["./node_modules/@asla/vio/src/client.ts"],
+      "@asla/vio/*": ["./node_modules/@asla/vio/src/*"]
     }
   }
 }

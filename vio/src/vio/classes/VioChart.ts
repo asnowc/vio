@@ -1,52 +1,88 @@
-import type { DimensionalityReduction, IntersectingDimension, VioChartMeta } from "../api_type.ts";
+import type {
+  ChartDataItem,
+  DimensionInfo,
+  DimensionalityReduction,
+  IntersectingDimension,
+  VioChartMeta,
+} from "../api_type.ts";
 import { LinkedCacheQueue } from "evlib/data_struct";
 import { deepClone } from "evlib";
-import { IndexRecord, indexRecordToArray } from "../../lib/array_like.ts";
+import { IndexRecord } from "../../lib/array_like.ts";
+import { MaybePromise } from "../../type.ts";
 
-/** VIO VioChart
- * @public
- */
-export class VioChart<T = number> {
-  constructor(config: VioChartCreateConfig) {
-    const { dimensionIndexNames = {}, dimension, maxCacheSize = 0, meta } = config;
-    this.#cache = new LinkedCacheQueue<{ data: T; name?: string; time: number }>(maxCacheSize);
+export abstract class VioChartImpl<T = number> implements VioChart<T> {
+  constructor(config: VioChartCreateConfig<T>) {
+    const { dimensions, dimension, maxCacheSize = 0, meta, onRequestUpdate, updateThrottle = 0 } = config;
+    if (!(dimension >= 0)) throw new RangeError("dimension must be a positive integer");
+    this.#cache = new LinkedCacheQueue<ChartDataItem<T>>(maxCacheSize);
     this.dimension = dimension;
     this.id = config.id;
 
-    const finalDimensionIndexNames: IndexRecord<(string | undefined)[]> = { length: dimension };
-
-    for (let i = 0; i < dimension; i++) {
-      const indexNames = dimensionIndexNames[i];
-      if (indexNames) finalDimensionIndexNames[i] = indexRecordToArray(indexNames, indexNames.length);
-      else finalDimensionIndexNames[i] = [];
+    const finalDimension: IndexRecord<DimensionInfo> = { length: dimension };
+    Object.defineProperty(finalDimension, "length", {
+      value: dimension,
+      configurable: false,
+      enumerable: true,
+      writable: false,
+    });
+    if (dimensions) {
+      for (let i = 0; i < dimension; i++) {
+        const item = dimensions[i];
+        finalDimension[i] = typeof item === "object" && item ? item : {};
+      }
+    } else {
+      for (let i = 0; i < dimension; i++) {
+        finalDimension[i] = {};
+      }
     }
-    Object.freeze(finalDimensionIndexNames);
-    this.dimensionIndexNames = finalDimensionIndexNames;
+    this.dimensions = finalDimension;
     this.meta = { ...meta };
+    this.updateThrottle = updateThrottle;
+    this.onRequestUpdate = onRequestUpdate;
   }
-  #cache;
-  get cachedSize() {
+
+  updateThrottle: number;
+  onRequestUpdate?: () => MaybePromise<T>;
+
+  #cache: LinkedCacheQueue<ChartDataItem<T>>;
+  /** 已缓存的数据长度 */
+  get cachedSize(): number {
     return this.#cache.size;
+  } /** 缓存容量 */
+  get maxCacheSize(): number {
+    return this.#cache.maxSize;
   }
-  get data() {
-    return this.lastData?.data;
+  set maxCacheSize(size: number) {
+    this.#cache.maxSize = size;
   }
-  get lastData() {
+  get data(): T | undefined {
+    return this.lastDataItem?.data;
+  }
+  get lastDataItem(): Readonly<Readonly<ChartDataItem<T>>> | undefined {
     return this.#cache.last;
   }
-  get headData() {
+  get headDataItem(): Readonly<Readonly<ChartDataItem<T>>> | undefined {
     return this.#cache.head;
   }
+  protected pushCache(...items: ChartDataItem<T>[]) {
+    for (let i = 0; i < items.length; i++) {
+      this.#cache.push(items[i]);
+    }
+  }
+  /** 遍历时间维度上的数据 */
+  getCacheDateItem(): Generator<Readonly<ChartDataItem<T>>, void, void> {
+    return this.#cache[Symbol.iterator]();
+  }
+  /** 获取缓存中的数据 */
   *getCacheData(): Generator<T, void, void> {
     for (const item of this.#cache) {
       yield item.data;
     }
   }
-  updateData(data: T, timeAxisName?: string): void {
-    this.#cache.push({ data, time: Date.now(), name: timeAxisName });
-  }
+  /** 更新图表数据。并将数据推入缓存 */
+  abstract updateData(data: T, timeName?: string): void;
 
-  private updateLowerOneDimension(updateData: IntersectingDimension<T>, coord: number, coordName?: string) {
+  private updateLowerOneDimension(updateData: IntersectingDimension<T>, coord: number) {
     const current = this.data!;
     if (!current) throw new Error("Data no exist");
     if (!(current instanceof Array)) throw new Error("Unable to update data for dimension 0");
@@ -58,63 +94,93 @@ export class VioChart<T = number> {
       else data[i] = typeof current[i] === "object" ? deepClone(current[i]) : current[i];
     }
     this.updateData(data as T);
-    if (coordName !== undefined) {
-      let axis = this.dimensionIndexNames[0]!;
-      //@ts-ignore
-      axis[coord] = coordName;
-    }
   }
   /** 降一个维度更新数据 */
-  updateSubData(updateData: DimensionalityReduction<T>, coord: number, opts?: VioChartUpdateLowerOpts): void;
-  // updateSubData(updateData: IntersectingDimension<T>, coord: (number | undefined)[], opts?: UpdateSubDataOpts): void;
-  updateSubData(
-    updateData: IntersectingDimension<T>,
-    coord: (number | undefined)[] | number,
-    opts: VioChartUpdateLowerOpts | VioChartUpdateOpts = {},
-  ): void {
-    const { dimensionIndexNames } = opts;
+  protected updateSubData(updateData: DimensionalityReduction<T>, coord: number, option?: ChartUpdateLowerOption): void;
+  // updateSubData(updateData: IntersectingDimension<T>, coord: (number | undefined)[], option?: ChartUpdateLowerOption): void;
+  protected updateSubData(updateData: IntersectingDimension<T>, coord: (number | undefined)[] | number): void {
     if (typeof coord === "number") {
-      return this.updateLowerOneDimension(updateData, coord, dimensionIndexNames as string);
+      return this.updateLowerOneDimension(updateData, coord);
     }
     //TODO: 实现更细维度的数据更新
     throw new Error("未实现");
     // this.updateData(data);
   }
-  get maxCacheSize(): number {
-    return this.#cache.maxSize;
-  }
-  set maxCacheSize(size: number) {
-    this.#cache.maxSize = size;
-  }
-  eachTimeline() {
-    return this.#cache[Symbol.iterator]();
-  }
-  readonly dimensionIndexNames: Readonly<Record<number, (string | undefined)[] | undefined>>;
-  get cacheData(): T[] {
-    return Array.from(this.getCacheData());
-  }
+  /** 维度信息 */
+  readonly dimensions: IndexRecord<DimensionInfo>;
+  /** 维度数量 */
   readonly dimension: number;
   readonly id: number;
   readonly meta: VioChartMeta;
 }
-/** @public */
-export type VioChartCreateConfig = {
+/**
+ * VIO Chart
+ * @public
+ * @category Chart
+ */
+export interface VioChart<T = number> {
+  data?: T;
+  cachedSize: number;
+  maxCacheSize: number;
+
+  /** 请求更新节流。单位毫秒 */
+  updateThrottle: number;
+  /** 主动请求更新的回调函数 */
+  onRequestUpdate?: () => MaybePromise<T>;
+  getCacheDateItem(): IterableIterator<Readonly<ChartDataItem<T>>>;
+  /** 获取缓存中的数据 */
+  getCacheData(): IterableIterator<T>;
+  /** 更新图表数据。并将数据推入缓存 */
+  updateData(data: T, timeName?: string): void;
+  /** 维度信息 */
+  readonly dimensions: ArrayLike<DimensionInfo>;
+  /** 维度数量 */
+  readonly dimension: number;
+  readonly id: number;
+  readonly meta: VioChartMeta;
+}
+
+/**
+ * VioChart 创建配置
+ * @public
+ * @category Chart
+ */
+export type VioChartCreateConfig<T = unknown> = ChartCreateOption & {
+  /** {@inheritdoc VioChart.id} */
   id: number;
+  /** {@inheritdoc VioChart.dimension} */
   dimension: number;
+  /** {@inheritdoc VioChart.onRequestUpdate} */
+  onRequestUpdate?(): MaybePromise<T>;
+  /** {@inheritdoc VioChart.updateThrottle} */
+  updateThrottle?: number;
+};
+/**
+ * VioChart 创建可选项
+ * @public
+ * @category Chart
+ */
+export type ChartCreateOption = {
+  /** {@inheritdoc VioChart.meta} */
   meta?: VioChartMeta;
-  /** 维度刻度名称 */
-  dimensionIndexNames?: Record<number, ArrayLike<string | undefined> | undefined>;
+  /** {@inheritdoc VioChart.dimensions} */
+  dimensions?: Record<number, DimensionInfo | undefined>;
+  /** {@inheritdoc VioChart.maxCacheSize} */
   maxCacheSize?: number;
 };
-/** @public */
-export type VioChartUpdateOpts = {
-  /** 与坐标对应 */
-  dimensionIndexNames?: Record<number, ArrayLike<string | undefined> | null>;
+/**
+ * @public
+ * @category Chart
+ */
+export type ChartUpdateOption = {
   /** 时间轴刻度名称 */
   timeName?: string;
 };
-/** @public */
-export type VioChartUpdateLowerOpts = {
-  dimensionIndexNames?: string;
+/**
+ * @public
+ * @category Chart
+ */
+export type ChartUpdateLowerOption = {
+  /** {@inheritdoc ChartUpdateOption.timeName} */
   timeName?: string;
 };

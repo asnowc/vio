@@ -1,5 +1,5 @@
 import type { VioClientExposed, TtyInputsReq, TtyOutputsData } from "./api_type.ts";
-import { WebSocket } from "../lib/http_server/mod.ts";
+import type { WebSocket } from "../lib/deno/http.ts";
 import { initWebsocket } from "../rpc/rpc_api.ts";
 import { TtyCenter, ChartCenter, TTY, VioTty } from "./classes/mod.ts";
 
@@ -51,11 +51,10 @@ class VioImpl extends TTY implements Vio {
     const { clientApi, cpc } = initWebsocket(this, websocket);
 
     const viewer = this.joinViewer(clientApi, (viewer) => {
-      cpc.disable();
-      cpc.caller.end();
+      cpc.close();
       onDispose?.(viewer);
     });
-    cpc.closeEvent.finally(() => viewer.dispose());
+    cpc.onClose.finally(() => viewer.dispose()).catch(() => {});
     return viewer;
   }
 
@@ -72,8 +71,10 @@ class VioImpl extends TTY implements Vio {
     },
   });
 }
-/** 获取 Vio 实例
- * @public  */
+/**
+ * 创建 Vio 实例
+ * @public
+ */
 // @__NO_SIDE_EFFECTS__
 export function createVio(): Vio {
   return new VioImpl();

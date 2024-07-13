@@ -38,7 +38,6 @@ function ErrorPanel(props: ErrorPanelProps) {
         发生错误，你可以尝试
         <button onClick={onRetry}>刷新</button>
       </div>
-      <div>{errorInfo && errorInfo.componentStack}</div>
       <div>{stack}</div>
     </div>
   );

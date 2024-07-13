@@ -1,4 +1,4 @@
-import { CpCall, MakeCallers } from "cpcall";
+import { CpCall, MakeCallers, createWebSocketCpc } from "cpcall";
 import type {
   VioClientExposed,
   ChartInfo,
@@ -9,10 +9,27 @@ import type {
   TtyInputsReq,
 } from "../vio/api_type.ts";
 import { TtyCenter, ChartCenter, Vio } from "../vio/mod.ts";
-import { TtyReadResolver } from "../vio/classes/mod.ts";
-import { WebSocket } from "../lib/http_server/mod.ts";
-import { createWebSocketCpc } from "cpcall/web";
-
+import { RequestUpdateRes, TtyReadResolver, VioChart } from "../vio/classes/mod.ts";
+import type { WebSocket } from "../lib/deno/http.ts";
+import { MaybePromise } from "../type.ts";
+import { indexRecordToArray } from "../lib/array_like.ts";
+function getChartInfo<T>(chart: VioChart<T>): ChartInfo<T> {
+  const cacheData: T[] = new Array(chart.cachedSize);
+  const timestamps: number[] = new Array(chart.cachedSize);
+  let i = 0;
+  for (const item of chart.getCacheDateItem()) {
+    cacheData[i] = item.data;
+    timestamps[i] = item.timestamp;
+    i++;
+  }
+  return {
+    meta: chart.meta,
+    dimension: chart.dimension,
+    id: chart.id,
+    cacheList: Array.from(chart.getCacheDateItem()),
+    dimensions: indexRecordToArray(chart.dimensions),
+  };
+}
 class RpcServerExposed implements VioServerExposed {
   constructor(vio: { chart: ChartCenter; tty: TtyCenter }, clientApi: RpcClientApi) {
     this.#clientApi = clientApi;
@@ -21,11 +38,22 @@ class RpcServerExposed implements VioServerExposed {
   #clientApi: RpcClientApi;
   #vio: { chart: ChartCenter; tty: TtyCenter };
   getCharts(): { list: ChartInfo<any>[] } {
-    return { list: this.#vio.chart.getAllInfo() };
+    const list: ChartInfo<any>[] = new Array(this.#vio.chart.chartsNumber);
+    let i = 0;
+    for (const chart of this.#vio.chart.getAll()) {
+      list[i++] = getChartInfo(chart);
+    }
+    return { list };
   }
   getChartInfo(id: number): ChartInfo<any> | undefined {
-    return this.#vio.chart.getInfo(id);
+    const chart = this.#vio.chart.get(id);
+    if (!chart) return;
+    return getChartInfo(chart);
   }
+  requestUpdateChart<T>(chartId: number): MaybePromise<RequestUpdateRes<T>> {
+    return this.#vio.chart.requestUpdate<T>(chartId);
+  }
+
   getTtyCache(id: number): TtyOutputsData[] {
     const tty = this.#vio.tty.getCreated(id);
     if (!tty) return [];
@@ -40,6 +68,11 @@ class RpcServerExposed implements VioServerExposed {
     const hd = this.#resolverMap[ttyId];
     if (!hd) return false;
     return hd.reject(requestId, reason);
+  }
+  inputTty(ttyId: number, data: any): boolean {
+    const resolver = this.#resolverMap[ttyId];
+    if (!resolver) return false;
+    return resolver.input(data);
   }
   /** 某个连接中开启读取权的 tty 字典 */
   #resolverMap: Record<number, TtyReadResolver> = {};

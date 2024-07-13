@@ -4,9 +4,9 @@ import { useViewApi } from "@/services/ViewApi.ts";
 import { useVioApi } from "@/services/VioApi.ts";
 import { Button, Empty } from "antd";
 import React from "react";
-import { CHART_TYPE_RENDER_MAP } from "../../components/ConfigurableChart.tsx";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useForceUpdate } from "@/hooks/forceUpdate.ts";
+import { CHART_TYPE_RENDER_MAP } from "@/views/components/ConfigurableChart/const.ts";
 
 export function ChartBar() {
   const viewApi = useViewApi();
@@ -15,7 +15,7 @@ export function ChartBar() {
   useListenable(chart.createEvent, forceUpdate);
   useListenable(chart.deleteEvent, forceUpdate);
 
-  const chartList = chart.chartsMap.values();
+  const chartList = chart.getAll();
 
   const itemList = mapIterable(chartList, (item) => {
     const meta = item.meta;
