@@ -10,7 +10,7 @@ permissions:
 env:
   PKG_NAME: npm-package
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     outputs:
       version: ${{fromJson(env.PACKAGE_JSON).version}}
@@ -35,7 +35,7 @@ jobs:
             cat ./vio/package.json
             echo EOF
           } >>  $GITHUB_ENV
-      - name: Package npm
+      - name: Pack npm
         run: |
           pnpm pack --pack-destination ..
           mv ${{fromJson(env.PACKAGE_JSON).name}}-${{fromJson(env.PACKAGE_JSON).version}}.tgz ${{env.PKG_NAME}}.tgz
@@ -47,10 +47,10 @@ jobs:
           path: ${{env.PKG_NAME}}.tgz
 
   publish-npm:
-    needs: test
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: download
+      - name: Download
         uses: actions/download-artifact@v4
         with:
           name: ${{env.PKG_NAME}}
@@ -68,7 +68,7 @@ jobs:
 
   publish-jsr:
     runs-on: ubuntu-latest
-    needs: test
+    needs: build
     steps:
       - name: Checkout
         uses: actions/checkout@v4

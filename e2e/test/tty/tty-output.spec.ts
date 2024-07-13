@@ -16,7 +16,7 @@ test("output text", async function ({ vioServerInfo: { vio: tty }, appPage: page
   tty.writeText("info title", { msgType: "info", content: "this is a content" });
   const textFlag = " title";
   await afterTime(500);
-  await expect(page.getByText(textFlag), "内容被输出").resolves.toBe(4);
+  await expect(page.getByText(textFlag).count(), "内容被输出").resolves.toBe(4);
 
   await page.getByRole("button", { name: "warning" }).click(); //过滤警告
   await expect(page.getByText("warn title").count(), "警告被隐藏").resolves.toBe(0); //
