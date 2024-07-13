@@ -53,6 +53,8 @@ export async function connectVioServer(host: string) {
   cpc.setObject(clientApi);
   const serverApi: MakeCallers<VioServerExposed> = cpc.genCaller<VioServerExposed>();
 
+  cpc.onClose.catch(() => {});
+
   return { cpc, clientApi, serverApi };
 }
 
