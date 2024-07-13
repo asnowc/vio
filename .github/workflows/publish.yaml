@@ -46,6 +46,13 @@ jobs:
         with:
           name: ${{env.PKG_NAME}}
           path: ${{env.PKG_NAME}}.tgz
+          retention-days: 3
+      - name: Upload assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-assets
+          path: vio/assets/**
+          retention-days: 3
 
   publish-npm:
     needs: build
@@ -73,6 +80,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Download assets
+        uses: actions/download-artifact@v4
+        with:
+          name: web-assets
       - name: Publish
         run: |
           cp ../README.md ./README.md 

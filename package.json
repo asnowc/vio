@@ -3,7 +3,7 @@
   "scripts": {
     "ci:build": "pnpm run -r ci:build",
     "ci:test": "vitest run",
-    "ci:api-check": "pnpm run -r ci:api-check",
+    "ci:check-api": "pnpm run -r ci:api-check",
     "test:coverage": "vitest --coverage --ui"
   },
   "keywords": [],

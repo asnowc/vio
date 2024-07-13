@@ -30,7 +30,8 @@
   "files": [
     "index.d.ts",
     "./dist/**/*.js",
-    "./dist/**/*.d.ts"
+    "./dist/**/*.d.ts",
+    "./assets/**"
   ],
   "exports": {
     ".": "./dist/mod_node.js"
@@ -42,5 +43,9 @@
   "author": {
     "name": "Eavid",
     "url": "https://github.com/eavidy"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
   }
 }

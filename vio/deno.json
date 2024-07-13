@@ -7,7 +7,7 @@
     "publish-dry": "deno publish --dry-run --allow-dirty"
   },
   "imports": {
-    "@asla/vio":"./src/mod_deno.ts",
+    "@asla/vio": "./src/mod_deno.ts",
     "jbod": "jsr:@asn/jbod@^0.5.0",
     "evlib": "jsr:@asn/evlib@^2.6.1",
     "cpcall": "jsr:@asn/cpcall@^0.6.0"
@@ -16,7 +16,8 @@
     "lib": ["deno.window"]
   },
   "publish": {
-    "include": ["README.md", "src/**/*.ts"]
+    "include": ["README.md", "src/**/*.ts", "assets/**"],
+    "exclude": ["!assets/web"]
   },
   "nodeModulesDir": false,
   "lock": false

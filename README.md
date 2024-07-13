@@ -12,11 +12,11 @@
 [size]: https://packagephobia.com/badge?p=@asla/vio
 [size-url]: https://packagephobia.com/result?p=@asla/vio
 
-## 图形界面式输入输出
+## Web 终端
 
 提供各种图形化的控件。在浏览器中与进程进行交互
 
-<img src="https://github.com/asnowc/vio/raw/main/blob/docs/img/vio.png"/>
+<img src="https://github.com/asnowc/vio/raw/main/docs/img/vio.png"/>
 
 上图的示例见 [/vio/examples/run_server.ts](https://github.com/asnowc/vio/blob/main/vio/examples/run_server.ts)
 
