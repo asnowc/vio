@@ -54,12 +54,13 @@ export function TtyOutputBoard(props: { ttyAgent: TtyClientAgent; visible?: bool
     });
   }, [ttyMsgList, searchText, excludeTextType]);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { lockRef: scrollLockRef, scrollToBottom } = useAutoScroll({
+    container: containerRef.current,
+  });
   useEffect(() => {
     if (scrollLockRef.current) scrollToBottom();
   }, [ttyMsgList]);
-  const [container, setContainer] = useState<HTMLDivElement | null>();
-
-  const { lockRef: scrollLockRef, scrollToBottom } = useAutoScroll({ container: container });
 
   return (
     <flex-col
@@ -102,7 +103,7 @@ export function TtyOutputBoard(props: { ttyAgent: TtyClientAgent; visible?: bool
           ></TooltipBtn>
         </flex-row>
       </flex-row>
-      <div style={{ flex: 1, padding: "8px 0", overflow: "auto" }} ref={setContainer}>
+      <div style={{ flex: 1, padding: "8px 0", overflow: "auto" }} ref={containerRef}>
         <flex-col style={{ padding: "0 8px", gap: 4 }}>
           {displayMsgList.map((item, index) => {
             return (

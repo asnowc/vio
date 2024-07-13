@@ -20,15 +20,20 @@ export function useAutoScroll(props: {
   const onScroll = useCallback((e: Event) => {
     const dom = containerRef.current;
     if (!dom) return;
+    const threshold = 1;
     const { scrollHeight, scrollTop, clientHeight } = dom;
-    let isBottom = clientHeight >= scrollHeight || scrollTop + clientHeight >= scrollHeight;
-    if (isBottom && !lockRef.current) {
-      lockRef.current = true;
-      onLockChange?.(true);
-    }
-    if (!isBottom && lockRef.current) {
-      lockRef.current = false;
-      onLockChange?.(false);
+    let isBottom = scrollTop + clientHeight >= scrollHeight - threshold;
+
+    if (isBottom) {
+      if (!lockRef.current) {
+        lockRef.current = true;
+        onLockChange?.(true);
+      }
+    } else {
+      if (lockRef.current) {
+        lockRef.current = false;
+        onLockChange?.(false);
+      }
     }
   }, []);
   useEffect(() => {
