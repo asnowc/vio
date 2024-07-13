@@ -5,7 +5,7 @@ import { useListenable, useListenableData } from "@/hooks/event.ts";
 import { TtyItem } from "./tty/InputItem.tsx";
 import { INPUT_TYPE_INFO } from "./tty/const.tsx";
 import { useAntdStatic } from "@/hooks/msg.ts";
-import { TtyInputReq } from "@asnc/vio/client";
+import { TtyInputReq } from "@asla/vio/client";
 import { useAsync } from "@/hooks/async.ts";
 import { E2E_SELECT_CLASS } from "@/const.ts";
 

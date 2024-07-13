@@ -1,6 +1,6 @@
 import { useThemeToken } from "@/services/AppConfig.ts";
 import React, { ReactNode, useMemo } from "react";
-import { TtyOutputData } from "@asnc/vio/client";
+import { TtyOutputData } from "@asla/vio/client";
 import { CloseCircleOutlined, InfoCircleOutlined, MessageOutlined, WarningOutlined } from "@ant-design/icons";
 import { ListItem } from "@/views/components/ListItem.tsx";
 export type MessageTextProps = {

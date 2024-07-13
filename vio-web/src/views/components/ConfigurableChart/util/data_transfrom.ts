@@ -1,4 +1,4 @@
-import { ChartDataItem } from "@asnc/vio/client.ts";
+import { ChartDataItem } from "@asla/vio/client.ts";
 
 function parseDate(timestamp: number) {
   const date = new Date(timestamp);

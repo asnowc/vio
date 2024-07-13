@@ -1,4 +1,4 @@
-import { TtyInputReq } from "@asnc/vio/client";
+import { TtyInputReq } from "@asla/vio/client";
 import { ListItem } from "@/views/components/ListItem.tsx";
 import React, { ReactNode, useMemo, useState } from "react";
 import { Button, Checkbox, Radio, Select, Space } from "antd";

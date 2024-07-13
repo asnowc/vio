@@ -1,5 +1,5 @@
 {
-  "name": "@asn/vio",
+  "name": "@asla/vio",
   "version": "0.0.1",
   "exports": "./src/mod_deno.ts",
   "tasks": {

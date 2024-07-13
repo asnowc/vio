@@ -7,7 +7,7 @@ export default defineConfig({
     target: "ES2022",
   },
   test: {
-    alias: { "@asnc/vio": path.resolve(dir, "vio/src/mod.ts") },
+    alias: { "@asla/vio": path.resolve(dir, "vio/src/mod.ts") },
     coverage: {
       include: ["./vio*/src"],
       exclude: ["./vio*/src/lib"],

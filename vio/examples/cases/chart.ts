@@ -1,4 +1,4 @@
-import { Vio } from "@asnc/vio";
+import { Vio } from "@asla/vio";
 import process from "node:process";
 /** 内存图。每两秒更新一次图 */
 export async function memoryChart(vio: Vio) {

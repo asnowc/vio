@@ -1,9 +1,9 @@
 {
   "imports": {
-    "@asnc/vio": "./vio/src/mod_deno.ts",
-    "jbod": "jsr:@asn/jbod@^0.5.0",
-    "evlib": "jsr:@asn/evlib@^2.6.1",
-    "cpcall": "jsr:@asn/cpcall@^0.6.0"
+    "@asla/vio": "./vio/src/mod_deno.ts",
+    "jbod": "jsr:@asla/jbod@^0.5.0",
+    "evlib": "jsr:@asla/evlib@^2.6.1",
+    "cpcall": "jsr:@asla/cpcall@^0.6.0"
   },
   "compilerOptions": {
     "lib": ["deno.window"]

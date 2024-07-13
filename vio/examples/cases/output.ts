@@ -1,4 +1,4 @@
-import vio, { EncodedImageData, TTY, TtyWriteTextType } from "@asnc/vio";
+import vio, { EncodedImageData, TTY, TtyWriteTextType } from "@asla/vio";
 import { readFile } from "node:fs/promises";
 
 /**

@@ -1,7 +1,7 @@
 import { EChartsPruneOption, EChartsPruneSeries, useEChart } from "@/lib/echarts.ts";
 import { ChartCommonProps } from "../type.ts";
 import { memo, useLayoutEffect, useMemo, useRef } from "react";
-import { ChartDataItem, DimensionInfo } from "@asnc/vio/client.ts";
+import { ChartDataItem, DimensionInfo } from "@asla/vio/client.ts";
 import { formatTime } from "../util/data_transfrom.ts";
 import React from "react";
 

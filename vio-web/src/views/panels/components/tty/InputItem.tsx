@@ -4,7 +4,7 @@ import React from "react";
 import { INPUT_TYPE_INFO } from "./const.tsx";
 import { InputText } from "./InputText.tsx";
 import { InputSelect } from "./InputSelect.tsx";
-import { TtyInputReq } from "@asnc/vio/client";
+import { TtyInputReq } from "@asla/vio/client";
 import { Button, Space } from "antd";
 import { useThemeToken } from "@/services/AppConfig.ts";
 import { InputFile } from "./InputFile.tsx";

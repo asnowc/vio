@@ -1,5 +1,5 @@
 import { TtyOutputMsg, TtyInputMsg } from "@/services/VioApi.ts";
-import { TtyOutputData, TtyOutputsData, TtyInputReq } from "@asnc/vio/client";
+import { TtyOutputData, TtyOutputsData, TtyInputReq } from "@asla/vio/client";
 import { randomInt } from "evlib/math";
 import { randomString, createList } from "evlib/mock";
 const data: TtyOutputsData[] = [];

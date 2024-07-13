@@ -9,7 +9,7 @@ import { CHART_TYPE_RENDER_MAP } from "./const.ts";
 import { UnknownChart } from "./chart_view/UnknownChart.tsx";
 import { Button, Form, Tooltip } from "antd";
 import { RedoOutlined } from "@ant-design/icons";
-import { ChartDataItem } from "@asnc/vio/client";
+import { ChartDataItem } from "@asla/vio/client";
 
 export * from "./mod.ts";
 

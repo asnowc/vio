@@ -1,4 +1,4 @@
-import { SelectItem } from "@asnc/vio";
+import { SelectItem } from "@asla/vio";
 import fs from "node:fs/promises";
 import { vioServerTest as test, waitPageConnect } from "../../test.ts";
 import { E2E_SELECT_CLASS } from "../e2e_select_class.ts";

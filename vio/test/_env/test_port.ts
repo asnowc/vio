@@ -1,9 +1,9 @@
 import { test, vi } from "vitest";
-import { Vio, VioHttpServer, createVio } from "@asnc/vio";
+import { Vio, VioHttpServer, createVio } from "@asla/vio";
 import process from "node:process";
 import { CpCall, MakeCallers, createWebSocketCpc } from "cpcall";
 import { connectWebsocket } from "../../src/lib/websocket.ts";
-import "@asnc/vio";
+import "@asla/vio";
 import { VioClientExposed, VioServerExposed } from "../../src/client.ts";
 const BASE_PORT = 7001;
 const VITEST_POOL_ID = parseInt(process.env.VITEST_POOL_ID ?? "0");

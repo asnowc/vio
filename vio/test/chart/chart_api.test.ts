@@ -1,6 +1,6 @@
 import { describe, expect, vi } from "vitest";
 import { connectWebsocket } from "../../src/lib/websocket.ts";
-import { CenterCreateChartOption } from "@asnc/vio";
+import { CenterCreateChartOption } from "@asla/vio";
 import { ChartInfo, ChartCreateInfo, DimensionInfo } from "../../src/client.ts";
 import { createWebSocketCpc } from "cpcall";
 import { afterTime } from "evlib";

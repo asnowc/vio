@@ -1,4 +1,4 @@
-import { TtyReader, TtyCenter } from "@asnc/vio";
+import { TtyReader, TtyCenter } from "@asla/vio";
 import { expect, describe, test, vi } from "vitest";
 function createTtyCenter() {
   return new TtyCenter(vi.fn());

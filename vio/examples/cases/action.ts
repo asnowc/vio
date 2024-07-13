@@ -1,4 +1,4 @@
-import { SelectItem, TTY } from "@asnc/vio";
+import { SelectItem, TTY } from "@asla/vio";
 import { toErrorStr } from "evlib";
 
 async function nextInput(i: number, tty: TTY) {

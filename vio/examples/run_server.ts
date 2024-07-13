@@ -1,4 +1,4 @@
-import vio, { Vio, VioHttpServer } from "@asnc/vio";
+import vio, { Vio, VioHttpServer } from "@asla/vio";
 import { inputSelect } from "./cases/action.ts";
 import { intervalOutput, genImageData } from "./cases/output.ts";
 import { memoryChart } from "./cases/chart.ts";

@@ -5,7 +5,7 @@ import {
   TtyOutputsData,
   VioClientExposed,
   VioServerExposed,
-} from "@asnc/vio/client";
+} from "@asla/vio/client";
 import { CpCall, MakeCallers, createWebSocketCpc } from "cpcall";
 import { connectWebsocket, WsConnectConfig } from "../lib/websocket.ts";
 import React, { createContext } from "react";

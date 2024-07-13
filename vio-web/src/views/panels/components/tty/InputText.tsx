@@ -1,5 +1,5 @@
 import { ArrowUpOutlined } from "@ant-design/icons";
-import { TtyInputReq } from "@asnc/vio/client";
+import { TtyInputReq } from "@asla/vio/client";
 import { Button, Input } from "antd";
 import React, { useState } from "react";
 import { ListItem } from "@/views/components/ListItem.tsx";

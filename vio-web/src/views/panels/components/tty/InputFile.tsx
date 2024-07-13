@@ -1,4 +1,4 @@
-import { TtyInputReq, VioFileData } from "@asnc/vio/client";
+import { TtyInputReq, VioFileData } from "@asla/vio/client";
 import { ListItem } from "@/views/components/ListItem.tsx";
 import { INPUT_TYPE_INFO } from "./const.tsx";
 import React, { useState } from "react";

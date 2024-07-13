@@ -1,4 +1,4 @@
-import { TtyInputsReq, TtyOutputData, TtyOutputsData } from "@asnc/vio/client";
+import { TtyInputsReq, TtyOutputData, TtyOutputsData } from "@asla/vio/client";
 import { EventTrigger } from "evlib";
 import { LinkedCacheQueue, LinkedQueue, LoopUniqueId } from "evlib/data_struct";
 

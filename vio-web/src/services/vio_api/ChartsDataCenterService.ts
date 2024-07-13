@@ -7,7 +7,7 @@ import {
   VioChartCreateConfig,
   VioServerExposed,
   ChartDataItem,
-} from "@asnc/vio/client";
+} from "@asla/vio/client";
 import { EventTrigger } from "evlib";
 import { MakeCallers } from "cpcall";
 

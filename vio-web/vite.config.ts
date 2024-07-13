@@ -6,8 +6,8 @@ const root = import.meta.dirname;
 const src = path.resolve(root, "src");
 const alias: AliasOptions = [
   { find: /^@(?=\/)/, replacement: path.resolve(src) },
-  { find: "@asnc/vio/client", replacement: path.resolve(root, "../vio/src/client.ts") },
-  { find: /^@asnc\/vio\//, replacement: path.resolve(root, "../vio/src") + "/" },
+  { find: "@asla/vio/client", replacement: path.resolve(root, "../vio/src/client.ts") },
+  { find: /^@asla\/vio\//, replacement: path.resolve(root, "../vio/src") + "/" },
 ];
 
 const config: UserConfig = {
@@ -34,7 +34,7 @@ const config: UserConfig = {
   },
 
   optimizeDeps: {
-    exclude: ["@asnc/vio"],
+    exclude: ["@asla/vio"],
   },
   server: {
     proxy: genProxies("http://127.0.0.1:8887"),

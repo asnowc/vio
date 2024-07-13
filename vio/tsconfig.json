@@ -4,7 +4,7 @@
     "lib": ["ESNext"],
     "types": [],
     "paths": {
-      "@asnc/vio": ["./src/mod_node.ts"]
+      "@asla/vio": ["./src/mod_node.ts"]
     },
     "declaration": true,
     "skipLibCheck": true,

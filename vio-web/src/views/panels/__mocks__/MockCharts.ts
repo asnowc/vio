@@ -2,7 +2,7 @@ import { setInterval } from "evlib";
 
 import { ChartClientAgent, ChartsDataCenterService, useVioApi } from "@/services/VioApi.ts";
 import { useLayoutEffect, useMemo } from "react";
-import { DimensionInfo } from "@asnc/vio/client";
+import { DimensionInfo } from "@asla/vio/client";
 
 export class MockChart<T> extends ChartClientAgent<T> {
   constructor(

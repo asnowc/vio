@@ -7,7 +7,7 @@ import {
 } from "@/lib/echarts.ts";
 import { ChartCommonProps } from "../type.ts";
 import { useContext, useLayoutEffect, useMemo } from "react";
-import { ChartMeta } from "@asnc/vio/client";
+import { ChartMeta } from "@asla/vio/client";
 import { errorCollector } from "@/services/ErrorLog.ts";
 
 export function GaugePie(props: ChartCommonProps<number | number[]>) {
