@@ -1,6 +1,5 @@
-import vio, { EncodedImageData, TTY, TtyWriteTextType } from "@asla/vio";
+import { TTY, TtyWriteTextType } from "@asla/vio";
 import { readFile } from "node:fs/promises";
-
 /**
  * 每两秒输出一个文本
  */
@@ -14,9 +13,10 @@ export function intervalOutput(vio: TTY) {
       content: "ksdkgasdkg\ndsgasdgsdf文本文本",
     });
   }, 2000);
+  setTimeout(() => {
+    vio.writeImage({ mime: "image/png", data: imgData });
+  }, 4000);
   return () => clearInterval(id);
 }
-export async function genImageData(): Promise<EncodedImageData> {
-  const data = await readFile(import.meta.dirname + "/test_image.png");
-  return { mime: "image/png", data };
-}
+
+const imgData = await readFile(import.meta.dirname + "/test_image.png");

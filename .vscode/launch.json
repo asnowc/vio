@@ -9,7 +9,7 @@
       "program": "vio/examples/run_server.ts",
       "cwd": "${workspaceFolder}",
       "sourceMaps": true,
-      "runtimeArgs": ["run", "--inspect-wait", "-A", "--config", "deno.json"],
+      "runtimeArgs": ["run", "--inspect-wait", "-A", "--config", "vio/deno.json"],
       "runtimeExecutable": "${env:DENO_DIR}/bin/deno",
       "attachSimplePort": 9229
     }
