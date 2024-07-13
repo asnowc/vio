@@ -37,6 +37,7 @@ jobs:
           } >>  $GITHUB_ENV
       - name: Pack npm
         run: |
+          cp ../README.md ./README.md 
           pnpm pack --pack-destination ..
           mv ${{fromJson(env.PACKAGE_JSON).name}}-${{fromJson(env.PACKAGE_JSON).version}}.tgz ${{env.PKG_NAME}}.tgz
         working-directory: ./vio
@@ -73,5 +74,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Publish
-        run: npx jsr publish
+        run: |
+          cp ../README.md ./README.md 
+          npx jsr publish --allow-dirty
         working-directory: ./vio

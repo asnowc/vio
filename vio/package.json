@@ -1,7 +1,7 @@
 {
   "name": "@asla/vio",
-  "version": "0.0.1",
-  "description": "",
+  "version": "0.1.0",
+  "description": "A web terminal that provides a variety of graphical controls. You can interact with processes in the browser",
   "type": "module",
   "scripts": {
     "local:build": "pnpm build && pnpm dts:build && pnpm ci:api-check -l",
@@ -12,7 +12,6 @@
     "build": "rollup -c build/rollup.config.js"
   },
   "keywords": [],
-  "author": "Eavid",
   "license": "MIT",
   "devDependencies": {
     "@eavid/lib-node": "^2.1.2",
@@ -24,16 +23,24 @@
     "cpcall": "^0.6.0"
   },
   "publishConfig": {
+    "access": "public",
     "registry": "https://registry.npmjs.org",
-    "access": "public"
+    "provenance": true
   },
   "files": [
-    "client.js",
-    "client.d.ts",
+    "index.d.ts",
     "./dist/**/*.js",
     "./dist/**/*.d.ts"
   ],
   "exports": {
     ".": "./dist/mod_node.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asnowc/vio.git"
+  },
+  "author": {
+    "name": "Eavid",
+    "url": "https://github.com/eavidy"
   }
 }
