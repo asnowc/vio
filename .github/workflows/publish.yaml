@@ -7,31 +7,71 @@ on:
 permissions:
   contents: read
   id-token: write
-
+env:
+  PKG_NAME: npm-package
 jobs:
-  publish-npm:
+  test:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{fromJson(env.PACKAGE_JSON).version}}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup NodeJS
         uses: asnowc/actions@setup-node/v2
         with:
-          node_v: 20
+          node_v: 22
           pnpm_v: 9
           run_install: true
       - name: Build
         run: pnpm run ci:build
       - name: Check Api
-        run: pnpm run ci:api-check
-      - name: Publish
-        run: pnpm publish --no-git-checks
+        run: pnpm run ci:check-api
+      - name: Read packageJson
+        run: |
+          {
+            echo 'PACKAGE_JSON<<EOF' 
+            cat ./vio/package.json
+            echo EOF
+          } >>  $GITHUB_ENV
+      - name: Package npm
+        run: |
+          pnpm pack --pack-destination ..
+          mv ${{fromJson(env.PACKAGE_JSON).name}}-${{fromJson(env.PACKAGE_JSON).version}}.tgz ${{env.PKG_NAME}}.tgz
+        working-directory: ./vio
+      - name: Upload npm package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{env.PKG_NAME}}
+          path: ${{env.PKG_NAME}}.tgz
 
-#   publish-jsr:
-#     runs-on: ubuntu-latest
-#     needs: publish-npm
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-#       - name: Publish
-#         run: npx jsr publish --config jsr.json
+  publish-npm:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: download
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{env.PKG_NAME}}
+      - name: Unpack
+        run: tar -zxvf ${{env.PKG_NAME}}.tgz
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Publish
+        run: npm publish
+        working-directory: ./package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-jsr:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Publish
+        run: npx jsr publish
+        working-directory: ./vio

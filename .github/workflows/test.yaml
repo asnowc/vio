@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+      - feat/*
+      - test/*
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -12,7 +14,7 @@ jobs:
       - name: Setup NodeJS
         uses: asnowc/actions@setup-node/v2
         with:
-          node_v: 20
+          node_v: 22
           pnpm_v: 9
           run_install: true
       - name: Unit test
@@ -21,7 +23,7 @@ jobs:
         run: pnpm run -r ci:build
       - name: Install browser
         run: pnpm playwright install chromium webkit firefox --with-deps
-        working-directory: "./e2e"
+        working-directory: ./e2e
       - name: E2E test
         continue-on-error: true
         run: pnpm run ci:e2e
