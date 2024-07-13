@@ -55,11 +55,11 @@ export function ConfigurableChart(props: ConfigurableChartChartProps) {
   const [boardConfig, setBoardConfig] = useState<ChartConfig>({});
   const [form] = Form.useForm<ChartConfig>();
   const [boardOpen, setBoardOpen] = useState(false);
-  const { chartType: displayChartType, requestUpdate, requestInternal } = boardConfig;
+  const { chartType: displayChartType, requestUpdate, requestInterval } = boardConfig;
   useMemo(() => {
     const values: ChartConfig = {
       ...chart.meta,
-      requestUpdate: Boolean(chart.meta.requestInternal),
+      requestUpdate: Boolean(chart.meta.requestInterval),
     };
     form.setFieldsValue(values);
     setBoardConfig(values);
@@ -80,7 +80,7 @@ export function ConfigurableChart(props: ConfigurableChartChartProps) {
       if (!connected) return;
       return chartApi.requestUpdate(chart.id);
     },
-    { deps: [], internal: requestInternal, requestUpdate: requestUpdate },
+    { deps: [], internal: requestInterval, requestUpdate: requestUpdate },
   );
 
   const Render = useMemo(() => {

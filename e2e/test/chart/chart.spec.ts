@@ -35,15 +35,15 @@ test("创建与删除图", async function ({ vioServerInfo: { vio }, appPage: pa
 
   await page.getByLabel("dashboard").locator("svg").click();
 
-  const chart1 = vio.chart.create(2, { meta: { chartType: "bar", title: "abc图1", requestInternal: 1234 } });
+  const chart1 = vio.chart.create(2, { meta: { chartType: "bar", title: "abc图1", requestInterval: 1234 } });
 
   await page.getByRole("button", { name: chart1.meta.title! }).click(); // 打开面板
   await expect(chartPanel.count(), "图1面板已打开").resolves.toBe(1);
 
-  const chart2 = vio.chart.create(1, { meta: { chartType: "gauge", title: "abc图2", requestInternal: 8769 } });
+  const chart2 = vio.chart.create(1, { meta: { chartType: "gauge", title: "abc图2", requestInterval: 8769 } });
   await page.getByRole("button", { name: chart2.meta.title! }).click(); // 打开面板
   await page.getByRole("button", { name: "setting" }).click(); //打开设置面板
-  await expect(page.getByLabel("自动请求更新间隔")).toHaveValue(chart2.meta.requestInternal!.toString()); //通过 requestInternal 判读面板属于 chart2
+  await expect(page.getByLabel("自动请求更新间隔")).toHaveValue(chart2.meta.requestInterval!.toString()); //通过 requestInterval 判读面板属于 chart2
 
   vio.chart.disposeChart(chart1);
   await afterTime(100);

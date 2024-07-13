@@ -75,7 +75,7 @@ export namespace ChartMeta {
     export type Common = {
         title?: string;
         enableTimeline?: boolean;
-        requestInternal?: number;
+        requestInterval?: number;
     };
     export interface Gauge extends Common {
         // (undocumented)
@@ -350,7 +350,7 @@ export interface VioTty extends TTY {
 
 // Warnings were encountered during analysis:
 //
-// dist/mod_node.d.ts:305:5 - (ae-forgotten-export) The symbol "DimensionInfo" needs to be exported by the entry point index.d.ts
+// dist/mod_node.d.ts:306:5 - (ae-forgotten-export) The symbol "DimensionInfo" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

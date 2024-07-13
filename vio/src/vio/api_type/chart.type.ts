@@ -87,7 +87,8 @@ export namespace ChartMeta {
   export type Common = {
     title?: string;
     enableTimeline?: boolean;
-    requestInternal?: number;
+    /** web 端自动请求的时间间隔，单位毫秒 */
+    requestInterval?: number;
   };
 
   /** 进度条 */

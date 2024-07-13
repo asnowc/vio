@@ -54,7 +54,7 @@ function ConfigBoard(props: ConfigBoardProps) {
         <Form.Item layout="horizontal" name="requestUpdate" label="自动请求更新">
           <Switch />
         </Form.Item>
-        <Form.Item layout="horizontal" name="requestInternal" label="自动请求更新间隔">
+        <Form.Item layout="horizontal" name="requestInterval" label="自动请求更新间隔">
           <InputNumber min={100} step={1000} />
         </Form.Item>
         <Form.Item name="echartsOption" label="Echarts Option">
