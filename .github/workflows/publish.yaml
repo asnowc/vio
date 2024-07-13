@@ -83,8 +83,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: web-assets
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
       - name: Publish
         run: |
           cp ../README.md ./README.md 
-          npx jsr publish --allow-dirty
+          deno publish --allow-dirty
         working-directory: ./vio
