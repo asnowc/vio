@@ -2,7 +2,7 @@ export * from "./mod.ts";
 export { default } from "./vio/mod.ts";
 
 import { checkResponse304 } from "./lib/http_server/file_cache_reponse.ts";
-import { ResponseFileHandler, platformApi } from "./server/platform_api.ts";
+import { platformApi, ResponseFileHandler } from "./server/platform_api.ts";
 
 class DenoResponseFile implements ResponseFileHandler {
   async getResponse(
@@ -21,13 +21,13 @@ class DenoResponseFile implements ResponseFileHandler {
       return null;
     }
     resHeaders = { ...resHeaders };
-    if (!this.noCache) {
-      const resp = checkResponse304(stat, reqHeaders, resHeaders);
+    if (!this.noCache && stat.mtime) {
+      const resp = checkResponse304({ mtime: stat.mtime }, reqHeaders, resHeaders);
       if (resp) return resp;
       resHeaders["Last-Modified"] = stat.mtime.toUTCString();
     }
     resHeaders["content-length"] = stat.size.toString();
-    return new Response(fd.readable, { status: 200, resHeaders });
+    return new Response(fd.readable, { status: 200, headers: resHeaders });
   }
   noCache = false;
 }

@@ -1,4 +1,4 @@
-import { createVio } from "./vio.ts";
+import { Vio, createVio } from "./vio.ts";
 
 export * from "./vio.ts";
 export type {
@@ -14,4 +14,4 @@ export type { TTY, TTyWriteTextOption, TtyReadFileOption } from "./classes/tty.t
 /**
  * @public
  */
-export default createVio();
+export default createVio() as Vio;
