@@ -17,6 +17,7 @@ import { MaybePromise } from "../../type.ts";
  * @category Chart
  */
 export class ChartCenter {
+  /** 图表默认缓存数量 */
   static TTY_DEFAULT_CACHE_SIZE = 20;
   constructor(private ctrl: ChartController) {}
   #instanceMap = new UniqueKeyMap<RpcVioChart>(2 ** 32);
@@ -28,12 +29,16 @@ export class ChartCenter {
   getAll(): IterableIterator<VioChart<unknown>> {
     return this.#instanceMap.values();
   }
+  /** 所有已创建图表的数量 */
   get chartsNumber(): number {
     return this.#instanceMap.size;
   }
 
+  /** 创建一维图表 */
   create<T = any>(dimension: 1, options?: CenterCreateChartOption<T>): VioChart<T>;
+  /** 创建二维图表 */
   create<T = any>(dimension: 2, options?: CenterCreateChartOption<T[]>): VioChart<T[]>;
+  /** 创建三维图表 */
   create<T = any>(dimension: 3, options?: CenterCreateChartOption<T[][]>): VioChart<T[][]>;
   create<T = any>(dimension: number, options?: CenterCreateChartOption<T>): VioChart<T>;
   create(dimension: number, options?: CenterCreateChartOption<any>): VioChart<any> {
@@ -49,11 +54,13 @@ export class ChartCenter {
 
     return chart;
   }
+  /** web 端主动请求更新图表，这会触发 chart.onRequestUpdate() */
   requestUpdate<T>(chartId: number): MaybePromise<RequestUpdateRes<T>> {
     const chart = this.#instanceMap.get(chartId);
     if (!chart) throw new Error(`Chart '${chartId}' dest not exist`);
     return chart.onUpdate() as MaybePromise<RequestUpdateRes<T>>;
   }
+  /** 销毁图表 */
   disposeChart(chart: VioChart<unknown>) {
     if (!(chart instanceof ChartCenter.Chart)) throw new Error("This chart does not belong to the center");
     chart.dispose();

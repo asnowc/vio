@@ -19,6 +19,7 @@ import { createTypeErrorDesc } from "evlib";
  * @category TTY
  */
 export type TTyWriteTextOption = {
+  /** 文本类型 */
   msgType?: TtyWriteTextType;
   content?: string;
 };
@@ -46,6 +47,7 @@ export type TtyReadFileOption = {
 export abstract class TTY {
   /** 写入任意数据 */
   abstract write(data: TtyOutputsData): void;
+  /** 输出图像 */
   writeImage(imageData: EncodedImageData | RawImageData): void {
     if (typeof (imageData as EncodedImageData).mime === "string") {
       const image = imageData as EncodedImageData;
@@ -55,9 +57,14 @@ export abstract class TTY {
       return this.write({ type: "image", image, imageDataType: 1 } satisfies TtyOutputData.Image);
     }
   }
+  /**
+   * 输出表格
+   * @alpha
+   */
   writeTable(data: any[][], header?: string[]): void {
     return this.write({ type: "table", data, header } satisfies TtyOutputData.Table);
   }
+  /** 输出文本 */
   writeText(title: string, option: TtyWriteTextType | TTyWriteTextOption = {}): void {
     let content: string | undefined;
     let msgType: TtyOutputData.Text["msgType"] | undefined;

@@ -7,12 +7,18 @@ import { TtyCenter, ChartCenter, TTY, VioTty } from "./classes/mod.ts";
  * @public
  */
 export interface Vio extends TTY {
+  /** 终端相关的接口 */
   readonly tty: TtyCenter;
   /** 图相关的接口 */
   readonly chart: ChartCenter;
   // joinViewer(viewer: VioClientExposed, onDispose?: (viewer: Viewer) => void): Viewer;
+  /**
+   * 接入一个终端连接
+   * @remarks 每当一个web端连接时，都会调用这个方法
+   */
   joinFormWebsocket(websocket: WebSocket, onDispose?: (viewer: Disposable) => void): Disposable;
   // getAllViewer(): IterableIterator<Viewer>;
+  /** 与服务端保持连接的客户端数量 */
   viewerNumber: number;
 }
 

@@ -42,6 +42,7 @@ export class TtyCenter {
   getAll(): IterableIterator<VioTty> {
     return this.#instanceMap.values();
   }
+  /** 设置 TTY 的读取器。当 web端开启 “接收输入请求” 时，相当于调用了这个方法。 */
   setReader(ttyId: number, reader: TtyReader): TtyReadResolver {
     const resolver = new InternalReadResolver(reader, ttyId, this.#resolver);
     const oldResolver = this.#resolver[ttyId];
@@ -246,9 +247,13 @@ type ReadingHandle = WithPromise<unknown> & { config: TtyInputsReq };
  * @category TTY
  */
 export interface VioTty extends TTY {
+  /** 已缓存的消息数量 */
   cachedSize: number;
+  /** 缓存数量上限。可修改 */
   cacheSize: number;
+  /** 获取已缓存是数据 */
   getCache(): IterableIterator<TtyOutputsData>;
+  /** TTY 是否已被销毁 */
   disposed: boolean;
 }
 /**
@@ -256,7 +261,9 @@ export interface VioTty extends TTY {
  * @category TTY
  */
 export interface TtyReader {
+  /** 当 读取时调用 */
   read: TtyReadFn;
+  /** 当读取权被夺走时嗲用 */
   dispose?(): void;
 }
 /**
@@ -264,11 +271,16 @@ export interface TtyReader {
  * @category TTY
  */
 export interface TtyReadResolver {
+  /** 取消设置 TTY 的读取器 */
   dispose(): void;
   // disable(): void;
+  /** 解决读取 */
   resolve(requestId: number, data: any): boolean;
+  /** 拒绝读取 */
   reject(requestId: number, reason: any): boolean;
+  /** 主动输入。 */
   input(data: any): boolean;
+  /** 读取中的数量 */
   waitingSize: number;
 }
 
