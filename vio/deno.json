@@ -1,7 +1,7 @@
 {
   "name": "@asla/vio",
   "version": "0.1.0-alpha.1",
-  "exports": "./src/mod_deno.ts",
+  "exports": "./src/mod.deno.ts",
   "tasks": {
     "gen-doc": "deno doc --html --output=temp --name=VIO src/mod.ts",
     "publish-dry": "deno publish --dry-run --allow-dirty"

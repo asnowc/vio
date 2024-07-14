@@ -1,6 +1,6 @@
 import type { HttpServer, ServeHandler, ServeOptions, WebSocket } from "../lib/deno/http.ts";
 
-type HttpApi = {
+export type HttpApi = {
   upgradeWebSocket(request: Request): {
     socket: WebSocket;
     response: Response;

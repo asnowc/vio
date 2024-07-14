@@ -1,11 +1,8 @@
-export * from "./mod.ts";
-export { default } from "./vio/mod.ts";
-
-import { platformApi, ResponseFileHandler } from "./server/platform_api.ts";
-import { serve, upgradeWebSocket } from "./lib/serve.ts";
+import type { HttpApi, ResponseFileHandler } from "../server/platform_api.ts";
+import { serve, upgradeWebSocket } from "../lib/serve.ts";
+import { checkResponse304 } from "../lib/http_server/file_cache_reponse.ts";
 import { TransformStream } from "node:stream/web";
 import fs from "node:fs/promises";
-import { checkResponse304 } from "./lib/http_server/file_cache_reponse.ts";
 class NodeResponseFile implements ResponseFileHandler {
   async getResponse(
     filename: string,
@@ -53,6 +50,4 @@ class NodeResponseFile implements ResponseFileHandler {
   noCache = false;
 }
 
-platformApi.serve = serve;
-platformApi.upgradeWebSocket = upgradeWebSocket;
-platformApi.responseFileHandler = new NodeResponseFile();
+export default { serve, upgradeWebSocket, responseFileHandler: new NodeResponseFile() } satisfies HttpApi;

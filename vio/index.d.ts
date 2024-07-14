@@ -1,2 +1,2 @@
-export * from "./dist/mod_node.js";
-export { default } from "./dist/mod_node.js";
+export * from "./dist/mod.js";
+export { default } from "./dist/mod.js";

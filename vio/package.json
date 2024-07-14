@@ -34,7 +34,7 @@
     "./assets/**"
   ],
   "exports": {
-    ".": "./dist/mod_node.js"
+    ".": "./dist/mod.js"
   },
   "repository": {
     "type": "git",

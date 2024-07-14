@@ -1,5 +1,4 @@
 import path from "node:path";
-import process from "node:process";
 
 export class InstanceDisposedError extends Error {
   constructor(name: string = "Instance") {
@@ -11,5 +10,6 @@ export class InstanceDisposedError extends Error {
 
 export const packageDir = (function () {
   const dirname = import.meta.dirname;
-  return dirname ? path.resolve(dirname, "..") : process.cwd();
+  //在 jsr 包 上不存在
+  return dirname ? path.resolve(dirname, "..") : undefined;
 })();

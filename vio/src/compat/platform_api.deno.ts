@@ -1,8 +1,5 @@
-export * from "./mod.ts";
-export { default } from "./vio/mod.ts";
-
-import { checkResponse304 } from "./lib/http_server/file_cache_reponse.ts";
-import { platformApi, ResponseFileHandler } from "./server/platform_api.ts";
+import { checkResponse304 } from "../lib/http_server/file_cache_reponse.ts";
+import type { HttpApi, ResponseFileHandler } from "../server/platform_api.ts";
 
 class DenoResponseFile implements ResponseFileHandler {
   async getResponse(
@@ -32,6 +29,8 @@ class DenoResponseFile implements ResponseFileHandler {
   noCache = false;
 }
 
-platformApi.serve = Deno.serve;
-platformApi.upgradeWebSocket = Deno.upgradeWebSocket;
-platformApi.responseFileHandler = new DenoResponseFile();
+export default {
+  serve: Deno.serve,
+  upgradeWebSocket: Deno.upgradeWebSocket,
+  responseFileHandler: new DenoResponseFile(),
+} satisfies HttpApi;

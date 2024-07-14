@@ -7,17 +7,19 @@ import path from "node:path";
 import { HttpServer, ServeHandlerInfo } from "../lib/deno/http.ts";
 import { platformApi } from "./platform_api.ts";
 
-const DEFAULT_VIO_ASSETS_DIR = path.resolve(packageDir, "assets/web");
-
 /**
  * @public
  */
 export interface VioHttpServerOption {
+  /** web 静态资源目录 */
   vioStaticDir?: string;
+  /** 覆盖静态资源响应头 */
   staticSetHeaders?: Record<string, string>;
+  /** 自定义处理静态资源请求。如果设置了这个处理函数，将忽略 vioStaticDir 和 staticSetHeaders */
+  staticHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
 }
 /**
- * 启动 vio http 服务器
+ * vio http 服务器
  * @public
  */
 export class VioHttpServer {
@@ -25,8 +27,18 @@ export class VioHttpServer {
     private vio: Vio,
     opts: VioHttpServerOption = {},
   ) {
-    const { vioStaticDir = DEFAULT_VIO_ASSETS_DIR, staticSetHeaders } = opts;
-    if (vioStaticDir) this.#staticFileHandler = new FileServerHandler(vioStaticDir, { setHeaders: staticSetHeaders });
+    let { vioStaticDir, staticSetHeaders, staticHandler } = opts;
+    if (!vioStaticDir && packageDir) {
+      vioStaticDir = path.resolve(packageDir, "assets/web");
+    }
+    if (staticHandler) {
+      this.#staticHandler = staticHandler;
+    } else if (vioStaticDir) {
+      const staticHandler = new FileServerHandler(vioStaticDir, { setHeaders: staticSetHeaders });
+      this.#staticHandler = (request) => {
+        return staticHandler.getResponse(new URL(request.url).pathname, request.headers);
+      };
+    }
 
     const router = new Router();
     router.set("/api/test", function () {
@@ -41,7 +53,7 @@ export class VioHttpServer {
     });
     this.#router = router;
   }
-  #staticFileHandler?: FileServerHandler;
+  #staticHandler: VioHttpServerOption["staticHandler"];
   #handler = async (req: Request, info: ServeHandlerInfo) => {
     const context = createRequestContext(req, info);
     const pathname = context.url.pathname;
@@ -50,8 +62,8 @@ export class VioHttpServer {
     if (handler) {
       return handler(context);
     }
-    if (this.#staticFileHandler) {
-      const response = await this.#staticFileHandler.getResponse(pathname, req.headers);
+    if (this.#staticHandler) {
+      const response = await this.#staticHandler(req);
       if (response) return response;
     }
     return new Response(null, { status: 404 });

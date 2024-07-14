@@ -14,23 +14,16 @@ export type CenterCreateChartOption<T = unknown> = ChartCreateOption & {
 export class ChartCenter {
     // Warning: (ae-forgotten-export) The symbol "ChartController" needs to be exported by the entry point index.d.ts
     constructor(ctrl: ChartController);
-    // (undocumented)
     get chartsNumber(): number;
-    // (undocumented)
     create<T = any>(dimension: 1, options?: CenterCreateChartOption<T>): VioChart<T>;
-    // (undocumented)
     create<T = any>(dimension: 2, options?: CenterCreateChartOption<T[]>): VioChart<T[]>;
-    // (undocumented)
     create<T = any>(dimension: 3, options?: CenterCreateChartOption<T[][]>): VioChart<T[][]>;
     // (undocumented)
     create<T = any>(dimension: number, options?: CenterCreateChartOption<T>): VioChart<T>;
-    // (undocumented)
     disposeChart(chart: VioChart<unknown>): void;
     get(chartId: number): VioChart<unknown> | undefined;
     getAll(): IterableIterator<VioChart<unknown>>;
-    // (undocumented)
     requestUpdate<T>(chartId: number): MaybePromise<RequestUpdateRes<T>>;
-    // (undocumented)
     static TTY_DEFAULT_CACHE_SIZE: number;
 }
 
@@ -197,11 +190,9 @@ export abstract class TTY {
     }): Promise<T[]>;
     // Warning: (ae-forgotten-export) The symbol "TtyOutputsData" needs to be exported by the entry point index.d.ts
     abstract write(data: TtyOutputsData): void;
-    // (undocumented)
     writeImage(imageData: EncodedImageData | RawImageData): void;
-    // (undocumented)
+    // @alpha
     writeTable(data: any[][], header?: string[]): void;
-    // (undocumented)
     writeText(title: string, option?: TtyWriteTextType | TTyWriteTextOption): void;
     // (undocumented)
     writeUiLink(ui: VioChart<number>): void;
@@ -216,7 +207,6 @@ export class TtyCenter {
     getAll(): IterableIterator<VioTty>;
     // (undocumented)
     getCreated(index: number): VioTty | undefined;
-    // (undocumented)
     setReader(ttyId: number, reader: TtyReader): TtyReadResolver;
     // (undocumented)
     static TTY_DEFAULT_CACHE_SIZE: number;
@@ -224,11 +214,8 @@ export class TtyCenter {
 
 // @public (undocumented)
 export interface TtyReader {
-    // (undocumented)
     dispose?(): void;
     // Warning: (ae-forgotten-export) The symbol "TtyReadFn" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     read: TtyReadFn;
 }
 
@@ -243,15 +230,10 @@ export type TtyReadFileOption = {
 
 // @public (undocumented)
 export interface TtyReadResolver {
-    // (undocumented)
     dispose(): void;
-    // (undocumented)
     input(data: any): boolean;
-    // (undocumented)
     reject(requestId: number, reason: any): boolean;
-    // (undocumented)
     resolve(requestId: number, data: any): boolean;
-    // (undocumented)
     waitingSize: number;
 }
 
@@ -268,12 +250,8 @@ export type TtyWriteTextType = "warn" | "log" | "error" | "info";
 export interface Vio extends TTY {
     readonly chart: ChartCenter;
     // Warning: (ae-forgotten-export) The symbol "WebSocket_2" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     joinFormWebsocket(websocket: WebSocket_2, onDispose?: (viewer: Disposable_2) => void): Disposable_2;
-    // (undocumented)
     readonly tty: TtyCenter;
-    // (undocumented)
     viewerNumber: number;
 }
 
@@ -330,27 +308,22 @@ export class VioHttpServer {
 
 // @public (undocumented)
 export interface VioHttpServerOption {
-    // (undocumented)
+    staticHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
     staticSetHeaders?: Record<string, string>;
-    // (undocumented)
     vioStaticDir?: string;
 }
 
 // @public (undocumented)
 export interface VioTty extends TTY {
-    // (undocumented)
     cachedSize: number;
-    // (undocumented)
     cacheSize: number;
-    // (undocumented)
     disposed: boolean;
-    // (undocumented)
     getCache(): IterableIterator<TtyOutputsData>;
 }
 
 // Warnings were encountered during analysis:
 //
-// dist/mod_node.d.ts:306:5 - (ae-forgotten-export) The symbol "DimensionInfo" needs to be exported by the entry point index.d.ts
+// dist/mod.d.ts:306:5 - (ae-forgotten-export) The symbol "DimensionInfo" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

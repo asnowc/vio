@@ -11,7 +11,7 @@ if (dev) {
 export const rootDir = path.resolve(import.meta.dirname, "..");
 
 export const baseInput = {
-  mod_node: "./src/mod_node.ts",
+  mod: "./src/mod.node.ts",
   serve: "./src/lib/serve.ts",
   websocket: "./src/lib/websocket.ts",
 };
@@ -26,9 +26,7 @@ export default defineEvConfig({
     chunkFileNames: "[name].js",
     minifyInternalExports: false,
   },
-  treeshake: {
-    moduleSideEffects: false,
-  },
+  treeshake: {},
   plugins: [
     {
       name: "move types",
