@@ -85,8 +85,8 @@ export type VioChartMeta =
 export namespace ChartMeta {
   /* 一维图 */
   export type Common = {
+    /** 图表题 */
     title?: string;
-    enableTimeline?: boolean;
     /** web 端自动请求的时间间隔，单位毫秒 */
     requestInterval?: number;
   };
@@ -113,20 +113,23 @@ export namespace ChartMeta {
 
   /** 折/曲线图 */
   export interface Line extends Common {
+    enableTimeline?: boolean;
     chartType: "line";
   }
   /** 柱状图 */
   export interface Bar extends Common {
+    enableTimeline?: boolean;
     chartType: "bar";
     sort?: 0 | 1;
+  }
+  /** 散点图 */
+  export interface Scatter extends Common {
+    enableTimeline?: boolean;
+    chartType: "scatter";
   }
 
   /** 饼图 */
   export interface Pie extends Common {
     chartType: "pie";
-  }
-  /** 散点图 */
-  export interface Scatter extends Common {
-    chartType: "scatter";
   }
 }
