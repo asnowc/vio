@@ -6,7 +6,6 @@ import { packageDir } from "../const.ts";
 import path from "node:path";
 import { HttpServer, ServeHandlerInfo } from "../lib/deno/http.ts";
 import { platformApi } from "./platform_api.ts";
-
 /**
  * @public
  */
@@ -17,6 +16,8 @@ export interface VioHttpServerOption {
   staticSetHeaders?: Record<string, string>;
   /** 自定义处理静态资源请求。如果设置了这个处理函数，将忽略 vioStaticDir 和 staticSetHeaders */
   staticHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
+  /** web终端前端配置 */
+  frontendConfig?: object;
 }
 /**
  * vio http 服务器
@@ -39,6 +40,9 @@ export class VioHttpServer {
         return staticHandler.getResponse(new URL(request.url).pathname, request.headers);
       };
     }
+    if (opts.frontendConfig) {
+      this.#frontendConfig = createJsonResponse(opts.frontendConfig);
+    }
 
     const router = new Router();
     router.set("/api/test", function () {
@@ -54,6 +58,7 @@ export class VioHttpServer {
     this.#router = router;
   }
   #staticHandler: VioHttpServerOption["staticHandler"];
+  #frontendConfig?: Response;
   #handler = async (req: Request, info: ServeHandlerInfo) => {
     const context = createRequestContext(req, info);
     const pathname = context.url.pathname;
@@ -61,6 +66,9 @@ export class VioHttpServer {
     const handler = this.#router.get(pathname);
     if (handler) {
       return handler(context);
+    }
+    if (pathname === "/config.json" && this.#frontendConfig) {
+      return this.#frontendConfig;
     }
     if (this.#staticHandler) {
       const response = await this.#staticHandler(req);
@@ -117,4 +125,16 @@ export class VioHttpServer {
     this.#serve?.unref();
     this.#ref = false;
   }
+}
+
+const textEncoder = new TextEncoder();
+function createJsonResponse(obj: object) {
+  const data = textEncoder.encode(JSON.stringify(obj));
+  return new Response(data, {
+    status: 200,
+    headers: {
+      ["content-type"]: "application/json",
+      ["content-length"]: data.byteLength.toString(),
+    },
+  });
 }
