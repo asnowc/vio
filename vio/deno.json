@@ -1,6 +1,6 @@
 {
   "name": "@asla/vio",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "exports": "./src/mod_deno.ts",
   "tasks": {
     "gen-doc": "deno doc --html --output=temp --name=VIO src/mod.ts",
@@ -16,8 +16,7 @@
     "lib": ["deno.window"]
   },
   "publish": {
-    "include": ["README.md", "src/**/*.ts", "assets/**"],
-    "exclude": ["!assets/web"]
+    "include": ["README.md", "src/**/*.ts"]
   },
   "nodeModulesDir": false,
   "lock": false
