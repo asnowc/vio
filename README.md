@@ -54,7 +54,7 @@ import vio, { VioHttpServer } from "@asla/vio";
 
 const server = new VioHttpServer(vio);
 await server.listen(8887, "127.0.0.1");
-console.log(`server listened ${hostname}:${port}`);
+console.log(`server started: http://127.0.0.1:8887`);
 
 let i = 0;
 setInterval(() => {
