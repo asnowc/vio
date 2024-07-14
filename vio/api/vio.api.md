@@ -62,12 +62,13 @@ export namespace ChartMeta {
         // (undocumented)
         chartType: "bar";
         // (undocumented)
+        enableTimeline?: boolean;
+        // (undocumented)
         sort?: 0 | 1;
     }
     // (undocumented)
     export type Common = {
         title?: string;
-        enableTimeline?: boolean;
         requestInterval?: number;
     };
     export interface Gauge extends Common {
@@ -83,6 +84,8 @@ export namespace ChartMeta {
     export interface Line extends Common {
         // (undocumented)
         chartType: "line";
+        // (undocumented)
+        enableTimeline?: boolean;
     }
     export interface Pie extends Common {
         // (undocumented)
@@ -97,6 +100,8 @@ export namespace ChartMeta {
     export interface Scatter extends Common {
         // (undocumented)
         chartType: "scatter";
+        // (undocumented)
+        enableTimeline?: boolean;
     }
 }
 
@@ -323,7 +328,7 @@ export interface VioTty extends TTY {
 
 // Warnings were encountered during analysis:
 //
-// dist/mod.d.ts:306:5 - (ae-forgotten-export) The symbol "DimensionInfo" needs to be exported by the entry point index.d.ts
+// dist/mod.d.ts:309:5 - (ae-forgotten-export) The symbol "DimensionInfo" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
