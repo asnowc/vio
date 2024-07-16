@@ -14,8 +14,13 @@ export interface VioHttpServerOption {
   vioStaticDir?: string;
   /** 覆盖静态资源响应头 */
   staticSetHeaders?: Record<string, string>;
-  /** 自定义处理静态资源请求。如果设置了这个处理函数，将忽略 vioStaticDir 和 staticSetHeaders */
+  /**
+   * @deprecated 改用 requestHandler
+   * 自定义处理请求。请求处理在 api 之后，静态文件服务器之前。 
+   */
   staticHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
+  /** 自定义处理请求。请求处理在 api 之后，静态文件服务器之前。  */
+  requestHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
   /** web终端前端配置 */
   frontendConfig?: object;
 }
@@ -28,17 +33,15 @@ export class VioHttpServer {
     private vio: Vio,
     opts: VioHttpServerOption = {},
   ) {
-    let { vioStaticDir, staticSetHeaders, staticHandler } = opts;
+    let { vioStaticDir, staticSetHeaders, staticHandler, requestHandler = staticHandler } = opts;
     if (!vioStaticDir && packageDir) {
       vioStaticDir = path.resolve(packageDir, "assets/web");
     }
-    if (staticHandler) {
-      this.#staticHandler = staticHandler;
-    } else if (vioStaticDir) {
-      const staticHandler = new FileServerHandler(vioStaticDir, { setHeaders: staticSetHeaders });
-      this.#staticHandler = (request) => {
-        return staticHandler.getResponse(new URL(request.url).pathname, request.headers);
-      };
+    if (requestHandler) {
+      this.#customHandler = requestHandler;
+    }
+    if (vioStaticDir) {
+      this.#fileServerHandler = new FileServerHandler(vioStaticDir, { setHeaders: staticSetHeaders });
     }
     if (opts.frontendConfig) {
       this.#frontendConfig = Response.json(opts.frontendConfig);
@@ -56,21 +59,29 @@ export class VioHttpServer {
     });
     this.#router = router;
   }
-  #staticHandler: VioHttpServerOption["staticHandler"];
+  #customHandler: VioHttpServerOption["requestHandler"];
+  #fileServerHandler?: FileServerHandler;
   #frontendConfig?: Response;
   #handler = async (req: Request, info: ServeHandlerInfo) => {
     const context = createRequestContext(req, info);
     const pathname = context.url.pathname;
 
-    const handler = this.#router.get(pathname);
-    if (handler) {
-      return handler(context);
+    if (pathname.startsWith("/api")) {
+      const handler = this.#router.get(pathname);
+      if (handler) {
+        return handler(context);
+      }
+      return new Response(null, { status: 404 });
     }
     if (pathname === "/config.json" && this.#frontendConfig) {
       return this.#frontendConfig;
     }
-    if (this.#staticHandler) {
-      const response = await this.#staticHandler(req);
+    if (this.#customHandler) {
+      const response = await this.#customHandler(req);
+      if (response) return response;
+    }
+    if (this.#fileServerHandler) {
+      const response = await this.#fileServerHandler.getResponse(pathname, req.headers);
       if (response) return response;
     }
     return new Response(null, { status: 404 });
