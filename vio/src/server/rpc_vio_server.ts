@@ -41,13 +41,12 @@ export class VioHttpServer {
       };
     }
     if (opts.frontendConfig) {
-      this.#frontendConfig = createJsonResponse(opts.frontendConfig);
+      this.#frontendConfig = Response.json(opts.frontendConfig);
     }
 
     const router = new Router();
     router.set("/api/test", function () {
-      const res = { value: "ok" };
-      return new Response(JSON.stringify(res));
+      return Response.json({ value: "ok" });
     });
     router.set("/api/rpc", ({ request: req }) => {
       if (req.headers.get("Upgrade") !== "websocket") return new Response(undefined, { status: 400 });
@@ -125,16 +124,4 @@ export class VioHttpServer {
     this.#serve?.unref();
     this.#ref = false;
   }
-}
-
-const textEncoder = new TextEncoder();
-function createJsonResponse(obj: object) {
-  const data = textEncoder.encode(JSON.stringify(obj));
-  return new Response(data, {
-    status: 200,
-    headers: {
-      ["content-type"]: "application/json",
-      ["content-length"]: data.byteLength.toString(),
-    },
-  });
 }
