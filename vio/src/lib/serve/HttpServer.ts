@@ -108,6 +108,7 @@ export class HttpServer implements DenoHttpServer {
   shutdown(): Promise<void> {
     if (this.#closing) return this.finished;
     this.#server.close();
+    this.#server.closeAllConnections();
     return this.finished;
   }
 
