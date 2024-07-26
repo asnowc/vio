@@ -8,13 +8,13 @@ import { vioServerTest as test } from "../_env/test_port.ts";
 
 test("create", async function ({ vio, connector }) {
   const { clientApi, serverApi } = connector;
-  await expect(serverApi.getCharts()).resolves.toEqual({ list: [] });
+  await expect(serverApi.chart.getCharts()).resolves.toEqual({ list: [] });
 
   const config: CenterCreateChartOption<number> = { meta: { chartType: "progress" }, maxCacheSize: 20 };
   const chart = vio.chart.create<number>(1, config); //创建
   expect(chart).toMatchObject(config);
 
-  let allCharts = await serverApi.getCharts();
+  let allCharts = await serverApi.chart.getCharts();
   expect(allCharts).toEqual({
     list: [
       {
@@ -27,7 +27,7 @@ test("create", async function ({ vio, connector }) {
     ],
   } satisfies typeof allCharts);
 
-  expect(clientApi.createChart).toBeCalledWith({
+  expect(clientApi.chart.createChart).toBeCalledWith({
     meta: config.meta!,
     dimension: chart.dimension,
     id: chart.id,
@@ -43,15 +43,15 @@ test("dispose chart", async function ({ vio, connector }) {
   const { clientApi, serverApi } = connector;
   const chart0 = vio.chart.create(0);
   const chart1 = vio.chart.create(2);
-  await expect(serverApi.getCharts().then((res) => res.list)).resolves.toHaveLength(2);
+  await expect(serverApi.chart.getCharts().then((res) => res.list)).resolves.toHaveLength(2);
   let chart3 = vio.chart.create(3);
-  await expect(serverApi.getCharts().then((res) => res.list)).resolves.toHaveLength(3);
+  await expect(serverApi.chart.getCharts().then((res) => res.list)).resolves.toHaveLength(3);
 
   vio.chart.disposeChart(chart1);
 
-  await expect(serverApi.getCharts().then((res) => res.list.map((info) => info.id))).resolves.toEqual([0, 2]);
+  await expect(serverApi.chart.getCharts().then((res) => res.list.map((info) => info.id))).resolves.toEqual([0, 2]);
 
-  expect(clientApi.deleteChart).toBeCalledWith(chart1.id);
+  expect(clientApi.chart.deleteChart).toBeCalledWith(chart1.id);
 });
 test("update", async function ({ vio, connector }) {
   const { clientApi, serverApi } = connector;
@@ -61,20 +61,26 @@ test("update", async function ({ vio, connector }) {
 
   const find = ({ list }: { list: ChartInfo<any>[] }) => list.find((item) => item.id === chart.id);
 
-  await expect(serverApi.getCharts().then(find)).resolves.toMatchObject({ cacheList: [] } satisfies Partial<ChartInfo>);
+  await expect(serverApi.chart.getCharts().then(find)).resolves.toMatchObject({
+    cacheList: [],
+  } satisfies Partial<ChartInfo>);
   chart.updateData(1); //更新
   chart.updateData(2); //更新
   chart.updateData(3); //更新
 
   expect(Array.from(chart.getCacheData())).toEqual([1, 2, 3]);
 
-  await expect(serverApi.getCharts().then((res) => find(res)?.cacheList.map((item) => item.data))).resolves.toEqual([
-    1, 2, 3,
+  await expect(
+    serverApi.chart.getCharts().then((res) => find(res)?.cacheList.map((item) => item.data)),
+  ).resolves.toEqual([1, 2, 3]);
+
+  expect(clientApi.chart.writeChart).toBeCalledTimes(3);
+
+  expect(clientApi.chart.writeChart.mock.calls.map((item) => item[1])).toMatchObject([
+    { data: 1 },
+    { data: 2 },
+    { data: 3 },
   ]);
-
-  expect(clientApi.writeChart).toBeCalledTimes(3);
-
-  expect(clientApi.writeChart.mock.calls.map((item) => item[1])).toMatchObject([{ data: 1 }, { data: 2 }, { data: 3 }]);
 
   vio.chart.disposeChart(chart);
 });
@@ -97,19 +103,22 @@ test("Proactive update", async function ({ vio, connector }) {
   const onRequestUpdate = vi.fn(() => i++);
   const chart2 = vio.chart.create(2, { onRequestUpdate, updateThrottle: 20 });
 
-  await expect(serverApi.requestUpdateChart(chart1.id), "Chart1 没有设置更新函数，应抛出异常").rejects.toThrowError();
-  await expect(serverApi.requestUpdateChart(chart2.id)).resolves.toMatchObject({ data: 0 });
   await expect(
-    serverApi.requestUpdateChart(chart2.id),
+    serverApi.chart.requestUpdateChart(chart1.id),
+    "Chart1 没有设置更新函数，应抛出异常",
+  ).rejects.toThrowError();
+  await expect(serverApi.chart.requestUpdateChart(chart2.id)).resolves.toMatchObject({ data: 0 });
+  await expect(
+    serverApi.chart.requestUpdateChart(chart2.id),
     "请求频率超过设定的节流时间，返回的值还是原来的",
   ).resolves.toMatchObject({ data: 0 });
   expect(onRequestUpdate).toBeCalledTimes(1);
 
   await afterTime(40);
-  await expect(serverApi.requestUpdateChart(chart2.id)).resolves.toMatchObject({ data: 1 });
+  await expect(serverApi.chart.requestUpdateChart(chart2.id)).resolves.toMatchObject({ data: 1 });
 
   await expect(
-    serverApi.getChartInfo(chart2.id).then((info) => info!.cacheList.map((item) => item.data)),
+    serverApi.chart.getChartInfo(chart2.id).then((info) => info!.cacheList.map((item) => item.data)),
     "通过 requestUpdateChart 获取的数据应该被推送到缓存",
   ).resolves.toEqual([0, 1]);
 });

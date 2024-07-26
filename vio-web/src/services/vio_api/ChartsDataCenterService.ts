@@ -67,8 +67,8 @@ export class ChartsDataCenterService implements ChartController {
     const res = await this.#serverApi.requestUpdateChart(chartId);
     if (!chart.lastDataItem || res.timestamp > chart.lastDataItem.timestamp) chart.pushCache(res);
   }
-  #serverApi?: MakeCallers<Pick<VioServerExposed, "requestUpdateChart">>;
-  init(serverApi?: MakeCallers<Pick<VioServerExposed, "requestUpdateChart">>) {
+  #serverApi?: MakeCallers<Pick<VioServerExposed["chart"], "requestUpdateChart">>;
+  init(serverApi?: MakeCallers<Pick<VioServerExposed["chart"], "requestUpdateChart">>) {
     this.#serverApi = serverApi;
   }
   /** 如果参数位undefined， 则是同时创建多个 */

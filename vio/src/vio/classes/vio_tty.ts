@@ -5,7 +5,7 @@ import { InstanceDisposedError } from "../../const.ts";
 import { withPromise, WithPromise } from "evlib";
 
 type TtyWriterFn = (ttyId: number, data: TtyOutputsData) => void;
-type TtyReadFn = VioClientExposed["sendTtyReadRequest"];
+type TtyReadFn = VioClientExposed["tty"]["sendTtyReadRequest"];
 
 /**
  * @public

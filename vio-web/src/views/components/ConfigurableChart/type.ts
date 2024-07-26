@@ -15,4 +15,5 @@ export interface ChartConfig extends ChartMeta.Common {
   echartsOption?: object;
   echartsSeries?: object;
   requestUpdate?: boolean;
+  enableTimeline?: boolean;
 }

@@ -30,32 +30,18 @@ function getChartInfo<T>(chart: VioChart<T>): ChartInfo<T> {
     dimensions: indexRecordToArray(chart.dimensions),
   };
 }
-class RpcServerExposed implements VioServerExposed {
-  constructor(vio: { chart: ChartCenter; tty: TtyCenter }, clientApi: RpcClientApi) {
+type VioServerTtyExposed = VioServerExposed["tty"];
+type VioServerChartExposed = VioServerExposed["chart"];
+
+class RpcServerTtyExposed implements VioServerTtyExposed {
+  constructor(vio: Vio, clientApi: RpcClientApi) {
+    this.#tty = vio.tty;
     this.#clientApi = clientApi;
-    this.#vio = vio;
   }
   #clientApi: RpcClientApi;
-  #vio: { chart: ChartCenter; tty: TtyCenter };
-  getCharts(): { list: ChartInfo<any>[] } {
-    const list: ChartInfo<any>[] = new Array(this.#vio.chart.chartsNumber);
-    let i = 0;
-    for (const chart of this.#vio.chart.getAll()) {
-      list[i++] = getChartInfo(chart);
-    }
-    return { list };
-  }
-  getChartInfo(id: number): ChartInfo<any> | undefined {
-    const chart = this.#vio.chart.get(id);
-    if (!chart) return;
-    return getChartInfo(chart);
-  }
-  requestUpdateChart<T>(chartId: number): MaybePromise<RequestUpdateRes<T>> {
-    return this.#vio.chart.requestUpdate<T>(chartId);
-  }
-
+  #tty: TtyCenter;
   getTtyCache(id: number): TtyOutputsData[] {
-    const tty = this.#vio.tty.getCreated(id);
+    const tty = this.#tty.getCreated(id);
     if (!tty) return [];
     return Array.from(tty.getCache());
   }
@@ -81,8 +67,9 @@ class RpcServerExposed implements VioServerExposed {
     if (enable) {
       if (resolver) return true;
       else {
-        resolver = this.#vio.tty.setReader(ttyId, {
-          read: (ttyId, requestId, data) => this.#clientApi.sendTtyReadRequest(ttyId, requestId, data),
+        resolver = this.#tty.setReader(ttyId, {
+          read: (ttyId: number, requestId: number, data: TtyInputsReq) =>
+            this.#clientApi.sendTtyReadRequest(ttyId, requestId, data),
           dispose: () => {
             if (this.#resolverMap[ttyId]) {
               delete this.#resolverMap[ttyId];
@@ -101,41 +88,72 @@ class RpcServerExposed implements VioServerExposed {
     return true;
   }
 }
-class RpcClientApi implements VioClientExposed {
+
+class RpcServerChartExposed implements VioServerChartExposed {
+  constructor(vio: Vio) {
+    this.#chart = vio.chart;
+  }
+  #chart: ChartCenter;
+  getCharts(): { list: ChartInfo<any>[] } {
+    const list: ChartInfo<any>[] = new Array(this.#chart.chartsNumber);
+    let i = 0;
+    for (const chart of this.#chart.getAll()) {
+      list[i++] = getChartInfo(chart);
+    }
+    return { list };
+  }
+  getChartInfo(id: number): ChartInfo<any> | undefined {
+    const chart = this.#chart.get(id);
+    if (!chart) return;
+    return getChartInfo(chart);
+  }
+  requestUpdateChart<T>(chartId: number): MaybePromise<RequestUpdateRes<T>> {
+    return this.#chart.requestUpdate<T>(chartId);
+  }
+}
+
+type VioClientTtyExposed = VioClientExposed["tty"];
+type VioClientChartExposed = VioClientExposed["chart"];
+
+export class RpcClientApi implements VioClientTtyExposed, VioClientChartExposed {
   constructor(api: MakeCallers<VioClientExposed>) {
     this.#api = api;
   }
   #api?: MakeCallers<VioClientExposed>;
   sendTtyReadRequest(ttyId: number, requestId: number, data: TtyInputsReq) {
     if (!this.#api) return Promise.reject(new Error("Viewer has been disposed"));
-    CpCall.exec(this.#api.sendTtyReadRequest, ttyId, requestId, data);
+    CpCall.exec(this.#api.tty.sendTtyReadRequest, ttyId, requestId, data);
   }
   writeTty(id: number, data: TtyOutputsData | TtyOutputsData): void {
     if (!this.#api) throw new Error("Viewer has been disposed");
-    CpCall.exec(this.#api.writeTty, id, data);
-  }
-  createChart(chart: ChartCreateInfo): void {
-    if (!this.#api) return;
-    CpCall.exec(this.#api.createChart, chart);
-  }
-  deleteChart(id: number): void {
-    if (!this.#api) return;
-    CpCall.exec(this.#api.deleteChart, id);
-  }
-  writeChart(id: number, data: ChartUpdateData<any>): void {
-    if (!this.#api) return;
-    CpCall.exec(this.#api.writeChart, id, data);
+    CpCall.exec(this.#api.tty.writeTty, id, data);
   }
   ttyReadEnableChange(ttyId: number, enable: boolean): void {
     if (!this.#api) return;
-    CpCall.exec(this.#api.ttyReadEnableChange, ttyId, enable);
+    CpCall.exec(this.#api.tty.ttyReadEnableChange, ttyId, enable);
+  }
+
+  createChart(chart: ChartCreateInfo): void {
+    if (!this.#api) return;
+    CpCall.exec(this.#api.chart.createChart, chart);
+  }
+  deleteChart(id: number): void {
+    if (!this.#api) return;
+    CpCall.exec(this.#api.chart.deleteChart, id);
+  }
+  writeChart(id: number, data: ChartUpdateData<any>): void {
+    if (!this.#api) return;
+    CpCall.exec(this.#api.chart.writeChart, id, data);
   }
 }
 
-export function initWebsocket(vio: Vio, ws: WebSocket): { cpc: CpCall; clientApi: VioClientExposed } {
+export function initWebsocket(vio: Vio, ws: WebSocket): { cpc: CpCall; clientApi: RpcClientApi } {
   const cpc = createWebSocketCpc(ws);
   const clientApi = new RpcClientApi(cpc.genCaller<VioClientExposed>());
-  cpc.setObject(new RpcServerExposed(vio, clientApi));
+  cpc.setObject({
+    chart: new RpcServerChartExposed(vio),
+    tty: new RpcServerTtyExposed(vio, clientApi),
+  } satisfies VioServerExposed);
 
   return { clientApi, cpc };
 }

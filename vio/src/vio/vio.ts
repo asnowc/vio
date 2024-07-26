@@ -1,6 +1,6 @@
-import type { VioClientExposed, TtyInputsReq, TtyOutputsData } from "./api_type.ts";
+import type { TtyInputsReq, TtyOutputsData } from "./api_type.ts";
 import type { WebSocket } from "../lib/deno/http.ts";
-import { initWebsocket } from "../rpc/rpc_api.ts";
+import { initWebsocket, type RpcClientApi } from "../rpc/rpc_api.ts";
 import { TtyCenter, ChartCenter, TTY, VioTty } from "./classes/mod.ts";
 
 /** VIO 实例。
@@ -38,8 +38,8 @@ class VioImpl extends TTY implements Vio {
   write(data: TtyOutputsData): void {
     return this.#tty0.write(data);
   }
-  readonly #viewers = new Map<Viewer, VioClientExposed>();
-  joinViewer(api: VioClientExposed, onDispose?: (viewer: Viewer) => void): Viewer {
+  readonly #viewers = new Map<Viewer, RpcClientApi>();
+  joinViewer(api: RpcClientApi, onDispose?: (viewer: Viewer) => void): Viewer {
     const viewer = new ViewerImpl(api, (viewer) => {
       this.#viewers.delete(viewer);
       onDispose?.(viewer);
@@ -92,7 +92,7 @@ export function createVio(): Vio {
 
 class ViewerImpl implements Viewer {
   constructor(
-    api: VioClientExposed,
+    api: RpcClientApi,
     private onDispose: (viewer: ViewerImpl) => void,
   ) {
     this.#api = api;
@@ -103,7 +103,7 @@ class ViewerImpl implements Viewer {
   writeTty(ttyId: number, data: TtyOutputsData): void {
     this.#api?.writeTty(ttyId, data);
   }
-  #api?: VioClientExposed;
+  #api?: RpcClientApi;
 
   dispose(): void {
     if (!this.#api) return;
