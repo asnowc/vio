@@ -24,6 +24,8 @@ jobs:
       - name: Install browser
         run: pnpm playwright install chromium webkit firefox --with-deps
         working-directory: ./e2e
+      - name: Type check
+        run: pnpm run type-check
       - name: E2E test
         continue-on-error: true
         run: pnpm run ci:e2e

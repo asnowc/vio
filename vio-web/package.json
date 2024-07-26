@@ -6,7 +6,7 @@
     "build": "vite build",
     "ci:build": "vite build",
     "dev": "vite",
-    "type:check": "tsc -p src/tsconfig.json --skipLibCheck"
+    "type-check": "tsc -p src/tsconfig.json --skipLibCheck"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
