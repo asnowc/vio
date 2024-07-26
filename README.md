@@ -16,7 +16,7 @@
 
 ## Web 终端
 
-提供各种图形化的控件。在浏览器中与进程进行交互
+提供各种图形化的控件。通过基于 WebSocket 的 RPC ([cpcall](https://github.com/asnowc/cpcall)) 通信，在浏览器中与进程进行交互
 
 <img src="https://github.com/asnowc/vio/raw/main/docs/img/vio.png"/>
 
@@ -34,8 +34,8 @@ import vio, { VioHttpServer } from "@asla/vio";
 
 ### 权限
 
-- --allow-net：启动 web 服务器
-- --allow-read：web 服务器读取文件
+- `--allow-net`：启动 web 服务器
+- `--allow-read`：web 服务器读取文件
 
 ```ts
 import vio, { VioHttpServer } from "jsr:@asla/vio";
@@ -64,5 +64,5 @@ setInterval(() => {
 
 在浏览器访问 https://127.0.0.1:8887，你看到的就是 vio 的 WEB 终端。你可以与其进行交互
 
-[输出图表的示例](https://github.com/asnowc/vio/blob/main/docs/usage/chart.md)
+[输出图表的示例](https://github.com/asnowc/vio/blob/main/docs/usage/chart.md)\
 [WEB终端 输出与输入示例](https://github.com/asnowc/vio/blob/main/docs/usage/tty.md)
