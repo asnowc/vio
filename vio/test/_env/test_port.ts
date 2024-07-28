@@ -72,5 +72,11 @@ export function createMockClientApi() {
       writeTty: vi.fn(),
       ttyReadEnableChange: vi.fn(),
     },
+    table: {
+      addRow: vi.fn(),
+      deleteRow: vi.fn(),
+      updateRow: vi.fn(),
+      updateTable: vi.fn(),
+    },
   } satisfies VioClientExposed;
 }

@@ -1,5 +1,4 @@
 import { deepClone } from "evlib";
-import { ChartController } from "../../../vio/api_type.ts";
 import {
   ChartCreateOption,
   ChartUpdateLowerOption,
@@ -8,10 +7,16 @@ import {
   IntersectingDimension,
 } from "./chart.type.ts";
 import { VioChartBase } from "./VioChartBase.ts";
-import { ChartUpdateData, ChartUpdateSubData } from "./chart.dto.ts";
+import { ChartUpdateData, ChartUpdateSubData, ClientChartExposed } from "./chart.dto.ts";
+import { ClientObjectExposed } from "../object.dto.ts";
 
 export class VioChart<T> extends VioChartBase<T> {
-  constructor(ctrl: ChartController, chartId: number, dimension: number, options: ChartCreateOption<T> = {}) {
+  constructor(
+    ctrl: ClientChartExposed & ClientObjectExposed,
+    chartId: number,
+    dimension: number,
+    options: ChartCreateOption<T> = {},
+  ) {
     super({
       ...options,
       id: chartId,
@@ -20,7 +25,7 @@ export class VioChart<T> extends VioChartBase<T> {
     this.#ctrl = ctrl;
   }
 
-  #ctrl?: ChartController;
+  #ctrl?: ClientChartExposed & ClientObjectExposed;
   /** @override */
   updateData(data: T, timeName?: string): void {
     if (!this.#ctrl) return;

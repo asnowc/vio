@@ -1,8 +1,8 @@
 import type { TtyInputsReq, TtyOutputsData } from "./api_type.ts";
 import type { WebSocket } from "../lib/deno/http.ts";
-import { ClientTtyApi, initWebsocket, type RpcClientApi } from "../rpc/rpc_api.ts";
+import { ClientTtyApi, initWebsocket, type RpcClientApi } from "../rpc/mod.ts";
 import { TTY, TtyCenter, VioTty } from "./tty/mod.ts";
-import { VioObjectCenter } from "./vio_object/mod.ts";
+import { VioObjectCenterImpl, VioObjectCenter } from "./vio_object/mod.private.ts";
 
 /** VIO 实例。
  * @public
@@ -75,15 +75,27 @@ class VioImpl extends TTY implements Vio {
   }
 
   readonly tty: TtyCenter;
-  readonly object: VioObjectCenter = new VioObjectCenter({
-    writeChart: (objectId, data) => {
-      for (const viewer of this.#viewers.values()) viewer.object.writeChart(objectId, data);
+  readonly object = new VioObjectCenterImpl({
+    createObject: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.createObject(...args);
     },
-    createObject: (config) => {
-      for (const viewer of this.#viewers.values()) viewer.object.createObject(config);
+    deleteObject: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.deleteObject(...args);
     },
-    deleteObject: (objectId) => {
-      for (const viewer of this.#viewers.values()) viewer.object.deleteObject(objectId);
+    writeChart: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.writeChart(...args);
+    },
+    addRow: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.addRow(...args);
+    },
+    deleteRow: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.deleteRow(...args);
+    },
+    updateRow: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.updateRow(...args);
+    },
+    updateTable: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.updateTable(...args);
     },
   });
   readonly chart: VioObjectCenter = this.object;

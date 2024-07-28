@@ -1,14 +1,16 @@
 import {
   ChartUpdateData,
   VioChartBase,
-  ChartController,
   VioServerExposed,
   ClientObjectExposed,
   VioObjectCreateDto,
+  ClientChartExposed,
+  ClientTableExposed,
 } from "@asla/vio/client";
 import { EventTrigger } from "evlib";
 import { MakeCallers, RpcService, RpcExposed } from "cpcall";
 import { ChartDataItem, ChartInfo, VioChartCreateConfig, VioObject } from "@asla/vio";
+import { TableRow } from "@asla/vio/vio/vio_object/table/table.type.ts";
 
 @RpcService()
 class VioObjectService implements ClientObjectExposed {
@@ -50,7 +52,7 @@ class VioObjectService implements ClientObjectExposed {
 }
 
 @RpcService()
-export class ChartsDataCenterService extends VioObjectService implements ChartController {
+export class ChartsDataCenterService extends VioObjectService implements ClientChartExposed, ClientTableExposed {
   @RpcExposed()
   writeChart(chartId: number, data: ChartUpdateData<any>): void {
     this.writeEvent.emit({ id: chartId, data });
@@ -77,6 +79,19 @@ export class ChartsDataCenterService extends VioObjectService implements ChartCo
     if (!this.#serverApi) throw new Error("没有连接");
     return this.#serverApi.chart.requestUpdateChart(chartId);
   }
+  addRow(tableId: number, param: TableRow, afterIndex: number): void {
+    //TODO table
+  }
+  deleteRow(tableId: number, rowKey: string): void {
+    //TODO table
+  }
+  updateRow(tableId: number, row: TableRow, rowKey: string): void {
+    //TODO table
+  }
+  updateTable(tableId: number, data: TableRow[]): void {
+    //TODO table
+  }
+
   readonly writeEvent = new EventTrigger<{ id: number; data: ChartUpdateData<any> }>();
 }
 

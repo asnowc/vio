@@ -54,6 +54,7 @@ export class VioRpcApi {
   #clientRoot: VioClientExposed = {
     object: this.chart,
     chart: this.chart,
+    table: this.chart,
     tty: this.tty,
   };
 
