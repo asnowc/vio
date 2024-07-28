@@ -27,4 +27,4 @@ export type VioRpcLogInfo = {
   date: number;
   id: number;
 };
-export type VioRpcLogType = "message" | "notice" | "chart" | "tty";
+export type VioRpcLogType = "message" | "notice" | "chart" | "object" | "tty";

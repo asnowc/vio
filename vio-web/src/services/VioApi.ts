@@ -1,11 +1,4 @@
-import {
-  ChartCreateInfo,
-  ChartUpdateData,
-  TtyInputsReq,
-  TtyOutputsData,
-  VioClientExposed,
-  VioServerExposed,
-} from "@asla/vio/client";
+import { VioClientExposed, VioServerExposed } from "@asla/vio/client";
 import { CpCall, MakeCallers, createWebSocketCpc } from "cpcall";
 import { connectWebsocket, WsConnectConfig } from "../lib/websocket.ts";
 import React, { createContext } from "react";
@@ -17,7 +10,6 @@ export * from "./vio_api/TtyViewService.ts";
 export * from "./vio_api/ChartsDataCenterService.ts";
 export * from "./vio_api/LogService.ts";
 export type { WsConnectConfig };
-type MaybePromise<T> = T | Promise<T>;
 
 export enum RpcConnectStatus {
   disconnected = 0,
@@ -57,40 +49,13 @@ export class VioRpcApi {
     this.#cpc?.dispose();
     this.#cpc = null;
   }
-  #clientRoot: VioClientExposed = {
-    chart: {
-      createChart: (chartInfo: ChartCreateInfo): void => {
-        this.chart.createChart(chartInfo);
-        this.log.pushLog("chart", chartInfo, "create");
-      },
-      deleteChart: (chartId: number): void => {
-        this.chart.deleteChart(chartId);
-        this.log.pushLog("chart", chartId, "delete");
-      },
-      writeChart: (chartId: number, data: Readonly<ChartUpdateData<any>>): void => {
-        this.chart.writeChart(chartId, data);
-        this.log.pushLog("chart", data, "update");
-      },
-    },
-    tty: {
-      sendTtyReadRequest: (id: number, requestId: number, opts: TtyInputsReq): MaybePromise<any> => {
-        this.log.pushLog("tty", { id, data: opts }, "input");
-        return this.tty.get(id, true).addReading(requestId, opts);
-      },
-
-      writeTty: (id: number, data: TtyOutputsData): void => {
-        this.tty.get(id, true).addOutput(data);
-        this.log.pushLog("tty", { id, data }, "output");
-      },
-      ttyReadEnableChange: (ttyId, enable) => {
-        const tty = this.tty.get(ttyId, true);
-        tty.setReadEnable(enable, { passive: true });
-      },
-    },
-  };
-  // readonly tty = new TtyViewService(); // 纯输出
   readonly chart = new ChartsDataCenterService(); // 纯输出
   readonly tty = new TtyViewService();
+  #clientRoot: VioClientExposed = {
+    object: this.chart,
+    chart: this.chart,
+    tty: this.tty,
+  };
 
   readonly log = new LogService();
 
@@ -101,15 +66,12 @@ export class VioRpcApi {
     return this.#serverApi.tty.getTtyCache(id);
   }
   private onCpcConnect(cpc: CpCall) {
-    this.chart.clearChart();
+    this.chart.clearObject();
     this.#cpc = cpc;
     cpc.setObject(this.#clientRoot satisfies VioClientExposed);
     this.#serverApi = cpc.genCaller<VioServerExposed>();
-    this.#serverApi.chart.getCharts().then(({ list }) => {
-      this.chart.setCache(list);
-    });
     this.tty.init(this.#serverApi.tty);
-    this.chart.init(this.#serverApi.chart);
+    this.chart.init(this.#serverApi);
     cpc.onClose
       .finally(() => {
         this.status = RpcConnectStatus.disconnected;

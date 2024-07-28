@@ -18,11 +18,8 @@ export function ChartBar() {
   const chartList = chart.getAll();
 
   const itemList = mapIterable(chartList, (item) => {
-    const meta = item.meta;
-    const type = meta.chartType;
+    const type = item.type ?? "";
     const Icon = CHART_TYPE_RENDER_MAP[type]?.Icon ?? QuestionCircleOutlined;
-    const title = meta.title ?? item.id;
-
     const panelApi = viewApi.getOpenedChartPanel(item.id);
     const onClick = () => {
       if (panelApi) panelApi.focus();
@@ -32,7 +29,7 @@ export function ChartBar() {
       <Button key={item.id} type="text" onClick={onClick}>
         <flex-row style={{ flex: 1, gap: 8 }}>
           <Icon />
-          {title}
+          {item.name ?? item.id}
         </flex-row>
       </Button>
     );
@@ -43,7 +40,4 @@ export function ChartBar() {
       <flex-col>{itemList.length > 0 ? itemList : <Empty />}</flex-col>
     </div>
   );
-}
-interface ChartItem {
-  type: string;
 }

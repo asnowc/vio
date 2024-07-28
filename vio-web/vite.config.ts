@@ -14,6 +14,7 @@ const config: UserConfig = {
   resolve: {
     alias,
   },
+  esbuild: { target: "es2022" },
   build: {
     target: "es2017",
     minify: true,

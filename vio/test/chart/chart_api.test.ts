@@ -1,67 +1,50 @@
 import { describe, expect, vi } from "vitest";
 import { connectWebsocket } from "../../src/lib/websocket.ts";
-import { CenterCreateChartOption } from "@asla/vio";
-import { ChartInfo, ChartCreateInfo, DimensionInfo } from "../../src/client.ts";
+import { ChartCreateOption, ChartInfo, DimensionInfo } from "@asla/vio";
 import { createWebSocketCpc } from "cpcall";
 import { afterTime } from "evlib";
 import { vioServerTest as test } from "../_env/test_port.ts";
+import { VioObjectCreateDto, VioObjectDto } from "../../src/vio/api_type.ts";
 
-test("create", async function ({ vio, connector }) {
-  const { clientApi, serverApi } = connector;
-  await expect(serverApi.chart.getCharts()).resolves.toEqual({ list: [] });
+test("createChart", async function ({ vio, connector }) {
+  const { clientApi } = connector;
 
-  const config: CenterCreateChartOption<number> = { meta: { chartType: "progress" }, maxCacheSize: 20 };
-  const chart = vio.chart.create<number>(1, config); //创建
+  const config: ChartCreateOption<number> = { meta: { chartType: "progress" }, maxCacheSize: 20 };
+  const chart = vio.object.createChart<number>(1, config); //创建
   expect(chart).toMatchObject(config);
-
-  let allCharts = await serverApi.chart.getCharts();
-  expect(allCharts).toEqual({
-    list: [
-      {
-        id: chart.id,
-        dimension: chart.dimension,
-        meta: config.meta!,
-        cacheList: [],
-        dimensions: [{}],
-      },
-    ],
-  } satisfies typeof allCharts);
-
-  expect(clientApi.chart.createChart).toBeCalledWith({
-    meta: config.meta!,
-    dimension: chart.dimension,
+  await afterTime();
+  expect(clientApi.object.createObject).toBeCalledWith({
     id: chart.id,
-    dimensions: [{}],
-  } satisfies ChartCreateInfo);
+    type: "chart",
+  } satisfies VioObjectCreateDto);
 });
+
 test("dimensionsInfo", async function ({ vio }) {
-  const chart = vio.chart.create(2, { dimensions: { 1: { name: "Y" } } }); //创建
+  const chart = vio.object.createChart(2, { dimensions: { 1: { name: "Y" } } }); //创建
   expect(chart.dimensions.length).toBe(2);
   expect(chart.dimensions[1]).toMatchObject({ name: "Y" } satisfies DimensionInfo);
 });
 test("dispose chart", async function ({ vio, connector }) {
   const { clientApi, serverApi } = connector;
-  const chart0 = vio.chart.create(0);
-  const chart1 = vio.chart.create(2);
-  await expect(serverApi.chart.getCharts().then((res) => res.list)).resolves.toHaveLength(2);
-  let chart3 = vio.chart.create(3);
-  await expect(serverApi.chart.getCharts().then((res) => res.list)).resolves.toHaveLength(3);
+  const chart0 = vio.object.createChart(0);
+  const chart1 = vio.object.createChart(2);
+  await expect(serverApi.object.getObjects().then((res) => res.list)).resolves.toHaveLength(2);
+  let chart3 = vio.object.createChart(3);
+  await expect(serverApi.object.getObjects().then((res) => res.list)).resolves.toHaveLength(3);
 
-  vio.chart.disposeChart(chart1);
+  vio.object.disposeObject(chart1);
 
-  await expect(serverApi.chart.getCharts().then((res) => res.list.map((info) => info.id))).resolves.toEqual([0, 2]);
+  await expect(serverApi.object.getObjects().then((res) => res.list.map((info) => info.id))).resolves.toEqual([0, 2]);
 
-  expect(clientApi.chart.deleteChart).toBeCalledWith(chart1.id);
+  expect(clientApi.object.deleteObject).toBeCalledWith(chart1.id);
 });
 test("update", async function ({ vio, connector }) {
   const { clientApi, serverApi } = connector;
 
-  const config: CenterCreateChartOption<number> = { maxCacheSize: 20 };
-  const chart = vio.chart.create<number>(1, config); //创建
+  const config: ChartCreateOption<number> = { maxCacheSize: 20 };
+  const chart = vio.object.createChart<number>(1, config); //创建
 
-  const find = ({ list }: { list: ChartInfo<any>[] }) => list.find((item) => item.id === chart.id);
-
-  await expect(serverApi.chart.getCharts().then(find)).resolves.toMatchObject({
+  await expect(serverApi.chart.getChartInfo(chart.id)).resolves.toMatchObject({
     cacheList: [],
   } satisfies Partial<ChartInfo>);
   chart.updateData(1); //更新
@@ -71,7 +54,7 @@ test("update", async function ({ vio, connector }) {
   expect(Array.from(chart.getCacheData())).toEqual([1, 2, 3]);
 
   await expect(
-    serverApi.chart.getCharts().then((res) => find(res)?.cacheList.map((item) => item.data)),
+    serverApi.chart.getChartInfo(chart.id).then((res) => res?.cacheList.map((item) => item.data)),
   ).resolves.toEqual([1, 2, 3]);
 
   expect(clientApi.chart.writeChart).toBeCalledTimes(3);
@@ -82,11 +65,12 @@ test("update", async function ({ vio, connector }) {
     { data: 3 },
   ]);
 
-  vio.chart.disposeChart(chart);
+  vio.object.disposeObject(chart);
 });
+
 test("cache", async function ({ vio }) {
-  const config: CenterCreateChartOption<number> = { maxCacheSize: 4 };
-  const chart = vio.chart.create<number>(1, config); //创建
+  const config: ChartCreateOption<number> = { maxCacheSize: 4 };
+  const chart = vio.object.createChart<number>(1, config); //创建
 
   for (let i = 0; i < chart.maxCacheSize; i++) {
     chart.updateData(i);
@@ -95,13 +79,25 @@ test("cache", async function ({ vio }) {
   chart.updateData(4);
   expect(Array.from(chart.getCacheData())).toEqual([1, 2, 3, 4]);
 });
+test("getObjects", async function ({ vio, connector }) {
+  const { serverApi, clientApi } = connector;
+  function getList() {
+    return serverApi.object.getObjects().then((res) => res.list);
+  }
+  await expect(getList()).resolves.toEqual([]);
+  const chart = vio.object.createChart<number>(1); //创建
+
+  await expect(getList()).resolves.toEqual([
+    { id: chart.id, name: chart.name, type: chart.type },
+  ] satisfies VioObjectDto[]);
+});
 test("Proactive update", async function ({ vio, connector }) {
   const { clientApi, serverApi } = connector;
-  const chart1 = vio.chart.create(1);
+  const chart1 = vio.object.createChart(1);
 
   let i = 0;
   const onRequestUpdate = vi.fn(() => i++);
-  const chart2 = vio.chart.create(2, { onRequestUpdate, updateThrottle: 20 });
+  const chart2 = vio.object.createChart(2, { onRequestUpdate, updateThrottle: 20 });
 
   await expect(
     serverApi.chart.requestUpdateChart(chart1.id),
@@ -125,7 +121,7 @@ test("Proactive update", async function ({ vio, connector }) {
 
 describe.todo("updateSub", function () {
   test("updateLine", function ({ vio }) {
-    const chart = vio.chart.create(2);
+    const chart = vio.object.createChart(2);
     const data = [
       [0, 1, 3],
       [2, 2, 3],
@@ -157,7 +153,7 @@ describe.todo("updateSub", function () {
     // ]);
   });
   test("updateLine", function ({ vio }) {
-    const chart = vio.chart.create(1);
+    const chart = vio.object.createChart(1);
     const data = [0, 1, 3];
     chart.updateData(data);
 

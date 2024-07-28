@@ -61,9 +61,11 @@ export async function connectVioServer(host: string) {
 export function createMockClientApi() {
   return {
     chart: {
-      createChart: vi.fn(),
-      deleteChart: vi.fn(),
       writeChart: vi.fn(),
+    },
+    object: {
+      createObject: vi.fn(),
+      deleteObject: vi.fn(),
     },
     tty: {
       sendTtyReadRequest: vi.fn(),

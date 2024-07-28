@@ -1,8 +1,9 @@
 import type { TtyInputsReq, TtyOutputsData, VioClientExposed } from "../api_type.ts";
 import { LinkedQueue, UniqueKeyMap } from "evlib/data_struct";
-import { CacheTty, TTY } from "./tty.ts";
+import { TTY } from "./tty.ts";
 import { InstanceDisposedError } from "../../const.ts";
 import { withPromise, WithPromise } from "evlib";
+import { CacheTty } from "./CacheTty.ts";
 
 type TtyWriterFn = (ttyId: number, data: TtyOutputsData) => void;
 type TtyReadFn = VioClientExposed["tty"]["sendTtyReadRequest"];
@@ -283,12 +284,3 @@ export interface TtyReadResolver {
   /** 读取中的数量 */
   waitingSize: number;
 }
-
-export type {
-  EncodedImageData,
-  RawImageData,
-  VioFileData as FileData,
-  SelectItem,
-  SelectKey,
-  TtyWriteTextType,
-} from "../api_type/tty.type.ts";

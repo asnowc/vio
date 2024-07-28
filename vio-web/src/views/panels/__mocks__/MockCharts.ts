@@ -2,7 +2,7 @@ import { setInterval } from "evlib";
 
 import { ChartClientAgent, ChartsDataCenterService, useVioApi } from "@/services/VioApi.ts";
 import { useLayoutEffect, useMemo } from "react";
-import { DimensionInfo } from "@asla/vio/client";
+import { DimensionInfo } from "@asla/vio";
 
 export class MockChart<T> extends ChartClientAgent<T> {
   constructor(
@@ -31,11 +31,7 @@ export class MockChart<T> extends ChartClientAgent<T> {
   dispose() {}
 }
 
-export function useMockChart(
-  type: string,
-  dimensions: Record<number, DimensionInfo | undefined>,
-  ...args: number[]
-) {
+export function useMockChart(type: string, dimensions: Record<number, DimensionInfo | undefined>, ...args: number[]) {
   const chart = useMemo(() => new MockChart<number[][][]>(args, type, dimensions), []);
   useLayoutEffect(() => {
     chart.start();

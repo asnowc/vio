@@ -1,9 +1,8 @@
 import { EChartsPruneOption, EChartsPruneSeries, useEChart } from "@/lib/echarts.ts";
 import { ChartCommonProps } from "../type.ts";
 import { memo, useLayoutEffect, useMemo, useRef } from "react";
-import { ChartDataItem, DimensionInfo } from "@asla/vio/client.ts";
+import { ChartDataItem, DimensionInfo } from "@asla/vio";
 import { formatTime } from "../util/data_transfrom.ts";
-import React from "react";
 
 const DISPLAY_ONLY: string[] = ["line", "bar", "scatter"];
 export const XYCoordChart = memo(function XYCoordChart(props: ChartCommonProps<number[] | number[][]>) {

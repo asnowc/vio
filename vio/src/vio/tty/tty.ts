@@ -1,17 +1,13 @@
-import { LinkedCacheQueue } from "evlib/data_struct";
+import type { TtyOutputData, TtyInputsReq, TtyInputReq, TtyOutputsData } from "./tty.dto.ts";
 import type {
   SelectItem,
   SelectKey,
-  TtyOutputData,
-  TtyInputsReq,
-  TtyInputReq,
-  TtyOutputsData,
   EncodedImageData,
   RawImageData,
   TtyWriteTextType,
   VioFileData,
-} from "../api_type/tty.type.ts";
-import { VioChart, VioChartImpl } from "./VioChart.ts";
+} from "./type.ts";
+import type { VioObject } from "../vio_object/object.type.ts";
 import { createTypeErrorDesc } from "evlib";
 
 /**
@@ -81,8 +77,8 @@ export abstract class TTY {
       msgType,
     } satisfies TtyOutputData.Text);
   }
-  writeUiLink(ui: VioChart<number>): void {
-    if (!(ui instanceof VioChartImpl)) throw new Error("Unsupported UI object");
+  writeUiLink(ui: VioObject): void {
+    throw new Error("Unsupported UI object");
     this.write({ type: "link", uiType: "chart", id: ui.id } satisfies TtyOutputData.UILink);
   }
   /** 读取任意数据 */
@@ -147,49 +143,6 @@ export abstract class TTY {
         throw new InvalidInputDataError("The selected value does not exist in the options");
     }
     return selectedValues;
-  }
-}
-
-type WriteTty = (ttyId: number, data: TtyOutputsData) => void;
-export abstract class CacheTty extends TTY {
-  constructor(
-    readonly ttyIndex: number,
-    cacheSize: number,
-    writeTty?: WriteTty,
-  ) {
-    super();
-    this.#writeTty = writeTty;
-    this.#outputCache = new LinkedCacheQueue(cacheSize);
-  }
-  #writeTty?: WriteTty;
-  #outputCache: LinkedCacheQueue<{ data: TtyOutputsData }>;
-  get cachedSize() {
-    return this.#outputCache.size;
-  }
-  get cacheSize() {
-    return this.#outputCache.maxSize;
-  }
-  set cacheSize(size: number) {
-    this.#outputCache.maxSize = size;
-  }
-  *getCache(): Generator<TtyOutputsData, void, void> {
-    for (const item of this.#outputCache) {
-      yield item.data;
-    }
-  }
-
-  /** @implements */
-  write(data: TtyOutputsData): void {
-    this.#outputCache.push({ data });
-    if (!this.#writeTty) return;
-    this.#writeTty(this.ttyIndex, data);
-  }
-  get disposed() {
-    return !this.#writeTty;
-  }
-  dispose() {
-    // dispose 后保留 cache
-    this.#writeTty = undefined;
   }
 }
 

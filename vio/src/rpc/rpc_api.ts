@@ -1,44 +1,39 @@
 import { CpCall, MakeCallers, createWebSocketCpc } from "cpcall";
 import type {
   VioClientExposed,
-  ChartInfo,
   TtyOutputsData,
   VioServerExposed,
-  ChartCreateInfo,
-  ChartUpdateData,
   TtyInputsReq,
+  VioObjectCreateDto,
+  ChartUpdateData,
+  VioObjectDto,
+  ClientTtyExposed,
+  ClientChartExposed,
+  ServerTtyExposed,
+  ServerChartExposed,
+  ServerObjectExposed,
+  ClientObjectExposed,
 } from "../vio/api_type.ts";
-import { TtyCenter, ChartCenter, Vio } from "../vio/mod.ts";
-import { RequestUpdateRes, TtyReadResolver, VioChart } from "../vio/classes/mod.ts";
+import {
+  TtyCenter,
+  VioObjectCenter,
+  Vio,
+  VioChart,
+  TtyReadResolver,
+  ChartInfo,
+  RequestUpdateRes,
+  ChartDataItem,
+} from "../vio/mod.ts";
 import type { WebSocket } from "../lib/deno/http.ts";
 import { MaybePromise } from "../type.ts";
 import { indexRecordToArray } from "../lib/array_like.ts";
-function getChartInfo<T>(chart: VioChart<T>): ChartInfo<T> {
-  const cacheData: T[] = new Array(chart.cachedSize);
-  const timestamps: number[] = new Array(chart.cachedSize);
-  let i = 0;
-  for (const item of chart.getCacheDateItem()) {
-    cacheData[i] = item.data;
-    timestamps[i] = item.timestamp;
-    i++;
-  }
-  return {
-    meta: chart.meta,
-    dimension: chart.dimension,
-    id: chart.id,
-    cacheList: Array.from(chart.getCacheDateItem()),
-    dimensions: indexRecordToArray(chart.dimensions),
-  };
-}
-type VioServerTtyExposed = VioServerExposed["tty"];
-type VioServerChartExposed = VioServerExposed["chart"];
 
-class RpcServerTtyExposed implements VioServerTtyExposed {
-  constructor(vio: Vio, clientApi: RpcClientApi) {
+class RpcServerTtyExposed implements ServerTtyExposed {
+  constructor(vio: Vio, clientApi: ClientTtyApi) {
     this.#tty = vio.tty;
     this.#clientApi = clientApi;
   }
-  #clientApi: RpcClientApi;
+  #clientApi: ClientTtyApi;
   #tty: TtyCenter;
   getTtyCache(id: number): TtyOutputsData[] {
     const tty = this.#tty.getCreated(id);
@@ -89,33 +84,55 @@ class RpcServerTtyExposed implements VioServerTtyExposed {
   }
 }
 
-class RpcServerChartExposed implements VioServerChartExposed {
+class RpcServerChartExposed implements ServerChartExposed {
   constructor(vio: Vio) {
-    this.#chart = vio.chart;
+    this.#chart = vio.object;
   }
-  #chart: ChartCenter;
-  getCharts(): { list: ChartInfo<any>[] } {
-    const list: ChartInfo<any>[] = new Array(this.#chart.chartsNumber);
+  #chart: VioObjectCenter;
+  getChartInfo(id: number): ChartInfo<any> | undefined {
+    const chart = this.#chart.getChart(id);
+    if (!chart) return;
+    return RpcServerChartExposed.getChartInfo(chart, id);
+  }
+  requestUpdateChart<T>(chartId: number): MaybePromise<RequestUpdateRes<T>> {
+    const chart = this.#chart.getChart(chartId);
+    if (!chart) throw new Error(`The id ${chartId} is not a Chart`);
+    return chart.requestUpdate() as MaybePromise<RequestUpdateRes<T>>;
+  }
+  private static getChartInfo<T>(chart: VioChart<T>, id: number): ChartInfo<T> {
+    const cacheList: ChartDataItem<T>[] = new Array(chart.cachedSize);
     let i = 0;
-    for (const chart of this.#chart.getAll()) {
-      list[i++] = getChartInfo(chart);
+    for (const item of chart.getCacheDateItem()) {
+      let dataItem: ChartDataItem<T> = { data: item.data, timestamp: item.timestamp };
+      if (item.timeName) dataItem.timeName = item.timeName;
+      cacheList[i++] = dataItem;
+    }
+    return {
+      name: chart.name,
+      meta: chart.meta,
+      dimension: chart.dimension,
+      id,
+      cacheList,
+      dimensions: indexRecordToArray(chart.dimensions),
+    };
+  }
+}
+class RpcServerObjectExposed implements ServerObjectExposed {
+  constructor(vio: Vio) {
+    this.#chart = vio.object;
+  }
+  #chart: VioObjectCenter;
+  getObjects(): { list: VioObjectDto[] } {
+    const list = new Array<VioObjectDto>(this.#chart.chartsNumber);
+    let i = 0;
+    for (const item of this.#chart.getAll()) {
+      list[i++] = { id: item.id, type: item.type, name: item.name };
     }
     return { list };
   }
-  getChartInfo(id: number): ChartInfo<any> | undefined {
-    const chart = this.#chart.get(id);
-    if (!chart) return;
-    return getChartInfo(chart);
-  }
-  requestUpdateChart<T>(chartId: number): MaybePromise<RequestUpdateRes<T>> {
-    return this.#chart.requestUpdate<T>(chartId);
-  }
 }
 
-type VioClientTtyExposed = VioClientExposed["tty"];
-type VioClientChartExposed = VioClientExposed["chart"];
-
-export class RpcClientApi implements VioClientTtyExposed, VioClientChartExposed {
+export class ClientTtyApi implements ClientTtyExposed {
   constructor(api: MakeCallers<VioClientExposed>) {
     this.#api = api;
   }
@@ -132,28 +149,44 @@ export class RpcClientApi implements VioClientTtyExposed, VioClientChartExposed 
     if (!this.#api) return;
     CpCall.exec(this.#api.tty.ttyReadEnableChange, ttyId, enable);
   }
+}
 
-  createChart(chart: ChartCreateInfo): void {
-    if (!this.#api) return;
-    CpCall.exec(this.#api.chart.createChart, chart);
+export class ClientObjectApi implements ClientChartExposed, ClientObjectExposed {
+  constructor(api: MakeCallers<VioClientExposed>) {
+    this.#api = api;
   }
-  deleteChart(id: number): void {
+  #api?: MakeCallers<VioClientExposed>;
+
+  createObject(info: VioObjectCreateDto): void {
     if (!this.#api) return;
-    CpCall.exec(this.#api.chart.deleteChart, id);
+    CpCall.exec(this.#api.object.createObject, info);
   }
+  deleteObject(id: number): void {
+    if (!this.#api) return;
+    CpCall.exec(this.#api.object.deleteObject, id);
+  }
+
   writeChart(id: number, data: ChartUpdateData<any>): void {
     if (!this.#api) return;
     CpCall.exec(this.#api.chart.writeChart, id, data);
   }
 }
 
+export type RpcClientApi = {
+  tty: ClientTtyApi;
+  object: ClientObjectApi;
+};
+
 export function initWebsocket(vio: Vio, ws: WebSocket): { cpc: CpCall; clientApi: RpcClientApi } {
   const cpc = createWebSocketCpc(ws);
-  const clientApi = new RpcClientApi(cpc.genCaller<VioClientExposed>());
+  const caller = cpc.genCaller<VioClientExposed>();
+  const objectApi = new ClientObjectApi(caller);
+  const ttyApi = new ClientTtyApi(caller);
   cpc.setObject({
+    object: new RpcServerObjectExposed(vio),
     chart: new RpcServerChartExposed(vio),
-    tty: new RpcServerTtyExposed(vio, clientApi),
+    tty: new RpcServerTtyExposed(vio, ttyApi),
   } satisfies VioServerExposed);
 
-  return { clientApi, cpc };
+  return { clientApi: { object: objectApi, tty: ttyApi }, cpc };
 }
