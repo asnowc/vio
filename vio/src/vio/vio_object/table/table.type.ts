@@ -1,9 +1,9 @@
-import { VioObject } from "../object.type.ts";
+import { VioObject } from "../_object_base.type.ts";
 
 /** @public */
 export type VioCell = string | number | null | Tag | Operation;
 /** @public */
-export type TableRow = Record<string, VioCell | VioCell[]>;
+export type TableRow = { [key: string]: VioCell | VioCell[] };
 
 /** @public */
 export interface VioTable<Row extends TableRow = TableRow, Add extends TableRow = Row, Update extends TableRow = Add>
@@ -11,7 +11,7 @@ export interface VioTable<Row extends TableRow = TableRow, Add extends TableRow 
   /** 表格操作事件 */
   onTableAction(operateKey: string, rowKeys: string[]): void;
   /** 行事件 */
-  onRowAction(operateKey: string, rowKey: string[]): void;
+  onRowAction(operateKey: string, rowKey: string): void;
   /** 添加行事件 */
   onRowAdd(param: Add): void;
   /** 更新行事件 */
@@ -22,13 +22,13 @@ export interface VioTable<Row extends TableRow = TableRow, Add extends TableRow 
   readonly type: "table";
   /** 更新表格数据 */
   updateTable(data: Row[]): void;
-  updateRow(row: Row, rowKey: number): void;
+  updateRow(row: Row, index: number): void;
   /** 添加表格行 */
   addRow(row: Row, afterIndex?: number): void;
   /** 删除表格行 */
-  deleteRow(index: number): void;
+  deleteRow(index: number, count: number): void;
 
-  getRows(filter: TableFilter): Row[];
+  getRows(filter?: TableFilter): { rows: Row[]; index: number[] };
 }
 /** @public */
 export type TableFilter = {
@@ -38,6 +38,7 @@ export type TableFilter = {
 
 /** @public */
 export type TableCreateOption = {
+  name?: string;
   /** 表格操作 */
   operations?: Operation[];
   /** 更新操作 */

@@ -7,7 +7,7 @@ import type {
   TtyWriteTextType,
   VioFileData,
 } from "./type.ts";
-import type { VioObject } from "../vio_object/object.type.ts";
+import type { VioObject } from "../vio_object/_object_base.type.ts";
 import { createTypeErrorDesc } from "evlib";
 
 /**

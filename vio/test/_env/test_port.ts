@@ -60,23 +60,21 @@ export async function connectVioServer(host: string) {
 
 export function createMockClientApi() {
   return {
-    chart: {
-      writeChart: vi.fn(),
-    },
     object: {
       createObject: vi.fn(),
       deleteObject: vi.fn(),
+
+      writeChart: vi.fn(),
+
+      addTableRow: vi.fn(),
+      deleteTableRow: vi.fn(),
+      updateTableRow: vi.fn(),
+      updateTable: vi.fn(),
     },
     tty: {
       sendTtyReadRequest: vi.fn(),
       writeTty: vi.fn(),
       ttyReadEnableChange: vi.fn(),
-    },
-    table: {
-      addRow: vi.fn(),
-      deleteRow: vi.fn(),
-      updateRow: vi.fn(),
-      updateTable: vi.fn(),
     },
   } satisfies VioClientExposed;
 }

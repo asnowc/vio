@@ -1,5 +1,5 @@
 import { MaybePromise } from "../../../type.ts";
-import { VioObject } from "../object.type.ts";
+import { VioObject } from "../_object_base.type.ts";
 
 /**
  * 一个图表的信息

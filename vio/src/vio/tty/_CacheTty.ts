@@ -1,6 +1,6 @@
 import { LinkedCacheQueue } from "evlib/data_struct";
 import { TtyOutputsData } from "./tty.dto.ts";
-import { TTY } from "./tty.ts";
+import { TTY } from "./_TTY.ts";
 
 type WriteTty = (ttyId: number, data: TtyOutputsData) => void;
 export abstract class CacheTty extends TTY {

@@ -1,6 +1,6 @@
 import { setInterval } from "evlib";
 
-import { ChartClientAgent, ChartsDataCenterService, useVioApi } from "@/services/VioApi.ts";
+import { ChartClientAgent, ClientVioObjectService, useVioApi } from "@/services/VioApi.ts";
 import { useLayoutEffect, useMemo } from "react";
 import { DimensionInfo } from "@asla/vio";
 
@@ -63,7 +63,7 @@ function radomInt(max: number) {
 
 export function startMockUpdateData(
   id: number,
-  api: ChartsDataCenterService,
+  api: ClientVioObjectService,
   dimensionIndexSizes: number[],
   time: number = 2000,
 ) {
@@ -73,7 +73,7 @@ export function startMockUpdateData(
   }, time);
 }
 export function useStartMockUpdateData(
-  api: ChartsDataCenterService,
+  api: ClientVioObjectService,
   config: {
     id: number;
     dimensionIndexSizes?: number[];

@@ -8,11 +8,11 @@ import {
 } from "./chart.type.ts";
 import { VioChartBase } from "./VioChartBase.ts";
 import { ChartUpdateData, ChartUpdateSubData, ClientChartExposed } from "./chart.dto.ts";
-import { ClientObjectExposed } from "../object.dto.ts";
+import { ClientObjectBaseExposed } from "../_object_base.dto.ts";
 
 export class VioChart<T> extends VioChartBase<T> {
   constructor(
-    ctrl: ClientChartExposed & ClientObjectExposed,
+    ctrl: ClientChartExposed & ClientObjectBaseExposed,
     chartId: number,
     dimension: number,
     options: ChartCreateOption<T> = {},
@@ -25,7 +25,7 @@ export class VioChart<T> extends VioChartBase<T> {
     this.#ctrl = ctrl;
   }
 
-  #ctrl?: ClientChartExposed & ClientObjectExposed;
+  #ctrl?: ClientChartExposed & ClientObjectBaseExposed;
   /** @override */
   updateData(data: T, timeName?: string): void {
     if (!this.#ctrl) return;

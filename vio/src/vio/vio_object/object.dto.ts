@@ -1,22 +1,10 @@
-import { MaybePromise } from "../../type.ts";
+import type { ClientObjectBaseExposed, ServerObjectBaseExposed } from "./_object_base.dto.ts";
+import type { ClientTableExposed, ServerTableExposed } from "./table/table.dto.ts";
+import type { ClientChartExposed, ServerChartExposed } from "./chart/chart.dto.ts";
 
-export interface VioObjectCreateDto {
-  name?: string;
-  id: number;
-  type: string;
-}
-export interface VioObjectDto {
-  name?: string;
-  id: number;
-  type: string;
-}
+export * from "./_object_base.dto.ts";
+export * from "./chart/chart.dto.ts";
+export * from "./table/table.dto.ts";
 
-export interface ServerObjectExposed {
-  getObjects(filter?: { name?: string; type?: string }): MaybePromise<{ list: VioObjectCreateDto[] }>;
-}
-export interface ClientObjectExposed {
-  /** 删除指定 UI 对象 */
-  deleteObject(objectId: number): void;
-  /** 创建 UI 对象 */
-  createObject(info: VioObjectCreateDto): void;
-}
+export type ServerObjectExposed = ServerObjectBaseExposed & ServerChartExposed & ServerTableExposed;
+export type ClientObjectExposed = ClientObjectBaseExposed & ClientChartExposed & ClientTableExposed;

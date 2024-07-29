@@ -6,17 +6,22 @@ import { afterTime } from "evlib";
 import { vioServerTest as test } from "../_env/test_port.ts";
 import { VioObjectCreateDto, VioObjectDto } from "../../src/vio/api_type.ts";
 
-test("createChart", async function ({ vio, connector }) {
-  const { clientApi } = connector;
+test("createChart-getObjects", async function ({ vio, connector }) {
+  const { clientApi, serverApi } = connector;
+  function getList() {
+    return serverApi.object.getObjects().then((res) => res.list);
+  }
 
-  const config: ChartCreateOption<number> = { meta: { chartType: "progress" }, maxCacheSize: 20 };
+  await expect(getList()).resolves.toEqual([]);
+
+  const config: ChartCreateOption<number> = { name: "内存图", meta: { chartType: "progress" }, maxCacheSize: 20 };
   const chart = vio.object.createChart<number>(1, config); //创建
   expect(chart).toMatchObject(config);
-  await afterTime();
-  expect(clientApi.object.createObject).toBeCalledWith({
-    id: chart.id,
-    type: "chart",
-  } satisfies VioObjectCreateDto);
+
+  const createdDto: VioObjectCreateDto = { id: chart.id, name: "内存图", type: "chart" };
+  await expect(getList()).resolves.toEqual([createdDto] satisfies VioObjectDto[]);
+
+  expect(clientApi.object.createObject).toBeCalledWith(createdDto);
 });
 
 test("dimensionsInfo", async function ({ vio }) {
@@ -44,7 +49,7 @@ test("update", async function ({ vio, connector }) {
   const config: ChartCreateOption<number> = { maxCacheSize: 20 };
   const chart = vio.object.createChart<number>(1, config); //创建
 
-  await expect(serverApi.chart.getChartInfo(chart.id)).resolves.toMatchObject({
+  await expect(serverApi.object.getChartInfo(chart.id)).resolves.toMatchObject({
     cacheList: [],
   } satisfies Partial<ChartInfo>);
   chart.updateData(1); //更新
@@ -54,12 +59,12 @@ test("update", async function ({ vio, connector }) {
   expect(Array.from(chart.getCacheData())).toEqual([1, 2, 3]);
 
   await expect(
-    serverApi.chart.getChartInfo(chart.id).then((res) => res?.cacheList.map((item) => item.data)),
+    serverApi.object.getChartInfo(chart.id).then((res) => res?.cacheList.map((item) => item.data)),
   ).resolves.toEqual([1, 2, 3]);
 
-  expect(clientApi.chart.writeChart).toBeCalledTimes(3);
+  expect(clientApi.object.writeChart).toBeCalledTimes(3);
 
-  expect(clientApi.chart.writeChart.mock.calls.map((item) => item[1])).toMatchObject([
+  expect(clientApi.object.writeChart.mock.calls.map((item) => item[1])).toMatchObject([
     { data: 1 },
     { data: 2 },
     { data: 3 },
@@ -79,18 +84,7 @@ test("cache", async function ({ vio }) {
   chart.updateData(4);
   expect(Array.from(chart.getCacheData())).toEqual([1, 2, 3, 4]);
 });
-test("getObjects", async function ({ vio, connector }) {
-  const { serverApi, clientApi } = connector;
-  function getList() {
-    return serverApi.object.getObjects().then((res) => res.list);
-  }
-  await expect(getList()).resolves.toEqual([]);
-  const chart = vio.object.createChart<number>(1); //创建
 
-  await expect(getList()).resolves.toEqual([
-    { id: chart.id, name: chart.name, type: chart.type },
-  ] satisfies VioObjectDto[]);
-});
 test("Proactive update", async function ({ vio, connector }) {
   const { clientApi, serverApi } = connector;
   const chart1 = vio.object.createChart(1);
@@ -100,21 +94,21 @@ test("Proactive update", async function ({ vio, connector }) {
   const chart2 = vio.object.createChart(2, { onRequestUpdate, updateThrottle: 20 });
 
   await expect(
-    serverApi.chart.requestUpdateChart(chart1.id),
+    serverApi.object.requestUpdateChart(chart1.id),
     "Chart1 没有设置更新函数，应抛出异常",
   ).rejects.toThrowError();
-  await expect(serverApi.chart.requestUpdateChart(chart2.id)).resolves.toMatchObject({ data: 0 });
+  await expect(serverApi.object.requestUpdateChart(chart2.id)).resolves.toMatchObject({ data: 0 });
   await expect(
-    serverApi.chart.requestUpdateChart(chart2.id),
+    serverApi.object.requestUpdateChart(chart2.id),
     "请求频率超过设定的节流时间，返回的值还是原来的",
   ).resolves.toMatchObject({ data: 0 });
   expect(onRequestUpdate).toBeCalledTimes(1);
 
   await afterTime(40);
-  await expect(serverApi.chart.requestUpdateChart(chart2.id)).resolves.toMatchObject({ data: 1 });
+  await expect(serverApi.object.requestUpdateChart(chart2.id)).resolves.toMatchObject({ data: 1 });
 
   await expect(
-    serverApi.chart.getChartInfo(chart2.id).then((info) => info!.cacheList.map((item) => item.data)),
+    serverApi.object.getChartInfo(chart2.id).then((info) => info!.cacheList.map((item) => item.data)),
     "通过 requestUpdateChart 获取的数据应该被推送到缓存",
   ).resolves.toEqual([0, 1]);
 });

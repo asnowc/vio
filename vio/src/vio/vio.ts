@@ -85,14 +85,14 @@ class VioImpl extends TTY implements Vio {
     writeChart: (...args) => {
       for (const viewer of this.#viewers.values()) viewer.object.writeChart(...args);
     },
-    addRow: (...args) => {
-      for (const viewer of this.#viewers.values()) viewer.object.addRow(...args);
+    addTableRow: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.addTableRow(...args);
     },
-    deleteRow: (...args) => {
-      for (const viewer of this.#viewers.values()) viewer.object.deleteRow(...args);
+    deleteTableRow: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.deleteTableRow(...args);
     },
-    updateRow: (...args) => {
-      for (const viewer of this.#viewers.values()) viewer.object.updateRow(...args);
+    updateTableRow: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.updateTableRow(...args);
     },
     updateTable: (...args) => {
       for (const viewer of this.#viewers.values()) viewer.object.updateTable(...args);
@@ -143,8 +143,3 @@ interface Viewer {
   readTty(ttyId: number, reqId: number, config: TtyInputsReq): void;
   writeTty(ttyId: number, data: TtyOutputsData): void;
 }
-
-/** @public */
-export type ClassToInterface<T extends object> = {
-  [key in keyof T]: T[key];
-};

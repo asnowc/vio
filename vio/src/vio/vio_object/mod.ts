@@ -1,1 +1,1 @@
-export * from "./type.ts";
+export * from "./object.type.ts";

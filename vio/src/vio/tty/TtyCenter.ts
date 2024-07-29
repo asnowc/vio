@@ -1,9 +1,9 @@
 import type { TtyInputsReq, TtyOutputsData, VioClientExposed } from "../api_type.ts";
 import { LinkedQueue, UniqueKeyMap } from "evlib/data_struct";
-import { TTY } from "./tty.ts";
+import { TTY } from "./_TTY.ts";
 import { InstanceDisposedError } from "../../const.ts";
 import { withPromise, WithPromise } from "evlib";
-import { CacheTty } from "./CacheTty.ts";
+import { CacheTty } from "./_CacheTty.ts";
 
 type TtyWriterFn = (ttyId: number, data: TtyOutputsData) => void;
 type TtyReadFn = VioClientExposed["tty"]["sendTtyReadRequest"];

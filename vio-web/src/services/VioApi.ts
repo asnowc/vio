@@ -3,11 +3,11 @@ import { CpCall, MakeCallers, createWebSocketCpc } from "cpcall";
 import { connectWebsocket, WsConnectConfig } from "../lib/websocket.ts";
 import React, { createContext } from "react";
 import { TtyViewService } from "./vio_api/TtyViewService.ts";
-import { ChartsDataCenterService } from "./vio_api/ChartsDataCenterService.ts";
 import { LogService } from "./vio_api/LogService.ts";
 import { EventTrigger } from "evlib";
+import { ClientVioObjectService } from "./vio_api/ClientVioObjectService.ts";
+export * from "./vio_api/ClientVioObjectService.ts";
 export * from "./vio_api/TtyViewService.ts";
-export * from "./vio_api/ChartsDataCenterService.ts";
 export * from "./vio_api/LogService.ts";
 export type { WsConnectConfig };
 
@@ -49,12 +49,10 @@ export class VioRpcApi {
     this.#cpc?.dispose();
     this.#cpc = null;
   }
-  readonly chart = new ChartsDataCenterService(); // 纯输出
+  readonly chart = new ClientVioObjectService();
   readonly tty = new TtyViewService();
   #clientRoot: VioClientExposed = {
     object: this.chart,
-    chart: this.chart,
-    table: this.chart,
     tty: this.tty,
   };
 
@@ -72,7 +70,7 @@ export class VioRpcApi {
     cpc.setObject(this.#clientRoot satisfies VioClientExposed);
     this.#serverApi = cpc.genCaller<VioServerExposed>();
     this.tty.init(this.#serverApi.tty);
-    this.chart.init(this.#serverApi);
+    this.chart.init(this.#serverApi.object);
     cpc.onClose
       .finally(() => {
         this.status = RpcConnectStatus.disconnected;
