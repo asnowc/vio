@@ -1,17 +1,16 @@
 import { VioObject } from "../_object_base.type.ts";
+import { UiAction, UiButton, UiBase } from "../_ui/mod.ts";
 
 /** @public */
-export type VioCell = string | number | null | Tag | Operation;
-/** @public */
-export type TableRow = { [key: string]: VioCell | VioCell[] };
+export type TableRow = { [key: string]: any };
 
 /** @public */
 export interface VioTable<Row extends TableRow = TableRow, Add extends TableRow = Row, Update extends TableRow = Add>
   extends VioObject {
   /** 表格操作事件 */
-  onTableAction(operateKey: string, rowKeys: string[]): void;
+  onTableAction(operateKey: string, rowKeys: Key[]): void;
   /** 行事件 */
-  onRowAction(operateKey: string, rowKey: string): void;
+  onRowAction(operateKey: string, rowKey: Key): void;
   /** 添加行事件 */
   onRowAdd(param: Add): void;
   /** 更新行事件 */
@@ -20,6 +19,8 @@ export interface VioTable<Row extends TableRow = TableRow, Add extends TableRow 
   /** 行数量 */
   rowNumber: number;
   readonly type: "table";
+  getRowIndexByKey(key: Key): number;
+  getRow(index: number): Row;
   /** 更新表格数据 */
   updateTable(data: Row[]): void;
   updateRow(row: Row, index: number): void;
@@ -32,57 +33,34 @@ export interface VioTable<Row extends TableRow = TableRow, Add extends TableRow 
 }
 /** @public */
 export type TableFilter = {
-  page?: number;
-  pageSize?: number;
+  skip?: number;
+  number?: number;
 };
 
 /** @public */
 export type TableCreateOption = {
+  keyField: string;
   name?: string;
   /** 表格操作 */
-  operations?: Operation[];
+  operations?: UiAction[];
   /** 更新操作 */
   updateAction?: boolean;
   /** 新增操作 */
-  addAction?: Pick<Operation, "text">;
+  addAction?: UiButton["props"];
 };
 /** @public */
-export type Columns<Row extends TableRow = TableRow> = {
+export type Column<Row extends TableRow = TableRow> = {
   title?: string;
   dataIndex?: keyof Row;
-  operations?: Operation[];
   width?: number;
-
   render?: string;
 };
 /** @public */
-export type TableRenderFn<Row extends TableRow> = (
-  record: Row,
-  info: {
-    index: number;
-    page: number;
-    pageSize: number;
-  },
-  column: Readonly<Columns<Row>>,
-) => any;
+export type TableRenderFn<Row extends TableRow> = (args: {
+  record: Row;
+  index: number;
+  column: Readonly<Column<Row>>;
+}) => UiBase | UiBase[];
 
 /** @public */
-export type Operation = {
-  ui: "operation";
-  key: string | number;
-  icon?: string;
-  text?: string;
-  type?: string;
-  tooltip?: string;
-
-  disable?: boolean;
-};
-
-/** @public */
-export type Tag = {
-  ui: "tag";
-  text?: string;
-  icon?: string;
-  color?: string;
-  textColor?: string;
-};
+export type Key = string | number;

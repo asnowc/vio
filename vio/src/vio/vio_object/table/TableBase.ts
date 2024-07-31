@@ -1,10 +1,13 @@
-import { TableCreateOption, Columns, TableRow, TableFilter } from "./table.type.ts";
-import { pickObjectKey, removeUndefinedKey } from "evlib";
+import { TableCreateOption, Column, TableRow, TableFilter, Key } from "./table.type.ts";
+import { TableDataDto } from "./table.dto.ts";
+import { removeUndefinedKey } from "evlib";
 
 export class VioTableBase<Row extends TableRow = TableRow> {
-  constructor(id: number, columns: Readonly<Columns<Row>>[], option: TableCreateOption) {
+  constructor(id: number, columns: Readonly<Column<Row>>[], option: TableCreateOption) {
     this.id = id;
+    if (typeof option.keyField !== "string") throw new Error("option.keyField must be a string");
     this.config = {
+      keyField: option.keyField,
       addAction: option.addAction,
       name: option.name,
       operations: option.operations,
@@ -12,22 +15,19 @@ export class VioTableBase<Row extends TableRow = TableRow> {
     };
     removeUndefinedKey(this.config);
 
-    this.columns = columns.map((item): Columns => {
-      const columns: Columns = {
+    this.columns = columns.map((item): Column => {
+      const columns: Column = {
         dataIndex: item.dataIndex as string,
         title: item.title,
         width: item.width,
         render: item.render,
-        operations: item.operations?.map((item) => {
-          return pickObjectKey(item, ["disable", "icon", "key", "text", "tooltip", "type", "ui"]);
-        }),
       };
       removeUndefinedKey(columns);
       return columns;
     });
   }
   readonly config: Readonly<TableCreateOption>;
-  readonly columns: Readonly<Columns>[];
+  readonly columns: Readonly<Column>[];
   readonly type = "table";
   id: number;
   get name() {
@@ -39,6 +39,14 @@ export class VioTableBase<Row extends TableRow = TableRow> {
   #data: Row[] = [];
   get data(): Row[] {
     return this.#data;
+  }
+
+  getRow(index: number): Row {
+    return this.data[index];
+  }
+  getRowIndexByKey(key: Key) {
+    const keyField = this.config.keyField;
+    return this.data.findIndex((item) => item[keyField] === key);
   }
   updateRow(row: Row, index: number): void {
     const oldRow = this.#data[index];
@@ -64,16 +72,16 @@ export class VioTableBase<Row extends TableRow = TableRow> {
   deleteRow(index: number, count = 1): Row[] {
     return this.#data.splice(index, count);
   }
-  getRows(filter: TableFilter = {}): { rows: Row[]; index: number[] } {
-    let { page = 0, pageSize = Infinity } = filter;
+  getRows(filter: TableFilter = {}): TableDataDto<Row> {
+    let { skip = 0, number = Infinity } = filter;
     const res: Row[] = [];
     const index: number[] = [];
     const arr = this.#data;
-    while (page < arr.length && res.length < pageSize) {
-      let idx = page++;
+    while (skip < arr.length && res.length < number) {
+      let idx = skip++;
       res.push(arr[idx]);
       index.push(idx);
     }
-    return { rows: res, index };
+    return { rows: res, index, total: this.rowNumber };
   }
 }

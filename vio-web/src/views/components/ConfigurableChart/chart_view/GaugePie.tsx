@@ -8,7 +8,7 @@ import {
 import { ChartCommonProps } from "../type.ts";
 import { useContext, useLayoutEffect, useMemo } from "react";
 import { errorCollector } from "@/services/ErrorLog.ts";
-import { ChartMeta } from "@asla/vio";
+import { ChartMeta } from "@asla/vio/client";
 
 export function GaugePie(props: ChartCommonProps<number | number[]>) {
   const { resizeDep, staticOptions, chartMeta, staticSeries, dataList, dimensions } = props;

@@ -1,7 +1,8 @@
 import { expect, vi, describe, beforeEach } from "vitest";
-import { vioServerTest as test, VioServerTestContext } from "../_env/test_port.ts";
-import { Columns, Operation, TableRenderFn, TableRow, VioTable } from "@asla/vio";
-import { TableDataDto, VioObjectCreateDto, VioTableDto } from "../../src/client.ts";
+import { vioServerTest as test } from "../_env/test_port.ts";
+import { Column, TableRenderFn, TableRow, Vio, VioTable } from "@asla/vio";
+import { TableChanges, TableDataDto, VioObjectCreateDto, VioTableDto } from "../../src/client.ts";
+import { UiButton } from "src/vio/vio_object/_ui/mod.ts";
 import { afterTime } from "evlib";
 
 test("createTable", async function ({ vio, connector }) {
@@ -11,6 +12,7 @@ test("createTable", async function ({ vio, connector }) {
   }
   const table = vio.object.createTable<Process>(columns, {
     name: "进程",
+    keyField: "id",
   });
 
   const createDto: VioObjectCreateDto = { type: "table", name: "进程", id: table.id };
@@ -27,6 +29,7 @@ test("getTable", async function ({ vio, connector }) {
     addAction: { text: "创建进程" },
     updateAction: true,
     operations: commonOperation,
+    keyField: "id",
   });
 
   await expect(serverApi.object.getTable(table.id)).resolves.toEqual({
@@ -35,36 +38,34 @@ test("getTable", async function ({ vio, connector }) {
     addAction: { text: "创建进程" },
     name: "进程",
     id: table.id,
+    keyField: "id",
     updateAction: true,
   } satisfies VioTableDto);
 });
 describe("action", async function () {
   type AddParam = Pick<Process, "args" | "swapFile">;
-  let table: VioTable<Process, AddParam>;
 
-  beforeEach<VioServerTestContext>(function ({ vio }) {
-    table = vio.object.createTable<Process>(columns, {
+  function createTable(vio: Vio): VioTable<Process, AddParam> {
+    return vio.object.createTable<Process>(columns, {
+      keyField: "id",
       name: "进程",
       addAction: { text: "创建进程" },
       // updateAction: true, // 默认为 true
       operations: commonOperation,
     });
-  });
-  test("onAdd", async function ({ connector }) {
-    const { serverApi } = connector;
+  }
 
-    const onAdd = vi.fn((param: AddParam) => {});
-    table.onRowAdd = onAdd;
-    const row: AddParam = {
-      args: ["-a"],
-      swapFile: "xxx",
-    };
-    await serverApi.object.onTableRowAdd(table.id, row);
-    expect(onAdd).toBeCalledWith(row);
+  test("getRows", async function ({ vio, connector }) {
+    const { clientApi, serverApi } = connector;
+    const table = createTable(vio);
+    table.updateTable([createRow(1), createRow(2), createRow(3), createRow(4)]);
+    const tablePage = await serverApi.object.getTableData(table.id, { skip: 1, number: 2 });
+    const expectData: TableDataDto<TableRow> = { rows: [createRow(2), createRow(3)], index: [1, 2], total: 4 };
+    expect(tablePage).toEqual(expectData);
   });
-  test("addRow", async function ({ connector }) {
-    const { clientApi } = connector;
 
+  test("addRow", async function ({ vio }) {
+    const table = createTable(vio);
     table.addRow(createRow(0)); //0
     expect(() => table.addRow(createRow(1), 2)).toThrowError(RangeError);
     expect(() => table.addRow(createRow(2), -1)).toThrowError(RangeError);
@@ -75,46 +76,64 @@ describe("action", async function () {
     table.addRow(createRow(4), 3); //4
 
     expect(table.getRows().rows.map((item) => item.id)).toEqual([2, 0, 1, 4, 3]);
-
-    await afterTime(30);
-
-    const calls = clientApi.object.addTableRow.mock.calls;
-    expect(calls[0], "first-push").toEqual([table.id, createRow(0), 0]);
-    expect(calls[1], "push1").toEqual([table.id, createRow(1), 1]);
-    expect(calls[2], "insert after 0").toEqual([table.id, createRow(2), 0]);
-    expect(calls[3], "push2").toEqual([table.id, createRow(3), 3]);
-    expect(calls[4], "insert after -1").toEqual([table.id, createRow(4), 3]);
   });
-  test("getRows", async function ({ connector }) {
+  test("tableChange", async function ({ vio, connector }) {
+    const table = createTable(vio);
     const { clientApi, serverApi } = connector;
-    table.updateTable([createRow(1), createRow(2), createRow(3), createRow(4)]);
-    const tablePage = await serverApi.object.getTableData(table.id, { page: 1, pageSize: 2 });
-    const expectData: TableDataDto<TableRow> = { rows: [createRow(2), createRow(3)], index: [1, 2] };
-    expect(tablePage).toEqual(expectData);
-  });
-  test("deleteRow", async function ({ connector }) {
-    const { clientApi, serverApi } = connector;
-    table.updateTable([createRow(1), createRow(2), createRow(3), createRow(4)]);
-    table.deleteRow(1, 2);
+    table.updateTable([createRow(0), createRow(1)]); // 0,1
+
+    table.addRow(createRow(2));
+    table.addRow(createRow(3));
+    table.addRow(createRow(4)); // 0,1,2,3,4  add 2,3,4
+
+    table.updateRow(createRow(8), 1); // 0,8,2,3,4 update 1
+    table.updateRow(createRow(9), 4); // 0,8,2,3,9 update 1 add 2,3,9
+    table.deleteRow(1, 3); // 0,9 delete 1 add 9
 
     const tableIdList = table.getRows().rows.map((item) => item.id);
-    expect(tableIdList).toEqual([1, 4]);
+    expect(tableIdList).toEqual([0, 9]);
 
-    const list = await serverApi.object.getTableData(table.id);
-    expect(list.rows.map((item) => item.id)).toEqual([1, 4]);
-
-    expect(clientApi.object.deleteTableRow).toBeCalledWith(table.id, 1, 2);
+    await afterTime(200);
+    const calls = clientApi.object.tableChange.mock.calls[0];
+    expect(calls).toEqual([
+      table.id,
+      {
+        delete: [1],
+        // update: [],
+        add: [createRow(9)],
+      } satisfies TableChanges,
+    ]);
   });
-  test("updateRow", async function ({ connector }) {
-    const { clientApi, serverApi } = connector;
-    table.updateTable([createRow(1), createRow(2), createRow(3), createRow(4)]);
 
-    table.updateRow(createRow(5), 1);
+  const onAction = vi.fn();
+  beforeEach(() => {
+    onAction.mockRestore();
+  });
+  test("onAdd", async function ({ vio, connector }) {
+    const table = createTable(vio);
+    const { serverApi } = connector;
 
-    const res = await serverApi.object.getTableData(table.id);
-
-    expect(res.rows.map((item) => item.id)).toEqual([1, 5, 3, 4]);
-    expect(clientApi.object.updateTableRow).toBeCalledWith(table.id, createRow(5), 1);
+    table.onRowAdd = onAction;
+    const row: AddParam = {
+      args: ["-a"],
+      swapFile: "xxx",
+    };
+    await serverApi.object.onTableRowAdd(table.id, row);
+    expect(onAction).toBeCalledWith(row);
+  });
+  test("onRowAction", async function ({ vio, connector }) {
+    const table = createTable(vio);
+    const { serverApi } = connector;
+    table.onRowAction = onAction;
+    await serverApi.object.onTableRowAction(table.id, "k", "rowKey");
+    expect(onAction).toBeCalledWith("k", "rowKey");
+  });
+  test("onTableAction", async function ({ vio, connector }) {
+    const table = createTable(vio);
+    const { serverApi } = connector;
+    table.onTableAction = onAction;
+    await serverApi.object.onTableAction(table.id, "k", [1, 2]);
+    expect(onAction).toBeCalledWith("k", [1, 2]);
   });
 
   let time = Date.now();
@@ -137,27 +156,23 @@ type Process = {
   id: number;
 };
 
-const commonOperation: Operation[] = [
-  { key: "run", ui: "operation", text: "运行" },
-  { key: "stop", ui: "operation", text: "停止" },
-];
+const commonOperation: UiButton[] = [new UiButton("run", { text: "运行" }), new UiButton("stop", { text: "停止" })];
 
-const columns: Columns<Process>[] = [
+const actionRender: TableRenderFn<Process> = (args): UiButton[] => {
+  const { record } = args;
+  return [
+    { key: "stop", ui: "button", props: { disable: record.status === 0, text: "停止", type: "text" } },
+    { key: "run", ui: "button", props: { disable: record.status === 1, text: "启动", type: "text" } },
+  ];
+};
+
+const columns: Column<Process>[] = [
   { dataIndex: "swapFile" },
   { dataIndex: "args" },
-  { title: "创建事件", dataIndex: "createTime" },
+  { dataIndex: "createTime", title: "创建时间" },
+  { dataIndex: "status" },
   {
     title: "操作",
-    operations: commonOperation,
-    render: (
-      ((record, info, column): Operation[] => {
-        const oper = column.operations!;
-        if (record.status) {
-          return [{ ...oper[0], disable: true }, oper[1]];
-        } else {
-          return [oper[0], { ...oper[1], disable: true }];
-        }
-      }) satisfies TableRenderFn<Process>
-    ).toString(),
+    render: actionRender.toString(),
   },
 ];

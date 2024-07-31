@@ -1,6 +1,12 @@
 import { CpCall, MakeCallers } from "cpcall";
-import type { VioClientExposed, VioObjectCreateDto, ChartUpdateData, ClientObjectExposed } from "../vio/api_type.ts";
-import { TableRow } from "../vio/mod.ts";
+import type {
+  VioClientExposed,
+  VioObjectCreateDto,
+  ChartUpdateData,
+  ClientObjectExposed,
+  TableChanges,
+} from "../vio/api_type.ts";
+import { Key, TableRow } from "../vio/mod.ts";
 
 export class ClientObjectApi implements ClientObjectExposed {
   constructor(api: MakeCallers<VioClientExposed>) {
@@ -21,20 +27,12 @@ export class ClientObjectApi implements ClientObjectExposed {
     CpCall.exec(this.#api.writeChart, id, data);
   }
 
-  addTableRow(tableId: number, param: TableRow, afterIndex: number): void {
+  updateTable(tableId: number): void {
     if (!this.#api) return;
-    CpCall.exec(this.#api.addTableRow, tableId, param, afterIndex);
+    CpCall.exec(this.#api.updateTable, tableId);
   }
-  deleteTableRow(tableId: number, index: number, count: number): void {
+  tableChange(tableId: number, changes: TableChanges<TableRow>): void {
     if (!this.#api) return;
-    CpCall.exec(this.#api.deleteTableRow, tableId, index, count);
-  }
-  updateTableRow(tableId: number, row: TableRow, index: number): void {
-    if (!this.#api) return;
-    CpCall.exec(this.#api.updateTableRow, tableId, row, index);
-  }
-  updateTable(tableId: number, data: TableRow[]): void {
-    if (!this.#api) return;
-    CpCall.exec(this.#api.updateTable, tableId, data);
+    CpCall.exec(this.#api.tableChange, tableId, changes);
   }
 }

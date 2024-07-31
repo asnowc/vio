@@ -2,7 +2,7 @@ import { VioChart as RpcVioChart } from "./chart/VioChart.ts";
 import { VioTableImpl } from "./table/VioTable.ts";
 import { UniqueKeyMap } from "evlib/data_struct";
 import type { VioChart, ChartCreateOption } from "./chart/chart.type.ts";
-import type { Columns, TableCreateOption, TableRow, VioTable } from "./table/table.type.ts";
+import type { Column, TableCreateOption, TableRow, VioTable } from "./table/table.type.ts";
 import type { VioObjectCenter, VioObject } from "./object.type.ts";
 import type { ClientObjectExposed } from "./object.dto.ts";
 
@@ -44,7 +44,7 @@ export class VioObjectCenterImpl implements VioObjectCenter {
 
     return chart;
   }
-  createTable<T extends TableRow>(columns: Columns<T>[], option: TableCreateOption): VioTable<T> {
+  createTable<T extends TableRow>(columns: Column<T>[], option: TableCreateOption): VioTable<T> {
     let chartId = this.#instanceMap.allocKeySet(null as any);
     const instance = new VioTableImpl<T>(this.ctrl, chartId, columns, option);
     this.#instanceMap.set(chartId, instance);

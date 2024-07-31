@@ -65,10 +65,8 @@ export function createMockClientApi() {
       deleteObject: vi.fn(),
 
       writeChart: vi.fn(),
-
-      addTableRow: vi.fn(),
-      deleteTableRow: vi.fn(),
-      updateTableRow: vi.fn(),
+      
+      tableChange: vi.fn(),
       updateTable: vi.fn(),
     },
     tty: {

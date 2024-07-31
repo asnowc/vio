@@ -3,8 +3,7 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@asla/vio/client": ["./node_modules/@asla/vio/src/client.ts"],
-      "@asla/vio/*": ["./node_modules/@asla/vio/src/*"]
+      "@asla/vio/client": ["./node_modules/@asla/vio/src/client.ts"]
     }
   }
 }

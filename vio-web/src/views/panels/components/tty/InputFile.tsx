@@ -4,7 +4,7 @@ import { INPUT_TYPE_INFO } from "./const.tsx";
 import React, { useState } from "react";
 import { Button, Space, Upload, UploadFile } from "antd";
 import { autoUnitByte } from "evlib/math";
-import { VioFileData } from "@asla/vio";
+import { VioFileData } from "@asla/vio/client";
 
 export type InputFileProps = {
   req: TtyInputReq.File;

@@ -18,8 +18,6 @@ export function VioChart({ api, containerApi, params }: IDockviewPanelProps<{ ch
     run,
     res: chartInstance,
   } = useAsync(function getChart() {
-    let chartInfo = chartCenter.get(chartId);
-    if (!chartInfo) return;
     return chartCenter.getChart(chartId).then((chartData) => {
       if (!chartData) return;
       const chart = new ChartClientAgent(chartData);
@@ -36,7 +34,7 @@ export function VioChart({ api, containerApi, params }: IDockviewPanelProps<{ ch
 
   const forceUpdate = useForceUpdate();
   const [resizeDep, updateResizeDep] = useReducer(() => ({}), {});
-  useListenable(chartCenter.createEvent, (e) => {
+  useListenable(chartCenter.createObjEvent, (e) => {
     if (e === undefined || e.id === chartId) run();
   });
 

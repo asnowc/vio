@@ -1,6 +1,6 @@
 import type { ChartCreateOption, VioChart } from "./chart/chart.type.ts";
 import type { VioObject } from "./_object_base.type.ts";
-import { TableRow, VioTable, Columns, TableCreateOption } from "./table/table.type.ts";
+import { TableRow, VioTable, Column, TableCreateOption } from "./table/table.type.ts";
 
 export * from "./chart/chart.type.ts";
 export * from "./table/table.type.ts";
@@ -47,5 +47,5 @@ export interface VioObjectCenter {
 
 /** @public */
 export interface VioObjectCenter {
-  createTable<T extends TableRow>(columns: Columns<T>[], option?: TableCreateOption): VioTable<T>;
+  createTable<T extends TableRow>(columns: Column<T>[], option?: TableCreateOption): VioTable<T>;
 }

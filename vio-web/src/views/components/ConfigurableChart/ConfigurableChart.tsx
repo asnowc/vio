@@ -9,7 +9,7 @@ import { CHART_TYPE_RENDER_MAP } from "./const.ts";
 import { UnknownChart } from "./chart_view/UnknownChart.tsx";
 import { Button, Form, Tooltip } from "antd";
 import { RedoOutlined } from "@ant-design/icons";
-import { ChartDataItem } from "@asla/vio";
+import { ChartDataItem } from "@asla/vio/client";
 
 export * from "./mod.ts";
 
@@ -102,7 +102,7 @@ export function ConfigurableChart(props: ConfigurableChartChartProps) {
     return render;
   }, [displayChartType]);
 
-  useListenable(chartApi.writeEvent, ({ data, id }) => {
+  useListenable(chartApi.writeChartEvent, ({ data, id }) => {
     if (id !== chart.id) return;
     chart.pushCache(data);
     updateData();

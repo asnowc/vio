@@ -3,7 +3,7 @@ import { MaybePromise } from "../../type.ts";
 import { VioChart as RpcVioChart } from "./chart/VioChart.ts";
 import { VioTableImpl } from "./table/VioTable.ts";
 import { ServerObjectExposed, TableDataDto, VioObjectDto, VioTableDto } from "./object.dto.ts";
-import { TableFilter, TableRow, ChartDataItem, ChartInfo, RequestUpdateRes, VioChart } from "./object.type.ts";
+import { TableFilter, TableRow, ChartDataItem, ChartInfo, RequestUpdateRes, VioChart, Key } from "./object.type.ts";
 
 import { VioObjectCenterImpl } from "./_VioObjectCenter.ts";
 
@@ -55,15 +55,22 @@ export class RpcServerObjectExposed implements ServerObjectExposed {
   onTableAction(tableId: number, operateKey: string, rowKeys: string[]): void {
     this.#getTable(tableId).onTableAction(operateKey, rowKeys);
   }
-  onTableRowAction(tableId: number, operateKey: string, rowKey: string): void {
+  onTableRowAction(tableId: number, operateKey: string, rowKey: Key): void {
+    isKey(rowKey);
     this.#getTable(tableId).onRowAction(operateKey, rowKey);
   }
   onTableRowAdd(tableId: number, param: TableRow): void {
     this.#getTable(tableId).onRowAdd(param);
   }
   onTableRowUpdate(tableId: number, rowKey: string, param: TableRow): void {
+    isKey(rowKey);
     this.#getTable(tableId).onRowUpdate(rowKey, param);
   }
+}
+function isKey(key: Key) {
+  let type = typeof key;
+  if (type === "string" || type == "number") return;
+  throw new Error("rowKey must be a string or number:" + typeof key);
 }
 function getChartInfo<T>(chart: VioChart<T>, id: number): ChartInfo<T> {
   const cacheList: ChartDataItem<T>[] = new Array(chart.cachedSize);

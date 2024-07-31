@@ -1,29 +1,27 @@
 import { useListenable } from "@/hooks/event.ts";
 import { mapIterable } from "@/lib/renderLink.ts";
 import { useViewApi } from "@/services/ViewApi.ts";
-import { useVioApi } from "@/services/VioApi.ts";
+import { RpcConnectStatus, useVioApi } from "@/services/VioApi.ts";
 import { Button, Empty } from "antd";
 import React from "react";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useForceUpdate } from "@/hooks/forceUpdate.ts";
-import { CHART_TYPE_RENDER_MAP } from "@/views/components/ConfigurableChart/const.ts";
 
-export function ChartBar() {
+export function TableBar() {
   const viewApi = useViewApi();
   const { chart } = useVioApi();
   const forceUpdate = useForceUpdate();
   useListenable(chart.createObjEvent, forceUpdate);
   useListenable(chart.deleteObjEvent, forceUpdate);
 
-  const chartList = chart.getChartSampleList();
+  const list = chart.getTableSampleList();
 
-  const itemList = mapIterable(chartList, (item) => {
-    const type = item.type ?? "";
-    const Icon = CHART_TYPE_RENDER_MAP[type]?.Icon ?? QuestionCircleOutlined;
-    const panelApi = viewApi.getOpenedChartPanel(item.id);
+  const itemList = mapIterable(list, (item) => {
+    const Icon = QuestionCircleOutlined;
     const onClick = () => {
+      const panelApi = viewApi.getOpenedTablePanel(item.id);
       if (panelApi) panelApi.focus();
-      else viewApi.openChartPanel(item.id, item.name);
+      else viewApi.openTablePanel(item.id, item.name);
     };
     return (
       <Button key={item.id} type="text" onClick={onClick}>

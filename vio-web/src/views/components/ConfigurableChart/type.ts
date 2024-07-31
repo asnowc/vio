@@ -1,5 +1,5 @@
 import { EChartsPruneOption, EChartsPruneSeries } from "@/lib/echarts.ts";
-import { ChartDataItem, ChartMeta, DimensionInfo } from "@asla/vio";
+import { ChartDataItem, ChartMeta, DimensionInfo } from "@asla/vio/client";
 
 export interface ChartCommonProps<T> {
   resizeDep?: any[];

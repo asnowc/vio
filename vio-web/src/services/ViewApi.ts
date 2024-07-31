@@ -8,6 +8,7 @@ export class ViewApi {
     this.#viewApi = viewApi;
     this._init();
   }
+  #viewApi: DockviewApi;
   private _init() {
     this.#viewApi.onDidRemovePanel((e) => {
       const panelId = e.id;
@@ -16,19 +17,19 @@ export class ViewApi {
       if (ttyId !== null) {
         this.openedTtyIds = this.openedTtyIds.filter((id) => id !== ttyId);
         this.openedTtyIdsChange.emit();
-      } else if (panelId.startsWith(CHART_PANEL_ID_PREFIX)) {
-        this.#openedChartPanel.delete(panelId);
+      } else if (panelId.startsWith(OBJECT_PANEL_ID_PREFIX)) {
+        this.#openedObjPanel.delete(panelId);
       }
     });
     this.#viewApi.onDidLayoutFromJSON(() => {
-      this.#openedChartPanel.clear();
+      this.#openedObjPanel.clear();
       let openedTtyIds: number[] = [];
       //布局变化，重新计算状态
       for (const panel of this.#viewApi.panels) {
         const id = panel.id;
         const ttyId = parseTtyId(id);
         if (ttyId !== null) openedTtyIds.push(ttyId);
-        else if (id.startsWith("chart-")) this.#openedChartPanel.set(id, panel);
+        else if (id.startsWith(OBJECT_PANEL_ID_PREFIX)) this.#openedObjPanel.set(id, panel);
       }
       this.openedTtyIds = openedTtyIds;
       this.openedTtyIdsChange.emit();
@@ -48,7 +49,16 @@ export class ViewApi {
     }
     return true;
   }
-  #viewApi: DockviewApi;
+  /* Bar */
+  readonly functionOpenedChange = new EventTrigger<string | undefined>();
+  functionOpened?: string;
+  openFunctionBar(key?: string) {
+    this.functionOpened = key;
+    this.functionOpenedChange.emit(key);
+  }
+
+  /* TTY */
+
   openedTtyIds: number[] = [];
   readonly openedTtyIdsChange = new EventTrigger<void>();
   openTtyPanel(index: number) {
@@ -68,32 +78,51 @@ export class ViewApi {
   getOpenedTtyPanel(ttyId: number) {
     return this.#viewApi.getPanel(genTtyPanelId(ttyId));
   }
-  #openedChartPanel = new Map<string, IDockviewPanel>();
+
+  /* Chart */
+
+  #openedObjPanel = new Map<string, IDockviewPanel>();
   getOpenedChartPanel(chartId: number) {
-    return this.#openedChartPanel.get(CHART_PANEL_ID_PREFIX + chartId);
+    return this.#openedObjPanel.get(OBJECT_PANEL_ID_PREFIX + chartId);
   }
-  openChartPanel(chartId: number) {
+  openChartPanel(chartId: number, title = chartId.toString()) {
     if (typeof chartId !== "number") throw new ParameterTypeError(0, "number", typeof chartId, "index");
-    const chartPanelId = CHART_PANEL_ID_PREFIX + chartId;
+    const chartPanelId = OBJECT_PANEL_ID_PREFIX + chartId;
     let panel = this.#viewApi.getPanel(chartPanelId);
     if (panel) return panel.focus();
 
-    const firstPanel: IDockviewPanel | undefined = this.#openedChartPanel.values().next().value;
+    const firstPanel: IDockviewPanel | undefined = this.#openedObjPanel.values().next().value;
 
     panel = this.#viewApi.addPanel({
       id: chartPanelId,
       component: panels.VioChart,
-      title: "Chart " + chartId,
+      title,
       params: { chartId, TabIcon: "DashboardOutlined" },
       position: firstPanel ? { referencePanel: firstPanel } : undefined,
     });
-    this.#openedChartPanel.set(chartPanelId, panel);
+    this.#openedObjPanel.set(chartPanelId, panel);
   }
-  readonly functionOpenedChange = new EventTrigger<string | undefined>();
-  functionOpened?: string;
-  openFunctionBar(key?: string) {
-    this.functionOpened = key;
-    this.functionOpenedChange.emit(key);
+
+  getOpenedTablePanel(chartId: number) {
+    return this.#openedObjPanel.get(OBJECT_PANEL_ID_PREFIX + chartId);
+  }
+
+  openTablePanel(tableId: number, title = tableId.toString()) {
+    if (typeof tableId !== "number") throw new ParameterTypeError(0, "number", typeof tableId, "index");
+    const chartPanelId = OBJECT_PANEL_ID_PREFIX + tableId;
+    let panel = this.#viewApi.getPanel(chartPanelId);
+    if (panel) return panel.focus();
+
+    const firstPanel: IDockviewPanel | undefined = this.#openedObjPanel.values().next().value;
+
+    panel = this.#viewApi.addPanel({
+      id: chartPanelId,
+      component: panels.VioTable,
+      title,
+      params: { objectId: tableId, TabIcon: "TableOutlined" },
+      position: firstPanel ? { referencePanel: firstPanel } : undefined,
+    });
+    this.#openedObjPanel.set(chartPanelId, panel);
   }
 }
 
@@ -125,7 +154,7 @@ type LayoutInfo = {
   version: number;
   data: object;
 };
-const CHART_PANEL_ID_PREFIX = "chart-";
+const OBJECT_PANEL_ID_PREFIX = "object-";
 const TTY_PANEL_ID_PREFIX = "tty-";
 function genTtyPanelId(index: number) {
   return TTY_PANEL_ID_PREFIX + index;

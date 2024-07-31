@@ -1,7 +1,6 @@
-import { ClientObjectBaseExposed, VioObjectCreateDto } from "@asla/vio/client";
+import { ClientObjectBaseExposed, VioObjectCreateDto, VioObject } from "@asla/vio/client";
 import { EventTrigger } from "evlib";
 import { RpcService, RpcExposed } from "cpcall";
-import { VioObject } from "@asla/vio";
 
 @RpcService()
 export class ClientVioObjectBaseService implements ClientObjectBaseExposed {

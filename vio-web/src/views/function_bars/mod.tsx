@@ -1,9 +1,9 @@
 import React, { PropsWithChildren } from "react";
-import { BugOutlined, CodeOutlined, DashboardOutlined } from "@ant-design/icons";
+import { BugOutlined, CodeOutlined, DashboardOutlined, TableOutlined } from "@ant-design/icons";
 import { Tooltip, Dropdown, MenuProps } from "antd";
 import { useViewApi } from "@/services/ViewApi.ts";
 import { ConnectControl, LayoutControl } from "./actions/mod.ts";
-import { TtyBar, DebugBar, ChartBar } from "./panels/mod.ts";
+import { TtyBar, DebugBar, ChartBar, TableBar } from "./panels/mod.ts";
 import { useThemeToken } from "@/services/AppConfig.ts";
 import { useListenableData } from "@/hooks/event.ts";
 import { DEV_MODE, E2E_SELECT_CLASS } from "@/const.ts";
@@ -101,6 +101,12 @@ const functionList: BarDefine[] = [
     key: "chart",
     Icon: DashboardOutlined,
     Content: ChartBar,
+  },
+  {
+    title: "表格",
+    key: "table",
+    Icon: TableOutlined,
+    Content: TableBar,
   },
 ];
 if (import.meta.env.MODE === DEV_MODE) {
