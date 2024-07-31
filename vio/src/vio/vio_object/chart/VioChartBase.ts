@@ -1,22 +1,27 @@
 import type {
   ChartDataItem,
+  ChartUpdateLowerOption,
   DimensionInfo,
   DimensionalityReduction,
   IntersectingDimension,
+  RequestUpdateRes,
+  VioChart,
+  VioChartCreateConfig,
   VioChartMeta,
-} from "../api_type.ts";
+} from "./chart.type.ts";
 import { LinkedCacheQueue } from "evlib/data_struct";
 import { deepClone } from "evlib";
-import { IndexRecord } from "../../lib/array_like.ts";
-import { MaybePromise } from "../../type.ts";
+import { IndexRecord } from "../../../lib/array_like.ts";
+import { MaybePromise } from "../../../type.ts";
 
-export abstract class VioChartImpl<T = number> implements VioChart<T> {
+export abstract class VioChartBase<T = number> implements VioChart<T> {
   constructor(config: VioChartCreateConfig<T>) {
     const { dimensions, dimension, maxCacheSize = 0, meta, onRequestUpdate, updateThrottle = 0 } = config;
     if (!(dimension >= 0)) throw new RangeError("dimension must be a positive integer");
     this.#cache = new LinkedCacheQueue<ChartDataItem<T>>(maxCacheSize);
     this.dimension = dimension;
     this.id = config.id;
+    this.name = config.name;
 
     const finalDimension: IndexRecord<DimensionInfo> = { length: dimension };
     Object.defineProperty(finalDimension, "length", {
@@ -40,10 +45,10 @@ export abstract class VioChartImpl<T = number> implements VioChart<T> {
     this.updateThrottle = updateThrottle;
     this.onRequestUpdate = onRequestUpdate;
   }
-
+  readonly type = "chart";
   updateThrottle: number;
   onRequestUpdate?: () => MaybePromise<T>;
-
+  name?: string;
   #cache: LinkedCacheQueue<ChartDataItem<T>>;
   /** 已缓存的数据长度 */
   get cachedSize(): number {
@@ -112,75 +117,37 @@ export abstract class VioChartImpl<T = number> implements VioChart<T> {
   readonly dimension: number;
   readonly id: number;
   readonly meta: VioChartMeta;
-}
-/**
- * VIO Chart
- * @public
- * @category Chart
- */
-export interface VioChart<T = number> {
-  data?: T;
-  cachedSize: number;
-  maxCacheSize: number;
 
-  /** 请求更新节流。单位毫秒 */
-  updateThrottle: number;
-  /** 主动请求更新的回调函数 */
-  onRequestUpdate?: () => MaybePromise<T>;
-  getCacheDateItem(): IterableIterator<Readonly<ChartDataItem<T>>>;
-  /** 获取缓存中的数据 */
-  getCacheData(): IterableIterator<T>;
-  /** 更新图表数据。并将数据推入缓存 */
-  updateData(data: T, timeName?: string): void;
-  /** 维度信息 */
-  readonly dimensions: ArrayLike<DimensionInfo>;
-  /** 维度数量 */
-  readonly dimension: number;
-  readonly id: number;
-  readonly meta: VioChartMeta;
-}
+  #lastData?: MaybePromise<RequestUpdateRes<T>>;
+  requestUpdate(): MaybePromise<RequestUpdateRes<T>> {
+    if (!this.onRequestUpdate) throw new Error("Requests for updates are not allowed");
+    const timestamp = Date.now();
 
-/**
- * VioChart 创建配置
- * @public
- * @category Chart
- */
-export type VioChartCreateConfig<T = unknown> = ChartCreateOption & {
-  /** {@inheritdoc VioChart.id} */
-  id: number;
-  /** {@inheritdoc VioChart.dimension} */
-  dimension: number;
-  /** {@inheritdoc VioChart.onRequestUpdate} */
-  onRequestUpdate?(): MaybePromise<T>;
-  /** {@inheritdoc VioChart.updateThrottle} */
-  updateThrottle?: number;
-};
-/**
- * VioChart 创建可选项
- * @public
- * @category Chart
- */
-export type ChartCreateOption = {
-  /** {@inheritdoc VioChart.meta} */
-  meta?: VioChartMeta;
-  /** {@inheritdoc VioChart.dimensions} */
-  dimensions?: Record<number, DimensionInfo | undefined>;
-  /** {@inheritdoc VioChart.maxCacheSize} */
-  maxCacheSize?: number;
-};
-/**
- * @public
- * @category Chart
- */
-export type ChartUpdateOption = {
-  /** 时间轴刻度名称 */
-  timeName?: string;
-};
-/**
- * @public
- * @category Chart
- */
-export type ChartUpdateLowerOption = {
-  /** {@inheritdoc ChartUpdateOption.timeName} */
-  timeName?: string;
-};
+    if (this.#lastData) {
+      if (this.#lastData instanceof Promise) return this.#lastData;
+      if (timestamp - this.#lastData.timestamp <= this.updateThrottle) return this.#lastData;
+    }
+
+    const value = this.onRequestUpdate();
+    let res: MaybePromise<RequestUpdateRes<T>>;
+    if (value instanceof Promise)
+      res = value.then(
+        (value): Readonly<RequestUpdateRes<T>> => {
+          let res = { data: value, timestamp: timestamp } as const;
+          this.pushCache({ data: value, timestamp });
+          this.#lastData = res;
+          return res;
+        },
+        (e) => {
+          this.#lastData = undefined;
+          throw e;
+        },
+      );
+    else {
+      res = { data: value, timestamp: timestamp };
+      this.pushCache({ data: value, timestamp });
+    }
+    this.#lastData = res;
+    return res;
+  }
+}

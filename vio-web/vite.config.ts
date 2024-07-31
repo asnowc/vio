@@ -1,5 +1,7 @@
 import type { ProxyOptions, UserConfig, AliasOptions } from "vite";
 import { defineProject } from "vitest/config";
+import react from "@vitejs/plugin-react";
+
 import path from "node:path";
 const root = import.meta.dirname;
 
@@ -14,6 +16,7 @@ const config: UserConfig = {
   resolve: {
     alias,
   },
+  esbuild: { target: "es2022" },
   build: {
     target: "es2017",
     minify: true,
@@ -32,7 +35,7 @@ const config: UserConfig = {
     },
     outDir: "../vio/assets/web",
   },
-
+  plugins: [react()],
   optimizeDeps: {
     exclude: ["@asla/vio"],
   },

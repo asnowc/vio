@@ -1,7 +1,8 @@
 import type { TtyInputsReq, TtyOutputsData } from "./api_type.ts";
 import type { WebSocket } from "../lib/deno/http.ts";
-import { initWebsocket, type RpcClientApi } from "../rpc/rpc_api.ts";
-import { TtyCenter, ChartCenter, TTY, VioTty } from "./classes/mod.ts";
+import { ClientTtyApi, initWebsocket, type RpcClientApi } from "../rpc/mod.ts";
+import { TTY, TtyCenter, VioTty } from "./tty/mod.ts";
+import { VioObjectCenterImpl, VioObjectCenter } from "./vio_object/mod.private.ts";
 
 /** VIO 实例。
  * @public
@@ -9,8 +10,13 @@ import { TtyCenter, ChartCenter, TTY, VioTty } from "./classes/mod.ts";
 export interface Vio extends TTY {
   /** 终端相关的接口 */
   readonly tty: TtyCenter;
+  /**
+   * 图相关的接口
+   * @deprecated 改用 object
+   */
+  readonly chart: VioObjectCenter;
   /** 图相关的接口 */
-  readonly chart: ChartCenter;
+  readonly object: VioObjectCenter;
   // joinViewer(viewer: VioClientExposed, onDispose?: (viewer: Viewer) => void): Viewer;
   /**
    * 接入一个终端连接
@@ -26,7 +32,7 @@ class VioImpl extends TTY implements Vio {
   constructor() {
     super();
     const writeTty = (ttyId: number, data: TtyOutputsData) => {
-      for (const viewer of this.#viewers.values()) viewer.writeTty(ttyId, data);
+      for (const viewer of this.#viewers.values()) viewer.tty.writeTty(ttyId, data);
     };
     this.tty = new TtyCenter(writeTty);
     this.#tty0 = this.tty.get(0);
@@ -40,7 +46,7 @@ class VioImpl extends TTY implements Vio {
   }
   readonly #viewers = new Map<Viewer, RpcClientApi>();
   joinViewer(api: RpcClientApi, onDispose?: (viewer: Viewer) => void): Viewer {
-    const viewer = new ViewerImpl(api, (viewer) => {
+    const viewer = new ViewerImpl(api.tty, (viewer) => {
       this.#viewers.delete(viewer);
       onDispose?.(viewer);
     });
@@ -69,17 +75,24 @@ class VioImpl extends TTY implements Vio {
   }
 
   readonly tty: TtyCenter;
-  readonly chart: ChartCenter = new ChartCenter({
-    writeChart: (chartId, data) => {
-      for (const viewer of this.#viewers.values()) viewer.writeChart(chartId, data);
+  readonly object = new VioObjectCenterImpl({
+    createObject: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.createObject(...args);
     },
-    createChart: (config) => {
-      for (const viewer of this.#viewers.values()) viewer.createChart(config);
+    deleteObject: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.deleteObject(...args);
     },
-    deleteChart: (chartId) => {
-      for (const viewer of this.#viewers.values()) viewer.deleteChart(chartId);
+    writeChart: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.writeChart(...args);
+    },
+    tableChange: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.tableChange(...args);
+    },
+    updateTable: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.updateTable(...args);
     },
   });
+  readonly chart: VioObjectCenter = this.object;
 }
 /**
  * 创建 Vio 实例
@@ -92,10 +105,10 @@ export function createVio(): Vio {
 
 class ViewerImpl implements Viewer {
   constructor(
-    api: RpcClientApi,
+    ttyApi: ClientTtyApi,
     private onDispose: (viewer: ViewerImpl) => void,
   ) {
-    this.#api = api;
+    this.#api = ttyApi;
   }
   readTty(ttyId: number, reqId: number, config: TtyInputsReq) {
     this.#api?.sendTtyReadRequest(ttyId, reqId, config);
@@ -103,7 +116,7 @@ class ViewerImpl implements Viewer {
   writeTty(ttyId: number, data: TtyOutputsData): void {
     this.#api?.writeTty(ttyId, data);
   }
-  #api?: RpcClientApi;
+  #api?: ClientTtyApi;
 
   dispose(): void {
     if (!this.#api) return;
@@ -124,8 +137,3 @@ interface Viewer {
   readTty(ttyId: number, reqId: number, config: TtyInputsReq): void;
   writeTty(ttyId: number, data: TtyOutputsData): void;
 }
-
-/** @public */
-export type ClassToInterface<T extends object> = {
-  [key in keyof T]: T[key];
-};
