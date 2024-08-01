@@ -17,7 +17,7 @@ export function initWebsocket(vio: Vio, ws: WebSocket): { cpc: CpCall; clientApi
   const caller = cpc.genCaller<VioClientExposed>();
   const objectApi = new ClientObjectApi(caller);
   const ttyApi = new ClientTtyApi(caller);
-  cpc.setObject({
+  cpc.exposeObject({
     object: new RpcServerObjectExposed(vio.object as VioObjectCenterImpl),
     tty: new RpcServerTtyExposed(vio.tty, ttyApi),
   } satisfies VioServerExposed);
