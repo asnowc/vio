@@ -4,6 +4,7 @@
     "ci:build": "pnpm run -r ci:build",
     "ci:test": "vitest run",
     "ci:check-api": "pnpm run -r ci:api-check",
+    "type-check": "pnpm run -r type-check",
     "test:coverage": "vitest --coverage --ui"
   },
   "keywords": [],

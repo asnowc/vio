@@ -50,7 +50,7 @@ export async function connectVioServer(host: string) {
   const cpc = await connectRpc(host);
 
   const clientApi = createMockClientApi();
-  cpc.setObject(clientApi);
+  cpc.exposeObject(clientApi);
   const serverApi: MakeCallers<VioServerExposed> = cpc.genCaller<VioServerExposed>();
 
   cpc.onClose.catch(() => {});
@@ -60,11 +60,19 @@ export async function connectVioServer(host: string) {
 
 export function createMockClientApi() {
   return {
-    createChart: vi.fn(),
-    deleteChart: vi.fn(),
-    sendTtyReadRequest: vi.fn(),
-    writeChart: vi.fn(),
-    writeTty: vi.fn(),
-    ttyReadEnableChange: vi.fn(),
+    object: {
+      createObject: vi.fn(),
+      deleteObject: vi.fn(),
+
+      writeChart: vi.fn(),
+      
+      tableChange: vi.fn(),
+      updateTable: vi.fn(),
+    },
+    tty: {
+      sendTtyReadRequest: vi.fn(),
+      writeTty: vi.fn(),
+      ttyReadEnableChange: vi.fn(),
+    },
   } satisfies VioClientExposed;
 }

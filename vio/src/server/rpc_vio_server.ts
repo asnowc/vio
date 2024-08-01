@@ -6,7 +6,6 @@ import { packageDir } from "../const.ts";
 import path from "node:path";
 import { HttpServer, ServeHandlerInfo } from "../lib/deno/http.ts";
 import { platformApi } from "./platform_api.ts";
-
 /**
  * @public
  */
@@ -15,8 +14,17 @@ export interface VioHttpServerOption {
   vioStaticDir?: string;
   /** 覆盖静态资源响应头 */
   staticSetHeaders?: Record<string, string>;
-  /** 自定义处理静态资源请求。如果设置了这个处理函数，将忽略 vioStaticDir 和 staticSetHeaders */
+  /**
+   * @deprecated 改用 requestHandler
+   * 自定义处理请求。请求处理在 api 之后，静态文件服务器之前。
+   */
   staticHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
+  /** 自定义处理请求。请求处理在 api 之后，静态文件服务器之前。  */
+  requestHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
+  /** web终端前端配置 */
+  frontendConfig?: object;
+  /** 连接鉴权. 如果不通过，应抛出异常 */
+  rpcAuthenticate?(request: Request): void;
 }
 /**
  * vio http 服务器
@@ -27,43 +35,66 @@ export class VioHttpServer {
     private vio: Vio,
     opts: VioHttpServerOption = {},
   ) {
-    let { vioStaticDir, staticSetHeaders, staticHandler } = opts;
+    let { vioStaticDir, staticSetHeaders, staticHandler, requestHandler = staticHandler, rpcAuthenticate } = opts;
     if (!vioStaticDir && packageDir) {
       vioStaticDir = path.resolve(packageDir, "assets/web");
     }
-    if (staticHandler) {
-      this.#staticHandler = staticHandler;
-    } else if (vioStaticDir) {
-      const staticHandler = new FileServerHandler(vioStaticDir, { setHeaders: staticSetHeaders });
-      this.#staticHandler = (request) => {
-        return staticHandler.getResponse(new URL(request.url).pathname, request.headers);
-      };
+    if (requestHandler) {
+      this.#customHandler = requestHandler;
     }
+    if (vioStaticDir) {
+      this.#fileServerHandler = new FileServerHandler(vioStaticDir, { setHeaders: staticSetHeaders });
+    }
+    if (opts.frontendConfig) {
+      this.#frontendConfig = Response.json(opts.frontendConfig);
+    }
+    if (typeof opts.rpcAuthenticate === "function") this.#rpcAuthenticate = opts.rpcAuthenticate;
 
     const router = new Router();
     router.set("/api/test", function () {
-      const res = { value: "ok" };
-      return new Response(JSON.stringify(res));
+      return Response.json({ value: "ok" });
     });
     router.set("/api/rpc", ({ request: req }) => {
       if (req.headers.get("Upgrade") !== "websocket") return new Response(undefined, { status: 400 });
+      if (this.#rpcAuthenticate) {
+        try {
+          this.#rpcAuthenticate(req);
+        } catch (error) {
+          return new Response(null, { status: 403 });
+        }
+      }
+
       const { response, socket: websocket } = platformApi.upgradeWebSocket(req);
-      this.#ontWebSocketConnect(websocket);
+      this.#onWebSocketConnect(websocket);
       return response;
     });
     this.#router = router;
+    this.#rpcAuthenticate;
   }
-  #staticHandler: VioHttpServerOption["staticHandler"];
+
+  #customHandler: VioHttpServerOption["requestHandler"];
+  #fileServerHandler?: FileServerHandler;
+  #frontendConfig?: Response;
   #handler = async (req: Request, info: ServeHandlerInfo) => {
     const context = createRequestContext(req, info);
     const pathname = context.url.pathname;
 
-    const handler = this.#router.get(pathname);
-    if (handler) {
-      return handler(context);
+    if (pathname.startsWith("/api")) {
+      const handler = this.#router.get(pathname);
+      if (handler) {
+        return handler(context);
+      }
+      return new Response(null, { status: 404 });
     }
-    if (this.#staticHandler) {
-      const response = await this.#staticHandler(req);
+    if (pathname === "/config.json" && this.#frontendConfig) {
+      return this.#frontendConfig;
+    }
+    if (this.#customHandler) {
+      const response = await this.#customHandler(req);
+      if (response) return response;
+    }
+    if (this.#fileServerHandler) {
+      const response = await this.#fileServerHandler.getResponse(pathname, req.headers);
       if (response) return response;
     }
     return new Response(null, { status: 404 });
@@ -71,7 +102,9 @@ export class VioHttpServer {
   #serve?: HttpServer;
 
   #router: Router;
-  async #ontWebSocketConnect(ws: WebSocket): Promise<Disposable> {
+
+  #rpcAuthenticate?: (request: Request) => void;
+  async #onWebSocketConnect(ws: WebSocket): Promise<Disposable> {
     if (!this.#serve) throw new Error("unable connect");
     if (ws.readyState === ws.CONNECTING) {
       let listener: (...args: any[]) => void;

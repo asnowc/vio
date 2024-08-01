@@ -12,7 +12,7 @@ function getMemoryChartData() {
   return [data.external, data.heapUsed, data.heapTotal, data.rss]; // 应与 indexNames 对应
 }
 
-const chart = vio.chart.create(2, {
+const chart = vio.object.create(2, {
   meta: {
     chartType: "line", //折线图
     title: "内存", // 图表标题
@@ -24,7 +24,7 @@ const chart = vio.chart.create(2, {
 setInterval(() => {
   chart.updateData(getMemoryChartData()); // 每秒更新一次图的数据
 }, 1000);
-vio.chart.dispose(chart); // 如果不再使用，应销毁
+vio.object.dispose(chart); // 如果不再使用，应销毁
 ```
 
 #### 被动更新
@@ -32,7 +32,7 @@ vio.chart.dispose(chart); // 如果不再使用，应销毁
 有时候，我们不想在没有连接的时候去更新图的数据，因为获取图的数据可能是非常耗费性能的，我们可以让客户端决定何时更新图的数据
 
 ```ts
-const chart = vio.chart.create(2, {
+const chart = vio.object.create(2, {
   meta: {
     chartType: "line",
     title: "内存",
@@ -81,7 +81,7 @@ const dimensions = {
     indexNames: ["external", "heapUsed", "heapTotal", "rss"],
   },
 };
-const chart = vio.chart.create(2, {
+const chart = vio.object.create(2, {
   meta,
   dimensions: dimensions, //设置 维度信息
 });

@@ -22,26 +22,32 @@ function useInternalRequest(
   const { run } = useAsync(() => {
     timeRef.current = Date.now();
     return req().finally(() => {
+      timerId.current = undefined;
       if (!requestUpdate || !internal) {
         timeRef.current = undefined;
         return;
       }
       let afterTime = internal - (Date.now() - timeRef.current!);
       if (afterTime < 0) run();
-      else setTimeout(run, afterTime);
+      else {
+        timerId.current = setTimeout(run, afterTime);
+      }
     });
   });
   const timeRef = useRef<number>();
+  const timerId = useRef<number>();
 
   useEffect(() => {
     if (requestUpdate && timeRef.current === undefined) {
       run();
     }
+    return () => clearTimeout(timerId.current);
   }, [requestUpdate, internal, ...deps]);
 
   return run;
 }
 export interface ConfigurableChartChartProps {
+  loading?: boolean;
   chart: ChartClientAgent<any>;
   chartSize?: object;
   visible?: boolean;
@@ -64,7 +70,6 @@ export function ConfigurableChart(props: ConfigurableChartChartProps) {
     form.setFieldsValue(values);
     setBoardConfig(values);
   }, [chart.meta]);
-
   const { chart: chartApi, connected } = useVioApi();
   const [data, updateData] = useReducer(function updateData() {
     let data: Readonly<ChartDataItem<any>>[] = new Array(chart.cachedSize);
@@ -78,7 +83,12 @@ export function ConfigurableChart(props: ConfigurableChartChartProps) {
   const reload = useInternalRequest(
     async () => {
       if (!connected) return;
-      return chartApi.requestUpdate(chart.id);
+
+      const res = await chartApi.requestUpdate(chart.id);
+      if (!res) return;
+      if (chart.lastDataItem && res.timestamp <= chart.lastDataItem.timestamp) return;
+      chart.pushCache(res);
+      updateData();
     },
     { deps: [], internal: requestInterval, requestUpdate: requestUpdate },
   );
@@ -92,7 +102,12 @@ export function ConfigurableChart(props: ConfigurableChartChartProps) {
     return render;
   }, [displayChartType]);
 
-  useListenable(chart.changeEvent, () => visible && updateData());
+  useListenable(chartApi.writeChartEvent, ({ data, id }) => {
+    if (id !== chart.id) return;
+    chart.pushCache(data);
+    updateData();
+  });
+
   useMemo(() => visible && updateData(), [visible]);
 
   const config = useMemo((): EChartsPruneOption => {

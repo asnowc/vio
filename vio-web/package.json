@@ -6,18 +6,19 @@
     "build": "vite build",
     "ci:build": "vite build",
     "dev": "vite",
-    "type:check": "tsc -p src/tsconfig.json --skipLibCheck"
+    "type-check": "tsc -p src/tsconfig.json --skipLibCheck"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
     "vite": "^5.3.3"
   },
   "dependencies": {
     "@ant-design/icons": "^5.3.7",
     "@asla/vio": "workspace:^",
     "antd": "^5.19.1",
-    "cpcall": "^0.6.0",
+    "cpcall": "^0.6.2",
     "dockview": "^1.15.0",
     "echarts-comp": "^0.4.0",
     "evlib": "^2.6.1",

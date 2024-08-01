@@ -47,7 +47,7 @@ async function connectWs(url: string) {
     const ws = new WebSocket(url);
     ws.onopen = () => {
       resolve(ws);
-      ws.onerror = undefined;
+      ws.onerror = null;
     };
     ws.onerror = (e: any) => {
       reject(e);

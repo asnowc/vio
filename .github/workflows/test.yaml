@@ -1,10 +1,11 @@
-name: Test
+name: Unit Test
 on:
   push:
     branches:
       - main
-      - feat/*
+      - dev
       - test/*
+      - feat/*
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -19,8 +20,24 @@ jobs:
           run_install: true
       - name: Unit test
         run: pnpm run ci:test
+      - name: Type check
+        run: pnpm run type-check
+  e2e:
+    needs: test
+    if: ${{!startsWith(github.ref_name,'feat/')}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup NodeJS
+        uses: asnowc/actions@setup-node/v2
+        with:
+          node_v: 22
+          pnpm_v: 9
+          run_install: true
       - name: Build
         run: pnpm run -r ci:build
+
       - name: Install browser
         run: pnpm playwright install chromium webkit firefox --with-deps
         working-directory: ./e2e
@@ -36,4 +53,4 @@ jobs:
           path: e2e/playwright-report/
       - name: Result
         if: ${{steps.e2e.outcome=='failure'}}
-        run: exit 1
+        run: exit

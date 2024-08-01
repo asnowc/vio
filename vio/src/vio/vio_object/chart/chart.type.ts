@@ -1,3 +1,6 @@
+import { MaybePromise } from "../../../type.ts";
+import { VioObject } from "../_object_base.type.ts";
+
 /**
  * 一个图表的信息
  * @public
@@ -5,6 +8,7 @@
  */
 export interface ChartInfo<T = number> {
   id: number;
+  name?: string;
   cacheList: ChartDataItem<T>[];
   /** 维度数量。不包含时间维度 */
   dimension: number;
@@ -24,28 +28,6 @@ export interface DimensionInfo {
   unitName?: string;
   indexNames?: string[];
 }
-
-/** @public */
-export type ChartCreateInfo = Pick<ChartInfo, "id" | "dimension" | "dimensions"> & {
-  meta?: VioChartMeta;
-};
-type ChartUpdateCommonData = {
-  /** 时间刻度名称 */
-  timeAxisName?: string;
-  /** 时间刻度(时间戳) */
-  timestamp: number;
-};
-export type ChartUpdateData<T = number> = ChartUpdateCommonData & {
-  coord?: undefined;
-  data: T;
-};
-export type ChartUpdateSubData<T = number> =
-  | ChartUpdateCommonData
-  | {
-      coord: number | (number | undefined)[];
-      data: IntersectingDimension<T>;
-    }
-  | { coord: number; data: DimensionalityReduction<T> };
 
 /** @public */
 export type IntersectingDimension<T> = T extends Array<infer P> ? P | IntersectingDimension<P> : never;
@@ -133,3 +115,77 @@ export namespace ChartMeta {
     chartType: "pie";
   }
 }
+
+/**
+ * VIO Chart
+ * @public
+ * @category Chart
+ */
+export interface VioChart<T = number> extends VioObject {
+  data?: T;
+  cachedSize: number;
+  maxCacheSize: number;
+
+  /** 请求更新节流。单位毫秒 */
+  updateThrottle: number;
+
+  /** web 端主动请求更新图表，这会触发 chart.onRequestUpdate() */
+  requestUpdate(): MaybePromise<RequestUpdateRes<T>>;
+  getCacheDateItem(): IterableIterator<Readonly<ChartDataItem<T>>>;
+  /** 获取缓存中的数据 */
+  getCacheData(): IterableIterator<T>;
+  /** 更新图表数据。并将数据推入缓存 */
+  updateData(data: T, timeName?: string): void;
+  /** 维度信息 */
+  readonly dimensions: ArrayLike<DimensionInfo>;
+  /** 维度数量 */
+  readonly dimension: number;
+  readonly meta: VioChartMeta;
+  readonly type: "chart";
+}
+
+/**
+ * VioChart 创建配置
+ * @public
+ * @category Chart
+ */
+export type VioChartCreateConfig<T = unknown> = ChartCreateOption<T> & {
+  /** {@inheritdoc VioObject.id} */
+  id: number;
+  /** {@inheritdoc VioChart.dimension} */
+  dimension: number;
+};
+/**
+ * VioChart 创建可选项
+ * @public
+ * @category Chart
+ */
+export type ChartCreateOption<T = unknown> = {
+  name?: string;
+  /** {@inheritdoc VioChart.meta} */
+  meta?: VioChartMeta;
+  /** {@inheritdoc VioChart.dimensions} */
+  dimensions?: Record<number, DimensionInfo | undefined>;
+  /** {@inheritdoc VioChart.maxCacheSize} */
+  maxCacheSize?: number;
+  /** {@inheritdoc VioChart.updateThrottle} */
+  updateThrottle?: number;
+  /** 请求更新图的数据。 */
+  onRequestUpdate?(): MaybePromise<T>;
+};
+/**
+ * @public
+ * @category Chart
+ */
+export type ChartUpdateOption = {
+  /** 时间轴刻度名称 */
+  timeName?: string;
+};
+/**
+ * @public
+ * @category Chart
+ */
+export type ChartUpdateLowerOption = {
+  /** {@inheritdoc ChartUpdateOption.timeName} */
+  timeName?: string;
+};

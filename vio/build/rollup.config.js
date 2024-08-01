@@ -42,6 +42,7 @@ export default defineEvConfig({
   ],
   extra: {
     typescript: {
+      tsconfig: "./tsconfig.build.json",
       compilerOptions: {
         target: "ES2022",
         module: "NodeNext",

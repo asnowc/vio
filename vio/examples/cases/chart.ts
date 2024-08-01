@@ -9,7 +9,8 @@ function getMemoryChartData() {
 
 /** 内存图。每两秒更新一次图 */
 export async function memoryChart(vio: Vio) {
-  const chart = vio.chart.create(2, {
+  const chart = vio.object.createChart(2, {
+    name: "内存",
     meta: {
       chartType: "line", //折线图
       title: "内存", // 图表标题

@@ -10,7 +10,8 @@ permissions:
 env:
   PKG_NAME: npm-package
 jobs:
-  build:
+  prepare:
+    if: ${{github.repository_owner == 'asnowc'}}
     runs-on: ubuntu-latest
     outputs:
       version: ${{fromJson(env.PACKAGE_JSON).version}}
@@ -54,7 +55,7 @@ jobs:
           path: vio/assets/
           retention-days: 7
   publish-npm:
-    needs: build
+    needs: prepare
     runs-on: ubuntu-latest
     steps:
       - name: Download
@@ -75,7 +76,7 @@ jobs:
 
   publish-jsr:
     runs-on: ubuntu-latest
-    needs: build
+    needs: prepare
     steps:
       - name: Checkout
         uses: actions/checkout@v4

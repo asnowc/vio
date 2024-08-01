@@ -1,9 +1,10 @@
-import { TtyInputReq, VioFileData } from "@asla/vio/client";
+import { TtyInputReq } from "@asla/vio/client";
 import { ListItem } from "@/views/components/ListItem.tsx";
 import { INPUT_TYPE_INFO } from "./const.tsx";
 import React, { useState } from "react";
 import { Button, Space, Upload, UploadFile } from "antd";
-import { autoUnit } from "evlib/math";
+import { autoUnitByte } from "evlib/math";
+import { VioFileData } from "@asla/vio/client";
 
 export type InputFileProps = {
   req: TtyInputReq.File;
@@ -39,11 +40,11 @@ export function InputFile(props: InputFileProps) {
           customRequest={({ file, onError, onSuccess }) => {
             if (typeof file === "string") return;
             if (maxSize && file.size > maxSize) {
-              onError?.(new Error(`文件限制大小：${autoUnit.byte(maxSize)}`));
+              onError?.(new Error(`文件限制大小：${autoUnitByte(maxSize)}`));
               return;
             }
             if (file.size > MAXIMUM_BEARING_SIZE) {
-              onError?.(new Error(`超过 ${autoUnit.byte(MAXIMUM_BEARING_SIZE)} 的上传最大承载大小`));
+              onError?.(new Error(`超过 ${autoUnitByte(MAXIMUM_BEARING_SIZE)} 的上传最大承载大小`));
             }
             onSuccess?.({});
           }}

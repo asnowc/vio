@@ -1,8 +1,10 @@
-import { TtyInputsReq, TtyOutputData, TtyOutputsData } from "@asla/vio/client";
+import { ClientTtyExposed, TtyInputsReq, TtyOutputData, TtyOutputsData } from "@asla/vio/client";
+import { RpcExposed, RpcService } from "cpcall";
 import { EventTrigger } from "evlib";
 import { LinkedCacheQueue, LinkedQueue, LoopUniqueId } from "evlib/data_struct";
 
-export class TtyViewService {
+@RpcService()
+export class TtyViewService implements ClientTtyExposed {
   /** 输出队列消息增加或减少时触发 */
   readonly outputChangeEvent = new EventTrigger<{ id: number }>();
   /** 输入队列的请求项增加或减少时触发  */
@@ -65,6 +67,20 @@ export class TtyViewService {
   }
   resolver?: TtyResolver;
   #ttys: Record<number, TtyClientAgent> = {};
+
+  @RpcExposed()
+  sendTtyReadRequest(ttyId: number, requestId: number, opts: TtyInputsReq): void {
+    return this.get(ttyId, true).addReading(requestId, opts);
+  }
+  @RpcExposed()
+  writeTty(ttyId: number, data: TtyOutputsData): void {
+    this.get(ttyId, true).addOutput(data);
+  }
+  @RpcExposed()
+  ttyReadEnableChange(ttyId: number, enable: boolean): void {
+    const tty = this.get(ttyId, true);
+    tty.setReadEnable(enable, { passive: true });
+  }
 }
 export interface TtyResolver {
   resolveTtyReadRequest(ttyId: number, requestId: number, res: TtyInputsReq): Promise<boolean>;

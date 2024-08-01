@@ -1,8 +1,5 @@
-/**
- * @public
- * @category TTY
- */
-export type TtyWriteTextType = "warn" | "log" | "error" | "info";
+import { MaybePromise } from "../../type.ts";
+import { EncodedImageData, RawImageData, SelectItem, TtyWriteTextType, VioFileData } from "./type.ts";
 
 /** 终端输出数据 */
 export namespace TtyOutputData {
@@ -74,42 +71,6 @@ export namespace TtyInputReq {
   }
 }
 
-/**
- * @public
- * @category TTY
- */
-export type RawImageData = {
-  /** 图像宽度 */
-  width: number;
-  /** 图像高度 */
-  height: number;
-  /**
-   * 图像二进制数据，必须满足 data.length === width * height * channel。
-   * 数据由多个 width*height 长度的通道数据组成
-   */
-  data: Uint8Array;
-  /** 图像通道数 */
-  channel: number;
-  separate?: boolean;
-};
-/**
- * 编码的图像数据，如 jpg、png等
- * @public
- * @category TTY
- */
-export type EncodedImageData = {
-  data: Uint8Array;
-  mime: string;
-};
-/**
- * @public
- * @category TTY
- */
-export type VioFileData = {
-  name: string;
-  data: Uint8Array;
-  mime: string;
-};
 export type TtyOutputsData =
   | TtyOutputData.Text
   | TtyOutputData.Table
@@ -123,13 +84,24 @@ export type TtyInputsReq =
   | TtyInputReq.File
   | TtyInputReq.Select
   | TtyInputReq.Custom;
-/**
- * @public
- * @category TTY
- */
-export type SelectKey = string | number;
-/**
- * @public
- * @category TTY
- */
-export type SelectItem<T extends SelectKey = SelectKey> = { value: T; label?: string };
+
+export interface ServerTtyExposed {
+  /** 获取 TTY 输出缓存日志 */
+  getTtyCache(ttyId: number): MaybePromise<TtyOutputsData[]>;
+  /** 切换 TTY 读取权限 */
+  setTtyReadEnable(ttyId: number, enable: boolean): MaybePromise<boolean>;
+  /** 解决 tty 输入请求 */
+  resolveTtyReadRequest(ttyId: number, requestId: number, res: any): MaybePromise<boolean>;
+  /** 拒绝 tty 输入请求 */
+  rejectTtyReadRequest(ttyId: number, requestId: number, reason?: any): MaybePromise<boolean>;
+
+  inputTty(ttyId: number, data: any): MaybePromise<boolean>;
+}
+export interface ClientTtyExposed {
+  /** 在指定 TTY 输出数据 */
+  writeTty(ttyId: number, data: TtyOutputsData): void;
+  /** 在指定 TTY 发送读取请求 */
+  sendTtyReadRequest(ttyId: number, requestId: number, opts: TtyInputsReq): void;
+  /** 切换 TTY 读取权限 */
+  ttyReadEnableChange(ttyId: number, enable: boolean): void;
+}
