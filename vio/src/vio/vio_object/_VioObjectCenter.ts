@@ -19,7 +19,10 @@ export class VioObjectCenterImpl implements VioObjectCenter {
   getAll(): IterableIterator<VioObject> {
     return this.#instanceMap.values();
   }
-  /** 所有 Vio 对象数量 */
+  /**
+   * 所有 Vio 对象数量
+   * @deprecated 已废弃
+   */
   get chartsNumber(): number {
     return this.#instanceMap.size;
   }

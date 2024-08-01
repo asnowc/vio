@@ -128,8 +128,7 @@ export interface VioChart<T = number> extends VioObject {
 
   /** 请求更新节流。单位毫秒 */
   updateThrottle: number;
-  /** 主动请求更新的回调函数 */
-  onRequestUpdate?: () => MaybePromise<T>;
+
   /** web 端主动请求更新图表，这会触发 chart.onRequestUpdate() */
   requestUpdate(): MaybePromise<RequestUpdateRes<T>>;
   getCacheDateItem(): IterableIterator<Readonly<ChartDataItem<T>>>;
@@ -171,7 +170,7 @@ export type ChartCreateOption<T = unknown> = {
   maxCacheSize?: number;
   /** {@inheritdoc VioChart.updateThrottle} */
   updateThrottle?: number;
-  /** {@inheritdoc VioChart.onRequestUpdate} */
+  /** 请求更新图的数据。 */
   onRequestUpdate?(): MaybePromise<T>;
 };
 /**

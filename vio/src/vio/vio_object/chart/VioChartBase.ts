@@ -43,11 +43,13 @@ export abstract class VioChartBase<T = number> implements VioChart<T> {
     this.dimensions = finalDimension;
     this.meta = { ...meta };
     this.updateThrottle = updateThrottle;
-    this.onRequestUpdate = onRequestUpdate;
+    this.#onRequestUpdate = onRequestUpdate;
   }
   readonly type = "chart";
+
   updateThrottle: number;
-  onRequestUpdate?: () => MaybePromise<T>;
+  /** 主动请求更新的回调函数 */
+  #onRequestUpdate?: () => MaybePromise<T>;
   name?: string;
   #cache: LinkedCacheQueue<ChartDataItem<T>>;
   /** 已缓存的数据长度 */
@@ -120,7 +122,7 @@ export abstract class VioChartBase<T = number> implements VioChart<T> {
 
   #lastData?: MaybePromise<RequestUpdateRes<T>>;
   requestUpdate(): MaybePromise<RequestUpdateRes<T>> {
-    if (!this.onRequestUpdate) throw new Error("Requests for updates are not allowed");
+    if (!this.#onRequestUpdate) throw new Error("Requests for updates are not allowed");
     const timestamp = Date.now();
 
     if (this.#lastData) {
@@ -128,7 +130,7 @@ export abstract class VioChartBase<T = number> implements VioChart<T> {
       if (timestamp - this.#lastData.timestamp <= this.updateThrottle) return this.#lastData;
     }
 
-    const value = this.onRequestUpdate();
+    const value = this.#onRequestUpdate();
     let res: MaybePromise<RequestUpdateRes<T>>;
     if (value instanceof Promise)
       res = value.then(
