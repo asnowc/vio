@@ -9,11 +9,46 @@ import {
   ServerTableExposed,
   Key,
   TableChanges,
+  ChartDataItem,
+  ChartInfo,
+  TableFilter,
+  TableRow,
+  VioChartCreateConfig,
+  VioObject,
 } from "@asla/vio/client";
 import { EventTrigger } from "evlib";
 import { MakeCallers, RpcService, RpcExposed } from "cpcall";
-import { ChartDataItem, ChartInfo, TableFilter, TableRow, VioChartCreateConfig, VioObject } from "@asla/vio/client";
 
+class CachePromise<K extends string | number | symbol, T> {
+  constructor(private create: (key: K) => Promise<T>) {
+    this.#cache = {} as any;
+  }
+  #cache: Record<K, T | Promise<T>>;
+  clear() {
+    this.#cache = {} as any;
+  }
+  async get(key: K) {
+    if (this.#cache[key]) return this.#cache[key];
+    const promise = this.create(key);
+    promise.then(
+      (val) => {
+        this.#cache[key] = val;
+      },
+      () => {
+        delete this.#cache[key];
+      },
+    );
+    return promise;
+  }
+  getExist(key: K): T | undefined {
+    const value = this.#cache[key];
+    if (value instanceof Promise) return;
+    return value as T;
+  }
+  delete(key: K) {
+    return delete this.#cache[key];
+  }
+}
 @RpcService()
 export class ClientVioObjectService implements ClientObjectExposed {
   protected uiObjects = new Map<number, VioObject>();
@@ -43,10 +78,16 @@ export class ClientVioObjectService implements ClientObjectExposed {
   clearObject() {
     const keys = new Set(this.uiObjects.keys());
     this.uiObjects.clear();
-    this.#watchingChart = {};
-    this.#watchingTable = {};
-
+    this.#watchingChart.clear();
+    this.#watchingTable.clear();
     this.deleteObjEvent.emit(keys);
+  }
+  *getSampleList(filter: { type?: string } = {}) {
+    const { type } = filter;
+    if (!type) return this.uiObjects.values();
+    for (const obj of this.uiObjects.values()) {
+      if (obj.type === type) yield obj;
+    }
   }
 
   /* Chart */
@@ -72,73 +113,50 @@ export class ClientVioObjectService implements ClientObjectExposed {
       });
     }
   }
-  #watchingChart: Record<number, ChartClientAgent | Promise<ChartClientAgent>> = {};
+  #watchingChart = new CachePromise<number, any>(async () => {});
   async getChart(chartId: number): Promise<ChartInfo<number> | undefined> {
     return this.#serverApi!.getChartInfo(chartId);
   }
   async unwatchChart(chartId: number) {
-    delete this.#watchingTable[chartId];
+    this.#watchingChart.delete(chartId);
     await this.unwatchObject(chartId);
   }
   async requestUpdate(chartId: number): Promise<ChartDataItem<any> | undefined> {
     if (!this.#serverApi) throw new Error("没有连接");
     return this.#serverApi.requestUpdateChart(chartId);
   }
-  *getChartSampleList() {
-    for (const item of this.uiObjects.values()) {
-      if (item.type === "chart") yield item;
-    }
-  }
+
   readonly writeChartEvent = new EventTrigger<{ id: number; data: ChartUpdateData<any> }>();
 
   /* Table */
 
-  #watchingTable: Record<number, TableClientAgent | Promise<TableClientAgent>> = {};
+  #watchingTable = new CachePromise<number, TableClientAgent>((tableId) => {
+    return this.#serverApi!.getTable(tableId).then(({ columns, id, ...option }) => {
+      return new TableClientAgent(tableId, columns, option, this.#serverApi!);
+    });
+  });
   async getTable(tableId: number): Promise<TableClientAgent> {
-    if (this.#watchingTable[tableId]) return this.#watchingTable[tableId];
-
-    const promise = this.#serverApi!.getTable(tableId).then(
-      async ({ columns, id, ...option }) => {
-        const table = new TableClientAgent(tableId, columns, option, this.#serverApi!);
-        this.#watchingTable[id] = table;
-        return table;
-      },
-      (err) => {
-        delete this.#watchingTable[tableId];
-        throw err;
-      },
-    );
-    this.#watchingTable[tableId] = promise;
-    return promise;
+    return this.#watchingTable.get(tableId);
   }
   async getTableData(tableId: number, filter?: TableFilter) {
     return this.#serverApi!.getTableData(tableId, filter);
   }
   async unwatchTable(tableId: number) {
-    delete this.#watchingTable[tableId];
+    await this.#watchingTable.delete(tableId);
     await this.unwatchObject(tableId);
   }
-  #getTable(id: number) {
-    const table = this.#watchingTable[id];
-    if (table instanceof TableClientAgent) return table;
-  }
+
   @RpcExposed()
   updateTable(tableId: number): void {
-    const table = this.#getTable(tableId);
+    const table = this.#watchingTable.getExist(tableId);
     if (!table) return;
     table.needReloadEvent.emit();
   }
   @RpcExposed()
   tableChange(tableId: number, changes: TableChanges<TableRow>): void {
-    const table = this.#getTable(tableId);
+    const table = this.#watchingTable.getExist(tableId);
     if (!table) return;
     table.needReloadEvent.emit();
-  }
-
-  *getTableSampleList() {
-    for (const item of this.uiObjects.values()) {
-      if (item.type === "table") yield item;
-    }
   }
 }
 
@@ -177,4 +195,5 @@ export class TableClientAgent<Row extends TableRow = TableRow, Add extends objec
     await this.api.onTableRowUpdate(this.id, rowKey, param);
   }
 }
+
 export type { Key };

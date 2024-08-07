@@ -22,49 +22,43 @@ export class RpcServerObjectExposed implements ServerObjectExposed {
     return { list };
   }
 
-  /* Chart */
-
-  #getChart(id: number): RpcVioChart<unknown> {
-    const chart = this.#center.getObject(id);
-    if (chart instanceof RpcVioChart) return chart;
-    throw new Error(`Chart ${id} does not exist`);
+  #getObject<T extends new (...args: any[]) => any>(id: number, type: T, name: string): InstanceType<T> {
+    const object = this.#center.getObject(id);
+    if (object instanceof type) return object as any;
+    throw new Error(`${name} ${id} does not exist`);
   }
+  /* Chart */
   getChartInfo(id: number): ChartInfo<any> {
-    const chart = this.#getChart(id);
+    const chart = this.#getObject(id, RpcVioChart, "Chart");
     return getChartInfo(chart, id);
   }
   requestUpdateChart<T>(chartId: number): MaybePromise<RequestUpdateRes<T>> {
-    const chart = this.#getChart(chartId);
+    const chart = this.#getObject(chartId, RpcVioChart, "Chart");
     return chart.requestUpdate() as MaybePromise<RequestUpdateRes<T>>;
   }
 
   /* Table */
-  #getTable(id: number): VioTableImpl {
-    const object = this.#center.getObject(id);
-    if (object instanceof VioTableImpl) return object;
-    throw new Error(`Table ${id} does not exist`);
-  }
   getTable(id: number): VioTableDto {
-    const table = this.#getTable(id);
+    const table = this.#getObject(id, VioTableImpl, "Table");
     return { columns: table.columns, ...table.config, id: table.id };
   }
   getTableData(tableId: number, filter?: TableFilter): TableDataDto<TableRow> {
-    const table = this.#getTable(tableId);
+    const table = this.#getObject(tableId, VioTableImpl, "Table");
     return table.getRows(filter);
   }
   onTableAction(tableId: number, operateKey: string, rowKeys: string[]): void {
-    this.#getTable(tableId).onTableAction(operateKey, rowKeys);
+    this.#getObject(tableId, VioTableImpl, "Table").onTableAction(operateKey, rowKeys);
   }
   onTableRowAction(tableId: number, operateKey: string, rowKey: Key): void {
     isKey(rowKey);
-    this.#getTable(tableId).onRowAction(operateKey, rowKey);
+    this.#getObject(tableId, VioTableImpl, "Table").onRowAction(operateKey, rowKey);
   }
   onTableRowAdd(tableId: number, param: TableRow): void {
-    this.#getTable(tableId).onRowAdd(param);
+    this.#getObject(tableId, VioTableImpl, "Table").onRowAdd(param);
   }
   onTableRowUpdate(tableId: number, rowKey: string, param: TableRow): void {
     isKey(rowKey);
-    this.#getTable(tableId).onRowUpdate(rowKey, param);
+    this.#getObject(tableId, VioTableImpl, "Table").onRowUpdate(rowKey, param);
   }
 }
 function isKey(key: Key) {
