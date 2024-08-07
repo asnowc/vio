@@ -3,7 +3,7 @@ import { BugOutlined, CodeOutlined, DashboardOutlined, TableOutlined } from "@an
 import { Tooltip, Dropdown, MenuProps } from "antd";
 import { useViewApi } from "@/services/ViewApi.ts";
 import { ConnectControl, LayoutControl } from "./actions/mod.ts";
-import { TtyBar, ChartList, TableList } from "./panels/mod.ts";
+import { TtyBar, ChartList, TableList, StepTaskList } from "./panels/mod.ts";
 import { useThemeToken } from "@/services/AppConfig.ts";
 import { useListenableData } from "@/hooks/event.ts";
 import { E2E_SELECT_CLASS } from "@/const.ts";
@@ -101,6 +101,12 @@ const functionList: BarDefine[] = [
     key: "table",
     Icon: TableOutlined,
     content: <TableList />,
+  },
+  {
+    title: "步骤任务",
+    key: "stepTask",
+    Icon: BugOutlined,
+    content: <StepTaskList />,
   },
 ];
 

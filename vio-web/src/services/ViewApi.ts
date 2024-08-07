@@ -103,10 +103,9 @@ export class ViewApi {
     this.#openedObjPanel.set(chartPanelId, panel);
   }
 
-  getOpenedTablePanel(chartId: number) {
-    return this.#openedObjPanel.get(OBJECT_PANEL_ID_PREFIX + chartId);
+  getOpenedTablePanel(tableId: number) {
+    return this.#openedObjPanel.get(OBJECT_PANEL_ID_PREFIX + tableId);
   }
-
   openTablePanel(tableId: number, title = tableId.toString()) {
     if (typeof tableId !== "number") throw new ParameterTypeError(0, "number", typeof tableId, "index");
     const chartPanelId = OBJECT_PANEL_ID_PREFIX + tableId;
@@ -120,6 +119,28 @@ export class ViewApi {
       component: panels.VioTable,
       title,
       params: { objectId: tableId, TabIcon: "TableOutlined" },
+      position: firstPanel ? { referencePanel: firstPanel } : undefined,
+    });
+    this.#openedObjPanel.set(chartPanelId, panel);
+  }
+  /* StepTask */
+
+  getOpenedStepTaskPanel(stepTaskId: number) {
+    return this.#openedObjPanel.get(OBJECT_PANEL_ID_PREFIX + stepTaskId);
+  }
+  openStepTaskPanel(stepTaskId: number, title = stepTaskId.toString()) {
+    if (typeof stepTaskId !== "number") throw new ParameterTypeError(0, "number", typeof stepTaskId, "index");
+    const chartPanelId = OBJECT_PANEL_ID_PREFIX + stepTaskId;
+    let panel = this.#viewApi.getPanel(chartPanelId);
+    if (panel) return panel.focus();
+
+    const firstPanel: IDockviewPanel | undefined = this.#openedObjPanel.values().next().value;
+
+    panel = this.#viewApi.addPanel({
+      id: chartPanelId,
+      component: panels.VioStepTask,
+      title,
+      params: { objectId: stepTaskId, TabIcon: "BugOutlined" },
       position: firstPanel ? { referencePanel: firstPanel } : undefined,
     });
     this.#openedObjPanel.set(chartPanelId, panel);

@@ -1,4 +1,4 @@
-import { CloseOutlined, CodeOutlined, DashboardOutlined, TableOutlined } from "@ant-design/icons";
+import { BugOutlined, CloseOutlined, CodeOutlined, DashboardOutlined, TableOutlined } from "@ant-design/icons";
 import { IDockviewPanelHeaderProps } from "dockview";
 import React, { CSSProperties, FC } from "react";
 export interface TabInfo {
@@ -8,6 +8,7 @@ const TAB_ICONS: Record<string, FC | undefined> = {
   CodeOutlined: CodeOutlined,
   DashboardOutlined: DashboardOutlined,
   TableOutlined: TableOutlined,
+  BugOutlined: BugOutlined,
 };
 export function DefaultTab({ api, containerApi, params: props }: IDockviewPanelHeaderProps<TabInfo>) {
   const { TabIcon } = props;

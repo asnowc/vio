@@ -136,6 +136,9 @@ export type EncodedImageData = {
     mime: string;
 };
 
+// @public
+export type GetStepRes<T> = T extends StepTask<infer P> ? P : never;
+
 // @public (undocumented)
 export type IntersectingDimension<T> = T extends Array<infer P> ? P | IntersectingDimension<P> : never;
 
@@ -161,6 +164,13 @@ export type RequestUpdateRes<T> = {
 };
 
 // @public (undocumented)
+export interface RunStepTaskOption {
+    // (undocumented)
+    data?: any;
+    pause?: boolean;
+}
+
+// @public (undocumented)
 export type SelectItem<T extends SelectKey = SelectKey> = {
     value: T;
     label?: string;
@@ -168,6 +178,29 @@ export type SelectItem<T extends SelectKey = SelectKey> = {
 
 // @public (undocumented)
 export type SelectKey = string | number;
+
+// @public (undocumented)
+export class StepGroup<O> implements StepTask<O> {
+    // (undocumented)
+    [Symbol.asyncIterator](): AsyncGenerator<any, O, void>;
+    constructor(generator: StepTask<O>, data?: any);
+    // (undocumented)
+    readonly data: any;
+    // (undocumented)
+    generator: StepTask<O>;
+    // (undocumented)
+    next(value: any): Promise<IteratorResult<any, O>>;
+    // (undocumented)
+    return(value: O): Promise<IteratorResult<any, O>>;
+    // (undocumented)
+    throw(error: any): Promise<IteratorResult<any, O>>;
+}
+
+// @public (undocumented)
+export type StepTask<R> = AsyncGenerator<any, R, any>;
+
+// @public (undocumented)
+export type StepTaskFn<Args extends any[] = [], R = any> = (...args: Args) => StepTask<R>;
 
 // @public (undocumented)
 export type TableCreateOption = {
@@ -436,6 +469,12 @@ export interface VioObjectCenter {
 export interface VioObjectCenter {
     // (undocumented)
     createTable<T extends TableRow>(columns: Column<T>[], option?: TableCreateOption): VioTable<T>;
+}
+
+// @public (undocumented)
+export interface VioObjectCenter {
+    // (undocumented)
+    runStepTask<T>(task: StepTask<T>, option?: RunStepTaskOption): Promise<T>;
 }
 
 // @public (undocumented)

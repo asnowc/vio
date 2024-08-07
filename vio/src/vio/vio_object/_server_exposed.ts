@@ -6,6 +6,7 @@ import { ServerObjectExposed, TableDataDto, VioObjectDto, VioTableDto } from "./
 import { TableFilter, TableRow, ChartDataItem, ChartInfo, RequestUpdateRes, VioChart, Key } from "./object.type.ts";
 
 import { VioObjectCenterImpl } from "./_VioObjectCenter.ts";
+import { DebugCommand, VioStepTask } from "./step_runner/mod.private.ts";
 
 export class RpcServerObjectExposed implements ServerObjectExposed {
   constructor(objectCenter: VioObjectCenterImpl) {
@@ -59,6 +60,16 @@ export class RpcServerObjectExposed implements ServerObjectExposed {
   onTableRowUpdate(tableId: number, rowKey: string, param: TableRow): void {
     isKey(rowKey);
     this.#getObject(tableId, VioTableImpl, "Table").onRowUpdate(rowKey, param);
+  }
+
+  /* StepTask */
+  execStepTaskCommand(objId: number, command: DebugCommand): void {
+    const stepTask = this.#getObject(objId, VioStepTask, "StepTask");
+    stepTask.execCommand(command);
+  }
+  getStepTaskCommand(objId: number): { list: any[]; paused: boolean } {
+    const stepTask = this.#getObject(objId, VioStepTask, "StepTask");
+    return { list: stepTask.getStack(), paused: stepTask.paused };
   }
 }
 function isKey(key: Key) {

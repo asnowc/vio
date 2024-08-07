@@ -1,10 +1,12 @@
 import { VioChart as RpcVioChart } from "./chart/VioChart.ts";
 import { VioTableImpl } from "./table/VioTable.ts";
 import { UniqueKeyMap } from "evlib/data_struct";
+import { TaskDebuggerRunner, VioStepTask } from "./step_runner/mod.private.ts";
 import type { VioChart, ChartCreateOption } from "./chart/chart.type.ts";
 import type { Column, TableCreateOption, TableRow, VioTable } from "./table/table.type.ts";
 import type { VioObjectCenter, VioObject } from "./object.type.ts";
 import type { ClientObjectExposed } from "./object.dto.ts";
+import { StepTask, RunStepTaskOption } from "./mod.private.ts";
 
 export class VioObjectCenterImpl implements VioObjectCenter {
   constructor(private ctrl: ClientObjectExposed) {}
@@ -53,6 +55,22 @@ export class VioObjectCenterImpl implements VioObjectCenter {
     this.#instanceMap.set(chartId, instance);
     this.ctrl.createObject({ id: chartId, name: instance.name, type: instance.type });
     return instance;
+  }
+  runStepTask<T>(task: StepTask<T>, option: RunStepTaskOption = {}): Promise<T> {
+    const runner = new TaskDebuggerRunner();
+    const id = this.#instanceMap.allocKeySet(null as any);
+    const serverApi = new VioStepTask(id, runner);
+    this.#instanceMap.set(id, serverApi);
+
+    runner.pausedEvent.on((e) => this.ctrl.stepTaskStatusChange(id, e));
+    runner.stackChangeEvent.on((e) => {
+      this.ctrl.stepTaskStackChange(id, e);
+    });
+
+    if (option.pause) runner.pause();
+    return runner.run(task, option.data).finally(() => {
+      this.#instanceMap.delete(id);
+    });
   }
 
   /** @deprecated 已废弃 */

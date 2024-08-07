@@ -91,6 +91,12 @@ class VioImpl extends TTY implements Vio {
     updateTable: (...args) => {
       for (const viewer of this.#viewers.values()) viewer.object.updateTable(...args);
     },
+    stepTaskStackChange: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.stepTaskStackChange(...args);
+    },
+    stepTaskStatusChange: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.object.stepTaskStatusChange(...args);
+    },
   });
   readonly chart: VioObjectCenter = this.object;
 }

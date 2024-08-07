@@ -9,12 +9,15 @@ import {
   ServerTableExposed,
   Key,
   TableChanges,
+  StackChangeData,
   ChartDataItem,
   ChartInfo,
   TableFilter,
   TableRow,
   VioChartCreateConfig,
   VioObject,
+  DebugCommand,
+  ServerStepRunnerExposed,
 } from "@asla/vio/client";
 import { EventTrigger } from "evlib";
 import { MakeCallers, RpcService, RpcExposed } from "cpcall";
@@ -158,6 +161,28 @@ export class ClientVioObjectService implements ClientObjectExposed {
     if (!table) return;
     table.needReloadEvent.emit();
   }
+  /* StepTask  */
+  #watchingTask = new CachePromise<number, StepStackClient>((id) => {
+    return this.#serverApi!.getStepTaskCommand(id).then((init) => new StepStackClient(this.#serverApi!, id, init));
+  });
+  async getStepTask(id: number) {
+    return this.#watchingTask.get(id);
+  }
+  @RpcExposed()
+  stepTaskStackChange(objId: number, change: StackChangeData): void {
+    const obj = this.#watchingTask.getExist(objId);
+    console.log(change);
+    
+    if (!obj) return;
+    obj.change(change);
+  }
+  @RpcExposed()
+  stepTaskStatusChange(objId: number, pause: boolean): void {
+    const obj = this.#watchingTask.getExist(objId);
+    if (!obj) return;
+    if (pause) obj.pause();
+    else obj.continue();
+  }
 }
 
 export class ChartClientAgent<T = number> extends VioChartBase<T> {
@@ -196,4 +221,42 @@ export class TableClientAgent<Row extends TableRow = TableRow, Add extends objec
   }
 }
 
+export class StepStackClient<T = any> {
+  constructor(
+    private api: MakeCallers<ServerStepRunnerExposed>,
+    private id: number,
+    init: { list: T[]; paused: boolean },
+  ) {
+    this.#stack = init.list;
+    this.paused = init.paused;
+  }
+  #stack: T[];
+  get eachStackList() {
+    return this.#stack;
+  }
+  readonly onChange = new EventTrigger<void>();
+  readonly onStatusChange = new EventTrigger<boolean>();
+  paused = false;
+  pause() {
+    if (this.paused) return;
+    this.paused = true;
+    this.onStatusChange.emit(true);
+  }
+  continue() {
+    if (this.paused) {
+      this.onStatusChange.emit(false);
+      this.paused = false;
+    }
+  }
+  change(changes: StackChangeData) {
+    if (changes.pop) {
+      this.#stack.length -= changes.pop;
+    }
+    this.#stack.push(...changes.push);
+    this.onChange.emit();
+  }
+  execCommand(cmd: DebugCommand) {
+    this.api.execStepTaskCommand(this.id, cmd);
+  }
+}
 export type { Key };

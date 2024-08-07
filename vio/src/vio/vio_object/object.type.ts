@@ -1,6 +1,7 @@
 import type { ChartCreateOption, VioChart } from "./chart/chart.type.ts";
 import type { VioObject } from "./_object_base.type.ts";
 import { TableRow, VioTable, Column, TableCreateOption } from "./table/table.type.ts";
+import { RunStepTaskOption, StepTask } from "./step_runner/mod.private.ts";
 
 export * from "./chart/chart.type.ts";
 export * from "./table/table.type.ts";
@@ -48,4 +49,9 @@ export interface VioObjectCenter {
 /** @public */
 export interface VioObjectCenter {
   createTable<T extends TableRow>(columns: Column<T>[], option?: TableCreateOption): VioTable<T>;
+}
+
+/** @public */
+export interface VioObjectCenter {
+  runStepTask<T>(task: StepTask<T>, option?: RunStepTaskOption): Promise<T>;
 }

@@ -65,9 +65,12 @@ export function createMockClientApi() {
       deleteObject: vi.fn(),
 
       writeChart: vi.fn(),
-      
+
       tableChange: vi.fn(),
       updateTable: vi.fn(),
+
+      stepTaskStackChange: vi.fn(),
+      stepTaskStatusChange: vi.fn(),
     },
     tty: {
       sendTtyReadRequest: vi.fn(),

@@ -54,3 +54,12 @@ export function TableList() {
   };
   return <ObjectList type="table" onClick={onClick} />;
 }
+export function StepTaskList() {
+  const viewApi = useViewApi();
+  const onClick = (obj: VioObject) => {
+    const panelApi = viewApi.getOpenedStepTaskPanel(obj.id);
+    if (panelApi) panelApi.focus();
+    else viewApi.openStepTaskPanel(obj.id, obj.name);
+  };
+  return <ObjectList type="stepTask" onClick={onClick} />;
+}
