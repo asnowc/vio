@@ -3,10 +3,10 @@ import { BugOutlined, CodeOutlined, DashboardOutlined, TableOutlined } from "@an
 import { Tooltip, Dropdown, MenuProps } from "antd";
 import { useViewApi } from "@/services/ViewApi.ts";
 import { ConnectControl, LayoutControl } from "./actions/mod.ts";
-import { TtyBar, DebugBar, ChartBar, TableBar } from "./panels/mod.ts";
+import { TtyBar, ChartList, TableList } from "./panels/mod.ts";
 import { useThemeToken } from "@/services/AppConfig.ts";
 import { useListenableData } from "@/hooks/event.ts";
-import { DEV_MODE, E2E_SELECT_CLASS } from "@/const.ts";
+import { E2E_SELECT_CLASS } from "@/const.ts";
 import { ThemControl } from "./actions/ThemeControl.tsx";
 
 export function LeftSideBarMenu() {
@@ -64,19 +64,13 @@ export function LeftSideBar() {
   const key = useListenableData(viewApi.functionOpenedChange, (key) => key, viewApi.functionOpened);
   const bar = FUNCTION_KEY_MAP[key ?? ""];
 
-  const Content = bar?.Content ?? (() => <div>空面板</div>);
-
-  return (
-    <Panel title={bar?.title}>
-      <Content></Content>
-    </Panel>
-  );
+  return <Panel title={bar?.title}>{bar?.content ?? <div>空面板</div>}</Panel>;
 }
 type BarDefine = {
   title: string;
   key: string;
   Icon: React.FC<{ style?: React.CSSProperties }>;
-  Content?: React.FC;
+  content?: React.ReactElement;
   memRender?: (props: { style?: React.CSSProperties }) => React.ReactNode;
 };
 const functionList: BarDefine[] = [
@@ -94,29 +88,22 @@ const functionList: BarDefine[] = [
         </div>
       );
     },
-    Content: TtyBar,
+    content: <TtyBar />,
   },
   {
     title: "图表",
     key: "chart",
     Icon: DashboardOutlined,
-    Content: ChartBar,
+    content: <ChartList />,
   },
   {
     title: "表格",
     key: "table",
     Icon: TableOutlined,
-    Content: TableBar,
+    content: <TableList />,
   },
 ];
-if (import.meta.env.MODE === DEV_MODE) {
-  functionList.push({
-    title: "调试",
-    key: "debug",
-    Icon: BugOutlined,
-    Content: DebugBar,
-  });
-}
+
 const FUNCTION_KEY_MAP = functionList.reduce(
   (v, item) => {
     v[item.key] = item;
