@@ -27,9 +27,8 @@ export function Dockview(props: DockviewProps) {
           dispose() {},
         };
       },
-      parentElement: dom,
     };
-    const component = new DockviewComponent(frameworkOptions);
+    const component = new DockviewComponent(dom, frameworkOptions);
 
     props.onReady({ api: new DockviewApi(component) });
   }, []);

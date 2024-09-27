@@ -123,7 +123,7 @@ test("cache", async function ({ vio, connector }) {
   }
   await expect(caller.tty.getTtyCache(3)).resolves.toEqual(cachedData);
   tty.log("hh");
-  await expect(caller.tty.getTtyCache(3)).resolves.toEqual([...cachedData.slice(1), { title: "hh", type: "text" }]);
+  await expect(caller.tty.getTtyCache(3)).resolves.toEqual([...cachedData.slice(1), { content: ["hh"], type: "log" }]);
 });
 test("dispose", async function ({ vio, connector }) {
   const { clientApi, serverApi, cpc } = connector;

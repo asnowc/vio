@@ -14,13 +14,13 @@
   "keywords": [],
   "license": "MIT",
   "devDependencies": {
-    "@eavid/lib-node": "^2.1.2",
-    "@types/node": "^22.0.2",
-    "evlib": "^2.6.1",
+    "@eavid/lib-node": "^2.3.0",
+    "@types/node": "^22.7.3",
+    "evlib": "^2.9.0",
     "rollup-plugin-dts": "^6.1.1"
   },
   "dependencies": {
-    "cpcall": "^0.6.2"
+    "cpcall": "^0.6.4"
   },
   "publishConfig": {
     "access": "public",

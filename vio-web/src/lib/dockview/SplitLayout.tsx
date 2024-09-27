@@ -13,8 +13,7 @@ export function useSplitLayout(direction: "horizontal" | "vertical", props: UseS
   const res = useMemo(() => {
     const dom = document.createElement("div");
     dom.style.height = "100%";
-    const api = new SplitviewComponent({
-      parentElement: dom,
+    const api = new SplitviewComponent(dom, {
       orientation: direction === "horizontal" ? Orientation.HORIZONTAL : Orientation.VERTICAL,
       components: { default: SplitLayoutPanel },
       styles: hideBorder ? { separatorBorder: "transparent" } : undefined,

@@ -9,19 +9,19 @@
     "type-check": "tsc -p src/tsconfig.json --skipLibCheck"
   },
   "devDependencies": {
-    "@types/react": "^18.3.3",
+    "@types/react": "^18.3.9",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
-    "vite": "^5.3.3"
+    "vite": "^5.4.8"
   },
   "dependencies": {
-    "@ant-design/icons": "^5.3.7",
+    "@ant-design/icons": "^5.5.1",
     "@asla/vio": "workspace:^",
-    "antd": "^5.19.1",
-    "cpcall": "^0.6.2",
-    "dockview": "^1.15.0",
+    "antd": "^5.21.1",
+    "cpcall": "^0.6.4",
+    "dockview": "^1.17.1",
     "echarts-comp": "^0.4.0",
-    "evlib": "^2.6.1",
+    "evlib": "^2.9.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
