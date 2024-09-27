@@ -2,16 +2,11 @@ import { IncomingMessage, ServerResponse, createServer, STATUS_CODES } from "nod
 import type { Duplex } from "node:stream";
 import { Buffer } from "node:buffer";
 import { createHttpResHeaderFrame } from "../http_server/http/http_frame.ts";
-import {
-  genUrl,
-  nodeReqToInfo,
-  nodeReqToWebReqInit,
-  nodeReqToWebRequest,
-  processResponse,
-} from "./node_http_transf.ts";
+import { genUrl, nodeReqToInfo, nodeReqToWebReqInit } from "./node_http_transf.ts";
 import { WebSocket, genResponseWsHeader } from "../websocket.ts";
 import { genErrorInfo } from "../parse_error.ts";
 import type { NetAddr, ServeHandler, ServeHandlerInfo, ServeOptions, HttpServer as DenoHttpServer } from "./type.ts";
+import { nodeHttpReqToRequest, responsePipeToNodeRes } from "@eavid/lib-node/http";
 
 function withResolvers<T>(): PromiseWithResolvers<T> {
   let obj: PromiseWithResolvers<any> = {} as any;
@@ -27,11 +22,11 @@ export class HttpServer implements DenoHttpServer {
     server.#server.listen({ port: server.addr.port, host: server.addr.hostname });
   }
   #onInternalReq = async (req: IncomingMessage, resp: ServerResponse) => {
-    const request = nodeReqToWebRequest(req, this.addr.hostname);
+    const request = nodeHttpReqToRequest(req);
     const info = nodeReqToInfo(req);
     try {
       const response = await this.#onRequest(request, info);
-      processResponse(response, resp, response.body);
+      responsePipeToNodeRes(response, resp, response.body);
     } catch (error) {
       let info = genInternalError(error);
       resp.writeHead(info.status, undefined, info.headers);
