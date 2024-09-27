@@ -197,8 +197,14 @@ export type TableRow = {
 };
 
 // @public
-export abstract class TTY {
+export abstract class TTY implements TtyInput, TtyOutput {
     confirm(title: string, content?: string): Promise<boolean>;
+    // (undocumented)
+    error(...args: string[]): void;
+    // (undocumented)
+    info(...args: string[]): void;
+    // (undocumented)
+    log(...args: string[]): void;
     pick<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[]): Promise<T>;
     // Warning: (ae-forgotten-export) The symbol "TtyInputsReq" needs to be exported by the entry point index.d.ts
     abstract read<T = unknown>(config: TtyInputsReq): Promise<T>;
@@ -209,12 +215,13 @@ export abstract class TTY {
         min?: number;
         max?: number;
     }): Promise<T[]>;
+    // (undocumented)
+    warn(...args: string[]): void;
     // Warning: (ae-forgotten-export) The symbol "TtyOutputsData" needs to be exported by the entry point index.d.ts
     abstract write(data: TtyOutputsData): void;
     writeImage(imageData: EncodedImageData | RawImageData): void;
     // @alpha
     writeTable(data: any[][], header?: string[]): void;
-    writeText(title: string, option?: TtyWriteTextType | TTyWriteTextOption): void;
     // (undocumented)
     writeUiLink(ui: VioObject): void;
 }
@@ -231,6 +238,34 @@ export class TtyCenter {
     setReader(ttyId: number, reader: TtyReader): TtyReadResolver;
     // (undocumented)
     static TTY_DEFAULT_CACHE_SIZE: number;
+}
+
+// @public (undocumented)
+export interface TtyInput {
+    confirm(title: string, content?: string): Promise<boolean>;
+    pick<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[]): Promise<T>;
+    readFiles(option?: TtyReadFileOption): Promise<VioFileData[]>;
+    readText(title: string, max?: number): Promise<string>;
+    readText(max?: number): Promise<string>;
+    select<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[], config?: {
+        min?: number;
+        max?: number;
+    }): Promise<T[]>;
+}
+
+// @public (undocumented)
+export interface TtyOutput {
+    // (undocumented)
+    error(...args: string[]): void;
+    // (undocumented)
+    info(...args: string[]): void;
+    // (undocumented)
+    log(...args: string[]): void;
+    // (undocumented)
+    warn(...args: string[]): void;
+    writeImage(imageData: EncodedImageData | RawImageData): void;
+    // @alpha
+    writeTable(data: any[][], header?: string[]): void;
 }
 
 // @public (undocumented)
@@ -257,15 +292,6 @@ export interface TtyReadResolver {
     resolve(requestId: number, data: any): boolean;
     waitingSize: number;
 }
-
-// @public (undocumented)
-export type TTyWriteTextOption = {
-    msgType?: TtyWriteTextType;
-    content?: string;
-};
-
-// @public (undocumented)
-export type TtyWriteTextType = "warn" | "log" | "error" | "info";
 
 // @public (undocumented)
 export interface UiAction extends UiBase {

@@ -1,6 +1,6 @@
 {
   "name": "@asla/vio",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A web terminal that provides a variety of graphical controls. You can interact with processes in the browser",
   "type": "module",
   "scripts": {
