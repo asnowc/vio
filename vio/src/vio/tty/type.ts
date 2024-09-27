@@ -2,11 +2,6 @@
  * @public
  * @category TTY
  */
-export type TtyWriteTextType = "warn" | "log" | "error" | "info";
-/**
- * @public
- * @category TTY
- */
 export type RawImageData = {
   /** 图像宽度 */
   width: number;

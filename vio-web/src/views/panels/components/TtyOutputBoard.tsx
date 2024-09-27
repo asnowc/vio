@@ -15,6 +15,7 @@ import { Button, Input } from "antd";
 import { useAutoScroll } from "@/hooks/auto_scroll.ts";
 import { useAsync } from "@/hooks/async.ts";
 import { E2E_SELECT_CLASS } from "@/const.ts";
+import { TtyOutputData } from "@asla/vio/client";
 
 export function TtyOutputBoard(props: { ttyAgent: TtyClientAgent; visible?: boolean }) {
   const { ttyAgent, visible = true } = props;
@@ -35,22 +36,17 @@ export function TtyOutputBoard(props: { ttyAgent: TtyClientAgent; visible?: bool
 
   const displayMsgList: TtyOutputMsg[] = useMemo(() => {
     return ttyMsgList.filter((item) => {
-      let textList: string[] | undefined;
-
       const msg = item.msg;
-      if (msg.type === "text") {
-        if (msg.msgType && excludeTextType.includes(msg.msgType)) return false;
-
-        textList = [msg.title];
-        if (msg.content) textList.push(msg.content);
-      }
-
-      if (textList && searchText) {
-        for (const item of textList) {
-          if (item.includes(searchText)) return true;
+      if (msg.type) {
+        if (excludeTextType.includes(msg.type)) return false;
+        if (["log", "warn", "error", "info"].includes(msg.type) && searchText) {
+          const index = (msg as TtyOutputData.Text).content.findIndex(
+            (item) => typeof item === "string" && item.includes(searchText),
+          );
+          return index >= 0;
         }
-        return false;
-      } else return true;
+      }
+      return true;
     });
   }, [ttyMsgList, searchText, excludeTextType]);
 

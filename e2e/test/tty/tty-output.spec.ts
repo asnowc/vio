@@ -10,10 +10,10 @@ beforeEach(async ({ appPage, vioServerInfo: { visitUrl } }) => {
 test("output text", async function ({ vioServerInfo: { vio: tty }, appPage: page }) {
   expect(tty.viewerNumber).toBe(1);
 
-  tty.writeText("default title");
-  tty.writeText("warn title", "warn");
-  tty.writeText("error title", "error");
-  tty.writeText("info title", { msgType: "info", content: "this is a content" });
+  tty.log("default title");
+  tty.warn("warn title");
+  tty.error("error title");
+  tty.info("info title", "this is a content");
   const textFlag = " title";
   await afterTime(500);
   await expect(page.getByText(textFlag).count(), "内容被输出").resolves.toBe(4);
@@ -41,8 +41,8 @@ test("recover output", async function ({ vioServerInfo: { vio }, appPage: page }
   const tty = vio.tty.get(1);
 
   const textFlag = " title";
-  tty.writeText("default title");
-  tty.writeText("warn title", "warn");
+  tty.log("default title");
+  tty.warn("warn title");
   await afterTime(1000);
 
   await expect(page.getByText(textFlag).count(), "内容被输出").resolves.toBe(2);

@@ -1,14 +1,11 @@
 import { MaybePromise } from "../../type.ts";
-import { EncodedImageData, RawImageData, SelectItem, TtyWriteTextType, VioFileData } from "./type.ts";
+import { EncodedImageData, RawImageData, SelectItem, VioFileData } from "./type.ts";
 
 /** 终端输出数据 */
 export namespace TtyOutputData {
   export interface Text {
-    type: "text";
-    /** 文本数据 */
-    title: string;
-    content?: string;
-    msgType?: TtyWriteTextType;
+    type: "log" | "warn" | "error" | "info";
+    content: any[];
   }
   /**   控件链接 */
   export interface UILink {

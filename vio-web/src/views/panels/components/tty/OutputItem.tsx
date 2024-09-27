@@ -9,7 +9,16 @@ export function TtyOutput(props: { msg: TtyOutputsViewData; date: string }) {
   const { date } = props;
   const msg = props.msg;
   switch (msg.type) {
-    case "text": {
+    case "log": {
+      return <OutputText data={msg} date={date} />;
+    }
+    case "warn": {
+      return <OutputText data={msg} date={date} />;
+    }
+    case "error": {
+      return <OutputText data={msg} date={date} />;
+    }
+    case "info": {
       return <OutputText data={msg} date={date} />;
     }
     case "image": {

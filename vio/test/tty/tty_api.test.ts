@@ -62,12 +62,12 @@ describe("tty-read", function () {
   test("writeText", async function ({ vio, connector }) {
     const { clientApi, serverApi } = connector;
     const tty = vio.tty.get(8);
-    tty.writeText("xxxx");
+    tty.log("xxxx");
     await afterTime(50);
 
     const calls = clientApi.tty.writeTty.mock.calls;
     expect(calls[0][0], "id").toBe(8);
-    expect(calls[0][1]).toEqual({ type: "text", title: "xxxx" } satisfies TtyOutputData.Text);
+    expect(calls[0][1]).toEqual({ content: ["xxxx"], type: "log" } satisfies TtyOutputData.Text);
   });
 });
 test("重新获取输入权", async function ({ vio, connectVioSever }) {
@@ -117,12 +117,12 @@ test("cache", async function ({ vio, connector }) {
   tty.cacheSize = 4;
   const cachedData: TtyOutputsData[] = [];
   for (let i = 0; i < tty.cacheSize; i++) {
-    const data: TtyOutputData.Text = { title: i.toString(), type: "text" };
-    tty.writeText(i.toString());
+    const data: TtyOutputData.Text = { content: [i.toString()], type: "log" };
+    tty.log(i.toString());
     cachedData.push(data);
   }
   await expect(caller.tty.getTtyCache(3)).resolves.toEqual(cachedData);
-  tty.writeText("hh");
+  tty.log("hh");
   await expect(caller.tty.getTtyCache(3)).resolves.toEqual([...cachedData.slice(1), { title: "hh", type: "text" }]);
 });
 test("dispose", async function ({ vio, connector }) {

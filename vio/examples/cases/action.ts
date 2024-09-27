@@ -14,7 +14,7 @@ export async function inputSelect(tty: TTY) {
   let i = 0;
   while (true) {
     const types = await nextInput(i++, tty).catch((e) => {
-      tty.writeText(toErrorStr(e), "error");
+      tty.error(toErrorStr(e));
       return [];
     });
     for (const type of types) {
@@ -37,9 +37,9 @@ export async function inputSelect(tty: TTY) {
           break;
       }
       val.then(
-        (value) => tty.writeText(`测试输入‘${type}’类型结果：` + value),
+        (value) => tty.log(`测试输入‘${type}’类型结果：` + value),
         (e) => {
-          tty.writeText(toErrorStr(e), "error");
+          tty.error(toErrorStr(e));
         },
       );
     }

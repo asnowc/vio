@@ -4,16 +4,17 @@ import { randomInt } from "evlib/math";
 import { randomString, createList } from "evlib/mock";
 const data: TtyOutputsData[] = [];
 
-const MSG_TYPE: TtyOutputData.Text["msgType"][] = ["error", "info", "log", "warn", undefined];
+const MSG_TYPE = ["error", "info", "log", "warn"];
 for (let i = 0; i < 30; i++) {
   data[i] = randomInputText();
 }
 function randomInputText(): TtyOutputData.Text {
   return {
-    type: "text",
-    title: randomInt(10) < 3 ? "title可视对讲工卡三等奖观看手机搭嘎凯撒鲸打卡估计双打卡高级啊SDK国际三大； " : "标题",
-    content: randomInt(10) > 4 ? undefined : "xxxxxxkkdgk",
-    msgType: MSG_TYPE[randomInt(MSG_TYPE.length - 1)],
+    type: MSG_TYPE[randomInt(3)] as any,
+    content:
+      randomInt(10) < 3
+        ? ["title可视对讲工卡三等奖观看手机搭嘎凯撒鲸打卡估计双打卡高级啊SDK国际三大； "]
+        : ["标题", "xxxxxxkkdgk"],
   };
 }
 function randomItem(key: number): TtyOutputMsg {

@@ -10,9 +10,10 @@ export type MessageTextProps = {
 export function OutputText(props: MessageTextProps) {
   const { data, date } = props;
   const colors = useThemeToken();
+  const type = data.type;
   const { bgColor, color, icon } = useMemo(() => {
-    if (!data.msgType) return {};
-    if (data.msgType === "info") {
+    if (!data.content) return {};
+    if (data.type === "info") {
       return {
         bgColor: "#1D3245",
         color: "#b2d4f4",
@@ -24,7 +25,7 @@ export function OutputText(props: MessageTextProps) {
       log: { token: undefined, icon: <MessageOutlined /> },
       warn: { token: "Warning", icon: <WarningOutlined /> },
     } as const;
-    const { icon, token } = infoMap[data.msgType];
+    const { icon, token } = (infoMap as any)[type];
     if (!token) return { icon };
     const colorsMap = colors as any as Record<string, string>;
     return {
@@ -32,16 +33,16 @@ export function OutputText(props: MessageTextProps) {
       color: colorsMap["color" + token + "TextHover"],
       icon,
     };
-  }, [colors, data.msgType]);
-
+  }, [colors, type]);
+  const [title, ...content] = data.content;
   return (
     <ListItem
-      title={data.title}
+      title={title}
       extra={date}
       icon={icon}
       style={{ backgroundColor: bgColor ?? colors.colorFillQuaternary, color: color }}
     >
-      {data.content}
+      {content.join("\n")}
     </ListItem>
   );
 }

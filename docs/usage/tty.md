@@ -4,7 +4,7 @@
 
 ```ts
 const tty8: VioTty = vio.tty.get(8); // 获取 id为 8 的 tty. 如果不存在，则创建 TTY
-tty8.writeText("hi");
+tty8.log("hi");
 vio.tty.dispose(tty8); // 如果不再使用，应销毁
 ```
 
@@ -25,10 +25,10 @@ tty8.cacheSize = 0; // 更改缓存条数
 ```ts
 import { readFile } from "node:fs/promises";
 
-vio.writeText("输出一段文本", "error");
-vio.writeText("输出一段文本", "warn");
-vio.writeText("输出一段文本", "log");
-vio.writeText("输出一段文本", { msgType: "info", content: "text text text text text " });
+vio.error("输出一段文本");
+vio.warn("输出一段文本");
+vio.log("输出一段文本");
+vio.info("输出一段文本", "text text text text text ");
 
 const data = await readFile(import.meta.dirname + "/test_image.png");
 vio.writeImage({ mime: "image/png", data });

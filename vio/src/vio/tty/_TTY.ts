@@ -1,24 +1,8 @@
 import type { TtyOutputData, TtyInputsReq, TtyInputReq, TtyOutputsData } from "./tty.dto.ts";
-import type {
-  SelectItem,
-  SelectKey,
-  EncodedImageData,
-  RawImageData,
-  TtyWriteTextType,
-  VioFileData,
-} from "./type.ts";
+import type { SelectItem, SelectKey, EncodedImageData, RawImageData, VioFileData } from "./type.ts";
 import type { VioObject } from "../vio_object/_object_base.type.ts";
 import { createTypeErrorDesc } from "evlib";
 
-/**
- * @public
- * @category TTY
- */
-export type TTyWriteTextOption = {
-  /** 文本类型 */
-  msgType?: TtyWriteTextType;
-  content?: string;
-};
 /**
  * 请求输入文件的选项
  * @public
@@ -35,12 +19,49 @@ export type TtyReadFileOption = {
   /** 最小上传文件数量 */
   minNumber?: number;
 };
+/** @public */
+export interface TtyInput {
+  /** 请求输入文件 */
+  readFiles(option?: TtyReadFileOption): Promise<VioFileData[]>;
+  /** 提示读取文本 */
+  readText(title: string, max?: number): Promise<string>;
+  /** 读取文本 */
+  readText(max?: number): Promise<string>;
+  /** 请求确认 */
+  confirm(title: string, content?: string): Promise<boolean>;
+  /** 单选 */
+  pick<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[]): Promise<T>;
+  /** 多选 */
+  select<T extends SelectKey = SelectKey>(
+    title: string,
+    options: SelectItem<T>[],
+    config?: { min?: number; max?: number },
+  ): Promise<T[]>;
+}
+/** @public */
+export interface TtyOutput {
+  /** 输出图像 */
+  writeImage(imageData: EncodedImageData | RawImageData): void;
+  /**
+   * 输出表格
+   * @alpha
+   */
+  writeTable(data: any[][], header?: string[]): void;
+  log(...args: string[]): void;
+  warn(...args: string[]): void;
+  error(...args: string[]): void;
+  info(...args: string[]): void;
+  // writeUiLink(ui: VioObject): void;
+}
+function writeText(type: TtyOutputData.Text["type"], args: any[]): TtyOutputData.Text {
+  return { type, content: args };
+}
 /**
  * 终端实例
  * @public
  * @category TTY
  */
-export abstract class TTY {
+export abstract class TTY implements TtyInput, TtyOutput {
   /** 写入任意数据 */
   abstract write(data: TtyOutputsData): void;
   /** 输出图像 */
@@ -60,22 +81,17 @@ export abstract class TTY {
   writeTable(data: any[][], header?: string[]): void {
     return this.write({ type: "table", data, header } satisfies TtyOutputData.Table);
   }
-  /** 输出文本 */
-  writeText(title: string, option: TtyWriteTextType | TTyWriteTextOption = {}): void {
-    let content: string | undefined;
-    let msgType: TtyOutputData.Text["msgType"] | undefined;
-    if (typeof option === "string") msgType = option;
-    else {
-      content = option.content;
-      msgType = option.msgType;
-    }
-
-    return this.write({
-      type: "text",
-      title,
-      content,
-      msgType,
-    } satisfies TtyOutputData.Text);
+  log(...args: string[]): void {
+    this.write(writeText("log", args));
+  }
+  warn(...args: string[]): void {
+    this.write(writeText("warn", args));
+  }
+  error(...args: string[]): void {
+    this.write(writeText("error", args));
+  }
+  info(...args: string[]): void {
+    this.write(writeText("info", args));
   }
   writeUiLink(ui: VioObject): void {
     throw new Error("Unsupported UI object");
