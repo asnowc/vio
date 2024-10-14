@@ -3,6 +3,7 @@ import React, { ReactNode, useMemo } from "react";
 import { TtyOutputData } from "@asla/vio/client";
 import { CloseCircleOutlined, InfoCircleOutlined, MessageOutlined, WarningOutlined } from "@ant-design/icons";
 import { ListItem } from "@/views/components/ListItem.tsx";
+import { JsData } from "@/components/JsObject.tsx";
 export type MessageTextProps = {
   data: TtyOutputData.Text;
   date: string;
@@ -34,15 +35,23 @@ export function OutputText(props: MessageTextProps) {
       icon,
     };
   }, [colors, type]);
-  const [title, ...content] = data.content;
+  const content = useMemo(() => {
+    let content = new Array(data.content.length - 1);
+
+    for (let i = 1; i < data.content.length; i++) {
+      let item = data.content[i];
+      content[i - 1] = <JsData key={null}>{item}</JsData>;
+    }
+    return content;
+  }, [data.content]);
   return (
     <ListItem
-      title={title}
+      title={<JsData>{data.content[0]}</JsData>}
       extra={date}
       icon={icon}
       style={{ backgroundColor: bgColor ?? colors.colorFillQuaternary, color: color }}
     >
-      {content.join("\n")}
+      {content}
     </ListItem>
   );
 }

@@ -3,7 +3,7 @@ export function JsData(props: { children?: any }) {
   switch (typeof object) {
     case "object":
       //TODO
-      return JSON.stringify(object);
+      return JSON.stringify(object, null, 2);
     case "function":
       return String(object);
     default:

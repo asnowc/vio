@@ -81,16 +81,16 @@ export abstract class TTY implements TtyInput, TtyOutput {
   writeTable(data: any[][], header?: string[]): void {
     return this.write({ type: "table", data, header } satisfies TtyOutputData.Table);
   }
-  log(...args: string[]): void {
+  log(...args: any[]): void {
     this.write(writeText("log", args));
   }
-  warn(...args: string[]): void {
+  warn(...args: any[]): void {
     this.write(writeText("warn", args));
   }
-  error(...args: string[]): void {
+  error(...args: any[]): void {
     this.write(writeText("error", args));
   }
-  info(...args: string[]): void {
+  info(...args: any[]): void {
     this.write(writeText("info", args));
   }
   writeUiLink(ui: VioObject): void {
