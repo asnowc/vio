@@ -200,11 +200,11 @@ export type TableRow = {
 export abstract class TTY implements TtyInput, TtyOutput {
     confirm(title: string, content?: string): Promise<boolean>;
     // (undocumented)
-    error(...args: string[]): void;
+    error(...args: any[]): void;
     // (undocumented)
-    info(...args: string[]): void;
+    info(...args: any[]): void;
     // (undocumented)
-    log(...args: string[]): void;
+    log(...args: any[]): void;
     pick<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[]): Promise<T>;
     // Warning: (ae-forgotten-export) The symbol "TtyInputsReq" needs to be exported by the entry point index.d.ts
     abstract read<T = unknown>(config: TtyInputsReq): Promise<T>;
@@ -216,7 +216,7 @@ export abstract class TTY implements TtyInput, TtyOutput {
         max?: number;
     }): Promise<T[]>;
     // (undocumented)
-    warn(...args: string[]): void;
+    warn(...args: any[]): void;
     // Warning: (ae-forgotten-export) The symbol "TtyOutputsData" needs to be exported by the entry point index.d.ts
     abstract write(data: TtyOutputsData): void;
     writeImage(imageData: EncodedImageData | RawImageData): void;
