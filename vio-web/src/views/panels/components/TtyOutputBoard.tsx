@@ -51,12 +51,10 @@ export function TtyOutputBoard(props: { ttyAgent: TtyClientAgent; visible?: bool
   }, [ttyMsgList, searchText, excludeTextType]);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const { lockRef: scrollLockRef, scrollToBottom } = useAutoScroll({
+  const { scrollToBottom } = useAutoScroll({
     container: containerRef.current,
+    deps: [ttyMsgList],
   });
-  useEffect(() => {
-    if (scrollLockRef.current) scrollToBottom();
-  }, [ttyMsgList]);
 
   return (
     <flex-col
@@ -94,7 +92,7 @@ export function TtyOutputBoard(props: { ttyAgent: TtyClientAgent; visible?: bool
           <TooltipBtn
             title="滚动到底部"
             icon={<VerticalAlignBottomOutlined />}
-            onClick={scrollToBottom}
+            onClick={() => scrollToBottom(true)}
             size="small"
           ></TooltipBtn>
         </flex-row>
