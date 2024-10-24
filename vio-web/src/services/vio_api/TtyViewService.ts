@@ -1,4 +1,4 @@
-import { ClientTtyExposed, TtyInputsReq, TtyOutputData, TtyOutputsData } from "@asla/vio/client";
+import { ClientTtyExposed, ServerTtyExposed, TtyInputsReq, TtyOutputData, TtyOutputsData } from "@asla/vio/client";
 import { RpcExposed, RpcService } from "cpcall";
 import { EventTrigger } from "evlib";
 import { LinkedCacheQueue, LinkedQueue, LoopUniqueId } from "evlib/data_struct";
@@ -11,8 +11,6 @@ export class TtyViewService implements ClientTtyExposed {
   readonly readingChangeEvent = new EventTrigger<{ id: number }>();
   /** TTY 被创建 */
   readonly createEvent = new EventTrigger<number>();
-  /** 读取请求接收状态变化 */
-  readonly readEnableChangeEvent = new EventTrigger<{ id: number; passive: boolean }>();
 
   createTty(index: number): TtyClientAgent {
     let tty = this.#ttys[index];
@@ -45,27 +43,11 @@ export class TtyViewService implements ClientTtyExposed {
       tty.clearReading();
     }
   }
-  async setTtyReadEnable(ttyId: number, enable: boolean) {
-    const resolver = this.resolver;
-    if (!resolver) return false;
-    const res = await resolver.setTtyReadEnable(ttyId, enable);
-    if (res) {
-      const tty = this.get(ttyId, true);
-      tty.setReadEnable(enable);
-    }
-    return res;
+  init(resolver?: ServerTtyExposed) {
+    this.clearAllReading();
+    this.serverApi = resolver;
   }
-  init(resolver?: TtyResolver) {
-    if (resolver) {
-      for (const iterator of Object.values(this.#ttys)) {
-        iterator.setReadEnable(false);
-      }
-    } else {
-      this.clearAllReading();
-    }
-    this.resolver = resolver;
-  }
-  resolver?: TtyResolver;
+  serverApi?: ServerTtyExposed;
   #ttys: Record<number, TtyClientAgent> = {};
 
   @RpcExposed()
@@ -73,20 +55,13 @@ export class TtyViewService implements ClientTtyExposed {
     return this.get(ttyId, true).addReading(requestId, opts);
   }
   @RpcExposed()
+  cancelTtyReadRequest(ttyId: number, requestId: number): void {}
+  @RpcExposed()
   writeTty(ttyId: number, data: TtyOutputsData): void {
     this.get(ttyId, true).addOutput(data);
   }
-  @RpcExposed()
-  ttyReadEnableChange(ttyId: number, enable: boolean): void {
-    const tty = this.get(ttyId, true);
-    tty.setReadEnable(enable, { passive: true });
-  }
 }
-export interface TtyResolver {
-  resolveTtyReadRequest(ttyId: number, requestId: number, res: TtyInputsReq): Promise<boolean>;
-  rejectTtyReadRequest(ttyId: number, requestId: number, reason?: any): void;
-  setTtyReadEnable(ttyId: number, enable: boolean): Promise<boolean>;
-}
+
 export class TtyClientAgent {
   constructor(
     readonly ttyId: number,
@@ -121,13 +96,6 @@ export class TtyClientAgent {
     this.#msgId.reset();
   }
 
-  readEnable = false;
-  setReadEnable(enable: boolean, opts: { passive?: boolean } = {}) {
-    if (enable === this.readEnable) return;
-    this.readEnable = enable;
-    if (!enable) this.clearReading(new Error("输入权已关闭"));
-    this.center.readEnableChangeEvent.emit({ id: this.ttyId, passive: opts.passive ?? false });
-  }
   clearReading(reason: Error = new Error("读取被清除"), send?: boolean) {
     const resolver = this.#resolver;
     if (resolver && send) {
@@ -139,7 +107,7 @@ export class TtyClientAgent {
     this.center.readingChangeEvent.emit({ id: this.ttyId });
   }
   get #resolver() {
-    return this.center.resolver;
+    return this.center.serverApi;
   }
   /** 终端读取中的请求 */
   private readonly readingMap = new Map<number, TtyInputMsg>();

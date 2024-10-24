@@ -227,17 +227,12 @@ export abstract class TTY implements TtyInput, TtyOutput {
 }
 
 // @public (undocumented)
-export class TtyCenter {
-    // Warning: (ae-forgotten-export) The symbol "TtyWriterFn" needs to be exported by the entry point index.d.ts
-    constructor(writeTty: TtyWriterFn);
+export interface TtyCenter {
     delete(tty: VioTty): boolean;
     get(ttyId: number): VioTty;
     getAll(): IterableIterator<VioTty>;
     // (undocumented)
     getCreated(index: number): VioTty | undefined;
-    setReader(ttyId: number, reader: TtyReader): TtyReadResolver;
-    // (undocumented)
-    static TTY_DEFAULT_CACHE_SIZE: number;
 }
 
 // @public (undocumented)
@@ -268,13 +263,6 @@ export interface TtyOutput {
     writeTable(data: any[][], header?: string[]): void;
 }
 
-// @public (undocumented)
-export interface TtyReader {
-    dispose?(): void;
-    // Warning: (ae-forgotten-export) The symbol "TtyReadFn" needs to be exported by the entry point index.d.ts
-    read: TtyReadFn;
-}
-
 // @public
 export type TtyReadFileOption = {
     mime?: string;
@@ -283,15 +271,6 @@ export type TtyReadFileOption = {
     maxNumber?: number;
     minNumber?: number;
 };
-
-// @public (undocumented)
-export interface TtyReadResolver {
-    dispose(): void;
-    input(data: any): boolean;
-    reject(requestId: number, reason: any): boolean;
-    resolve(requestId: number, data: any): boolean;
-    waitingSize: number;
-}
 
 // @public (undocumented)
 export interface UiAction extends UiBase {
@@ -342,8 +321,6 @@ export type UiTag = UiOutput & {
 
 // @public
 export interface Vio extends TTY {
-    // @deprecated
-    readonly chart: VioObjectCenter;
     // Warning: (ae-forgotten-export) The symbol "WebSocket_2" needs to be exported by the entry point index.d.ts
     joinFormWebsocket(websocket: WebSocket_2, onDispose?: (viewer: Disposable_2) => void): Disposable_2;
     readonly object: VioObjectCenter;
@@ -439,23 +416,11 @@ export interface VioObjectCenter {
 
 // @public (undocumented)
 export interface VioObjectCenter {
-    // @deprecated
-    create<T = any>(dimension: 1, options?: ChartCreateOption<T>): VioChart<T>;
-    // @deprecated
-    create<T = any>(dimension: 2, options?: ChartCreateOption<T[]>): VioChart<T[]>;
-    // @deprecated
-    create<T = any>(dimension: 3, options?: ChartCreateOption<T[][]>): VioChart<T[][]>;
-    // @deprecated (undocumented)
-    create<T = any>(dimension: number, options?: ChartCreateOption<T>): VioChart<T>;
     createChart<T = any>(dimension: 1, options?: ChartCreateOption<T>): VioChart<T>;
     createChart<T = any>(dimension: 2, options?: ChartCreateOption<T[]>): VioChart<T[]>;
     createChart<T = any>(dimension: 3, options?: ChartCreateOption<T[][]>): VioChart<T[][]>;
     // (undocumented)
     createChart<T = any>(dimension: number, options?: ChartCreateOption<T>): VioChart<T>;
-    // @deprecated (undocumented)
-    disposeChart(chart: VioChart): void;
-    // @deprecated (undocumented)
-    get(chartId: number): VioChart | undefined;
 }
 
 // @public (undocumented)

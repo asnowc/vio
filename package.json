@@ -13,13 +13,13 @@
   "devDependencies": {
     "@eavid/lib-dev": "^0.0.3",
     "@microsoft/api-extractor": "^7.47.11",
-    "@vitest/coverage-v8": "^1.6.0",
-    "@vitest/ui": "^1.6.0",
+    "@vitest/coverage-v8": "^2.1.3",
+    "@vitest/ui": "^2.1.3",
     "evlib": "^2.9.0",
     "prettier": "^3.3.3",
     "tslib": "^2.8.0",
     "typescript": "^5.6.3",
-    "vitest": "^1.6.0"
+    "vitest": "^2.1.3"
   },
   "engines": {
     "node": ">=18",

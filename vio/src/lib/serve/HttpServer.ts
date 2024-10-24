@@ -129,13 +129,22 @@ export function upgradeWebSocket(request: Request) {
   if (request instanceof UpgRequest) return UpgRequest.upgradeWebSocket(request);
   else throw new Error("");
 }
+type RequestInit = NonNullable<ConstructorParameters<typeof Request>[1]>;
 class UpgRequest extends Request {
   static upgradeWebSocket(req: UpgRequest): { socket: WebSocket; response: Response } {
-    const ws = new WebSocket(req.#socket, { openEvent: true });
-    const response = new UpgResponse(undefined, {
-      status: 101,
-      headers: genResponseWsHeader(req.headers.get("sec-websocket-key")!),
-    });
+    const ws = new WebSocket(req.#socket);
+    const response = new UpgResponse(
+      new ReadableStream({
+        pull: (ctrl) => {
+          req.#socket.emit("wsOpen");
+          return ctrl.close();
+        },
+      }),
+      {
+        status: 101,
+        headers: genResponseWsHeader(req.headers.get("sec-websocket-key")!),
+      },
+    );
     return { socket: ws, response };
   }
   constructor(socket: Duplex, url: string, init?: RequestInit) {

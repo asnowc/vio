@@ -24,7 +24,7 @@ function createWsConnection(url: string): Promise<Socket> {
       if (status !== 101) reject(new Error("服务器拒绝协议升级。返回状态码:" + status));
     });
     req.on("close", () => reject(new Error("服务器拒绝连接")));
-    req.on("error", (err) => reject(err));
+    req.on("error", (err) => reject(new Error("Upgrade Request Error", { cause: err })));
     req.end();
   });
 }
@@ -36,7 +36,9 @@ export function connectWebsocket(url: string): Promise<WebSocket> {
     throw new Error(`Protocol "${url.slice(0, i + 1)}" not supported. Expected "http:"`);
   }
 
-  return createWsConnection(url).then((socket) => new WebSocket(socket));
+  return createWsConnection(url).then((socket) => {
+    return new WebSocket(socket, { isOpened: true });
+  });
 }
 export function genResponseWsHeader(oKey: string): Record<string, string> {
   const headers: OutgoingHttpHeaders = {
@@ -54,7 +56,10 @@ function SHA1(str: string) {
 
 /** 实现了 标准 WebSocket 部分接口 */
 export class WebSocket extends EventTarget implements SampleWebSocket {
-  constructor(socket: Duplex, opts: { openEvent?: boolean } = {}) {
+  /**
+   * socket 触发 wsOpen 事件后将触发 WebSocket 实例的 open 事件
+   */
+  constructor(socket: Duplex, option: { isOpened?: boolean } = {}) {
     super();
 
     this.#resolver = new WebSocketResolver(socket, {
@@ -66,8 +71,11 @@ export class WebSocket extends EventTarget implements SampleWebSocket {
         this.dispatchEvent(e);
       },
     });
-    if (opts.openEvent) {
-      setTimeout(() => {
+    if (option.isOpened) {
+      this.#resolver.open();
+    } else {
+      socket.once("wsOpen", () => {
+        this.#resolver.open();
         this.dispatchEvent(new Event("open"));
       });
     }

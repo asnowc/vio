@@ -65,7 +65,9 @@ export class VioHttpServer {
       }
 
       const { response, socket: websocket } = platformApi.upgradeWebSocket(req);
-      this.#onWebSocketConnect(websocket);
+      websocket.addEventListener("open", () => {
+        this.#onWebSocketConnect(websocket);
+      });
       return response;
     });
     this.#router = router;

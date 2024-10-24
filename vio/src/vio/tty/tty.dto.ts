@@ -85,13 +85,11 @@ export type TtyInputsReq =
 export interface ServerTtyExposed {
   /** 获取 TTY 输出缓存日志 */
   getTtyCache(ttyId: number): MaybePromise<TtyOutputsData[]>;
-  /** 切换 TTY 读取权限 */
-  setTtyReadEnable(ttyId: number, enable: boolean): MaybePromise<boolean>;
   /** 解决 tty 输入请求 */
   resolveTtyReadRequest(ttyId: number, requestId: number, res: any): MaybePromise<boolean>;
   /** 拒绝 tty 输入请求 */
   rejectTtyReadRequest(ttyId: number, requestId: number, reason?: any): MaybePromise<boolean>;
-
+  /** 客户端主动输入 */
   inputTty(ttyId: number, data: any): MaybePromise<boolean>;
 }
 export interface ClientTtyExposed {
@@ -99,6 +97,6 @@ export interface ClientTtyExposed {
   writeTty(ttyId: number, data: TtyOutputsData): void;
   /** 在指定 TTY 发送读取请求 */
   sendTtyReadRequest(ttyId: number, requestId: number, opts: TtyInputsReq): void;
-  /** 切换 TTY 读取权限 */
-  ttyReadEnableChange(ttyId: number, enable: boolean): void;
+  /** 取消指定 TTY 的读取请求 */
+  cancelTtyReadRequest(ttyId: number, requestId: number): void;
 }

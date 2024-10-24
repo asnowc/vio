@@ -21,6 +21,10 @@ export interface WebSocketResolverOpts {
   toStreamThreshold?: number;
 }
 export class WebSocketResolver {
+  private onError(err: any) {}
+  private onMessage(data: Uint8Array | string) {}
+  private onClose() {}
+
   constructor(
     private socket: Duplex,
     opts: WebSocketResolverOpts = {},
@@ -145,7 +149,7 @@ export class WebSocketResolver {
    * 发送继续帧
    */
   sendSplit(data: WebSocketData, maskKey?: number, hasSplit?: boolean) {
-    if (this.status !== WS_STATUS.OPEN) throw new WebSocketStatusError();
+    if (this.#status !== WS_STATUS.OPEN) throw new WebSocketStatusError();
     if (typeof data === "string") {
       data = Buffer.from(data, "utf-8");
     } else if (!Buffer.isBuffer(data)) throw new UnsupportedDataType();
@@ -161,16 +165,12 @@ export class WebSocketResolver {
     this.sendFrame(head);
   }
   private sendFrame(data: Uint8Array) {
-    if (this.status !== WS_STATUS.OPEN) throw new WebSocketStatusError();
+    if (this.#status !== WS_STATUS.OPEN) throw new WebSocketStatusError();
     this.socket.write(data);
   }
   private onPing() {
     return this.pong();
   }
-  private onError(err: any) {}
-  private onMessage(data: Uint8Array | string) {}
-  private onClose() {}
-
   #pingWaitingQueue: WithPromise<void>[] = [];
   ping(): Promise<void> {
     //ping操作
@@ -184,8 +184,8 @@ export class WebSocketResolver {
     return this.socket.destroy(err);
   }
   private finalClose() {
-    if (this.status === WS_STATUS.CLOSED) return;
-    this.status = WS_STATUS.CLOSED;
+    if (this.#status === WS_STATUS.CLOSED) return;
+    this.#status = WS_STATUS.CLOSED;
     if (!this.socket.writableEnded) this.socket.end(() => this.socket.destroy());
     else this.socket.destroy();
 
@@ -196,11 +196,18 @@ export class WebSocketResolver {
     this.#pingWaitingQueue.length = 0;
     this.onClose();
   }
-  status: number = WS_STATUS.OPEN;
+  #status: number = WS_STATUS.CONNECTING;
+  get status() {
+    return this.#status;
+  }
+  open() {
+    if (this.#status !== WS_STATUS.CONNECTING) return;
+    this.#status = WS_STATUS.OPEN;
+  }
   /** 发送 close 帧 */
   close(): void;
   close(data?: WebSocketData) {
-    if (this.status !== WS_STATUS.OPEN) throw new WebSocketStatusError();
+    if (this.#status !== WS_STATUS.OPEN) throw new WebSocketStatusError();
 
     let size: number = 0;
     if (typeof data === "string") {
@@ -210,7 +217,7 @@ export class WebSocketResolver {
 
     const head = encodeWsHead(size, Opcode.close);
     this.sendFrame(head);
-    this.status = WS_STATUS.CLOSING;
+    this.#status = WS_STATUS.CLOSING;
   }
 }
 export const WS_STATUS = {
