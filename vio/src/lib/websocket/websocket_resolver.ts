@@ -13,94 +13,82 @@ enum Opcode {
 }
 export interface WebSocketResolverOpts {
   onPing?(this: WebSocketResolverOpts): void;
-  onMessage?(this: WebSocketResolverOpts, data: WebSocketData): void;
-  onClose?(this: WebSocketResolverOpts): void;
-  onError?(this: WebSocketResolverOpts, err: any): void;
   payloadLengthLimit?: number;
   /** payloadLength 超过这个值转为流 */
   toStreamThreshold?: number;
 }
 export class WebSocketResolver {
-  private onError(err: any) {}
-  private onMessage(data: Uint8Array | string) {}
-  private onClose() {}
-
   constructor(
     private socket: Duplex,
     opts: WebSocketResolverOpts = {},
   ) {
-    const voidFn = function () {};
-    const {
-      onPing = this.pong,
-      onClose = voidFn,
-      onError = voidFn,
-      onMessage = voidFn,
-      payloadLengthLimit = 2 ** 32,
-      toStreamThreshold = 2 ** 32,
-    } = opts;
+    const { onPing = this.pong, payloadLengthLimit = 2 ** 32, toStreamThreshold = 2 ** 32 } = opts;
     if (toStreamThreshold > 2 ** 32) throw new Error("payloadLengthLimit 不能超过 " + 2 ** 32);
     this.onPing = onPing;
-    this.onClose = onClose;
-    this.onError = onError;
-    this.onMessage = onMessage;
-
+    socket.pause();
     this.payloadLengthLimit = payloadLengthLimit;
     this.toStreamThreshold = toStreamThreshold;
-
-    const { cancel, read } = readableToByteReader(this.socket);
-    this.startRead(read)
-      .finally(() => {
-        this.finalClose();
-        cancel();
-      })
-      .catch((err) => this.onError(err));
   }
   readonly payloadLengthLimit: number;
   readonly toStreamThreshold: number;
-  private async startRead(read: ByteReader) {
-    let frame: WsFrameHead | undefined;
-    while ((frame = await this.readFrame(read))) {
-      let content: Buffer;
-      if (frame.payloadLength) {
-        if (frame.payloadLength > this.payloadLengthLimit) {
-          this.destroy(new Error("过长的帧"));
-          return;
-        } else if (frame.payloadLength > this.toStreamThreshold) {
-          //todo: 转为流
-          this.destroy(new Error("过长的帧"));
-          return;
-        } else content = Buffer.alloc(Number(frame.payloadLength));
-        await read(content);
-      } else content = Buffer.alloc(0);
+  open() {
+    if (this.#status !== WS_STATUS.CONNECTING) throw new Error();
+    this.#status = WS_STATUS.OPEN;
+    return this.startRead();
+  }
 
-      if (frame.useMask) encodeMsg(content, frame.maskKey!);
-
-      switch (frame.opcode) {
-        case Opcode.close:
-          this.close();
-          return;
-        case Opcode.bin:
-          this.onMessage(content);
-          break;
-
-        case Opcode.text:
-          this.onMessage(content.toString("utf-8"));
-          break;
-        case Opcode.ping:
-          this.onPing();
-          break;
-        case Opcode.pong: {
-          const item = this.#pingWaitingQueue.shift();
-          item?.resolve();
-          break;
-        }
-        default:
-          this.onError(new Error("unknown frame"));
-          break;
+  private async *startRead(): AsyncGenerator<WebSocketData, undefined, undefined> {
+    const { cancel, read } = readableToByteReader(this.socket);
+    try {
+      let frame: string | Buffer | undefined;
+      while ((frame = await this.readFrame(read))) {
+        yield frame;
       }
+    } finally {
+      cancel();
+      this.finalClose();
     }
   }
   private async readFrame(read: ByteReader) {
+    let frame = await this.readFrameFirst(read);
+    if (!frame) return;
+    let content: Buffer;
+    if (frame.payloadLength) {
+      if (frame.payloadLength > this.payloadLengthLimit) {
+        this.destroy(new Error("过长的帧"));
+        return;
+      } else if (frame.payloadLength > this.toStreamThreshold) {
+        //todo: 转为流
+        this.destroy(new Error("过长的帧"));
+        return;
+      } else content = Buffer.alloc(Number(frame.payloadLength));
+      await read(content);
+    } else content = Buffer.alloc(0);
+
+    if (frame.useMask) encodeMsg(content, frame.maskKey!);
+
+    switch (frame.opcode) {
+      case Opcode.close:
+        this.close();
+        return;
+      case Opcode.bin:
+        return content;
+
+      case Opcode.text:
+        return content.toString("utf-8");
+      case Opcode.ping:
+        this.onPing();
+        break;
+      case Opcode.pong: {
+        const item = this.#pingWaitingQueue.shift();
+        item?.resolve();
+        break;
+      }
+      default:
+        throw new Error("unknown frame");
+    }
+  }
+  private async readFrameFirst(read: ByteReader) {
     const head = await read(Buffer.alloc(2)).catch(() => null);
     if (!head) return;
     const frame = decodeWsHead(head);
@@ -194,15 +182,10 @@ export class WebSocketResolver {
       item.reject(err);
     }
     this.#pingWaitingQueue.length = 0;
-    this.onClose();
   }
   #status: number = WS_STATUS.CONNECTING;
   get status() {
     return this.#status;
-  }
-  open() {
-    if (this.#status !== WS_STATUS.CONNECTING) return;
-    this.#status = WS_STATUS.OPEN;
   }
   /** 发送 close 帧 */
   close(): void;

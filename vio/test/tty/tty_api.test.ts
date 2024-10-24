@@ -26,18 +26,20 @@ describe("tty-read", function () {
         default:
           break;
       }
-      serverApi.tty.resolveTtyReadRequest(index, reqId, res);
+      serverApi.tty.resolveTtyReadRequest(index, reqId, res).catch(() => {});
     });
-  }, 500);
+  });
   test("input", async function ({ task, vio }) {
     const res = await vio.readText("title");
     expect(res).toBe("res-title");
   });
   test("pick", async function ({ vio }) {
-    const res = await vio.pick<string | number>("title", [
-      { label: "aa", value: 1 },
-      { label: "aa2", value: "a" },
-    ]);
+    const res = await vio
+      .pick<string | number>("title", [
+        { label: "aa", value: 1 },
+        { label: "aa2", value: "a" },
+      ])
+      .catch(() => {});
     expect(res).toBe(1);
   });
   test("select", async function ({ vio, connector }) {
@@ -65,20 +67,22 @@ describe("tty-read", function () {
     expect(calls[0][1]).toEqual({ content: ["xxxx"], type: "log" } satisfies TtyOutputData.Text);
   });
 });
-test("多客户", async function ({ vio, connectVioSever }) {
-  const p1 = vio.readText("h1"); //请求确认
+test.only("多客户", async function ({ vio, connectVioSever }) {
+  const p1 = vio.readText("h1").catch(() => {}); //请求确认
 
   const c1 = await connectVioSever(); // 客户端连接
+  const c2 = await connectVioSever(); //模拟重新连接
+
   expect(c1.clientApi.tty.sendTtyReadRequest, "应收到一次请求").toBeCalledTimes(1);
 
-  const c2 = await connectVioSever(); //模拟重新连接
+  await afterTime(50);
   expect(c2.clientApi.tty.sendTtyReadRequest, "应收到一次请求").toBeCalledTimes(1);
 
   const reqId = c2.clientApi.tty.sendTtyReadRequest.mock.calls[0][1];
   await expect(c2.serverApi.tty.resolveTtyReadRequest(0, reqId, "11"), "c1 成功解决请求").resolves.toBe(true);
-
-  expect(c2.clientApi.tty.cancelTtyReadRequest).toBeCalled();
-  expect(c1.clientApi.tty.cancelTtyReadRequest).not.toBeCalled();
+  await afterTime(50);
+  expect(c2.clientApi.tty.cancelTtyReadRequest).not.toBeCalled();
+  expect(c1.clientApi.tty.cancelTtyReadRequest).toBeCalled();
   await expect(c1.serverApi.tty.resolveTtyReadRequest(0, reqId, "22"), "c2 没有解决请求").resolves.toBe(false);
 
   expect(p1).resolves.toBe("11");

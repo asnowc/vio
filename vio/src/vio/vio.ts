@@ -1,4 +1,4 @@
-import type { TtyInputsReq, TtyOutputsData, VioClientExposed } from "./api_type.ts";
+import type { TtyInputsReq, TtyOutputsData, VioClientExposed, VioServerExposed } from "./api_type.ts";
 import type { WebSocket } from "../lib/deno/http.ts";
 import { CpcViewer, Viewer } from "./_rpc_api.ts";
 import { TTY, TtyCenter, VioTty, TtyCenterImpl } from "./tty/mod.private.ts";
@@ -43,15 +43,17 @@ class VioImpl extends TTY implements Vio {
     return this.#viewers.keys();
   }
   joinFormWebsocket(websocket: WebSocket, onDispose?: (viewer: Disposable) => void): Disposable {
-    const serviceExposed = { object: this.object, tty: this.tty };
+    const serviceExposed: VioServerExposed = { object: this.object, tty: TtyCenterImpl.createExposed(this.tty) };
     const viewer = new CpcViewer(websocket, serviceExposed, (viewer) => {
       this.#viewers.delete(viewer);
       onDispose?.(viewer);
     });
     this.#viewers.add(viewer);
-    for (const cachedRead of this.tty.eachWaitingReadRequest()) {
-      viewer.tty.sendTtyReadRequest(cachedRead.ttyId, cachedRead.requestId, cachedRead.config);
-    }
+    setTimeout(() => {
+      for (const cachedRead of this.tty.eachWaitingReadRequest()) {
+        viewer.tty.sendTtyReadRequest(cachedRead.ttyId, cachedRead.requestId, cachedRead.config);
+      }
+    });
     return viewer;
   }
 
@@ -60,7 +62,9 @@ class VioImpl extends TTY implements Vio {
       for (const viewer of this.#viewers.values()) viewer.tty.sendTtyReadRequest(...args);
     },
     cancelTtyReadRequest: (...args) => {
-      for (const viewer of this.#viewers.values()) viewer.tty.cancelTtyReadRequest(...args);
+      for (const viewer of this.#viewers.values()) {
+        viewer.tty.cancelTtyReadRequest(...args);
+      }
     },
     writeTty: (...args) => {
       for (const viewer of this.#viewers.values()) viewer.tty.writeTty(...args);

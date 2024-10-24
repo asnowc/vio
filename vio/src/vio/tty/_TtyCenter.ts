@@ -5,8 +5,7 @@ import { InstanceDisposedError } from "../const.ts";
 import { RpcExposed, RpcService } from "cpcall";
 import { TtyCenter, VioTty } from "./type.ts";
 
-@RpcService()
-export class TtyCenterImpl implements TtyCenter, ServerTtyExposed {
+export class TtyCenterImpl implements TtyCenter {
   constructor(clientTtyApi: ClientTtyExposed) {
     this.#clientApi = clientTtyApi;
   }
@@ -56,32 +55,44 @@ export class TtyCenterImpl implements TtyCenter, ServerTtyExposed {
       }
     }
   }
+  static createExposed(ttyCenter: TtyCenterImpl): ServerTtyExposed {
+    return new this.TtyExposed(ttyCenter);
+  }
+  private static TtyExposed =
+    @RpcService()
+    class TtyExposed implements ServerTtyExposed {
+      constructor(private ttyCenter: TtyCenterImpl) {}
+      private getTty(ttyId: number) {
+        return this.ttyCenter.#instanceMap.get(ttyId);
+      }
+      @RpcExposed()
+      getTtyCache(id: number): TtyOutputsData[] {
+        const { ttyCenter } = this;
+        const tty = ttyCenter.getCreated(id);
+        if (!tty) return [];
+        return Array.from(tty.getCache());
+      }
+      @RpcExposed()
+      resolveTtyReadRequest(ttyId: number, requestId: number, res: any): boolean {
+        const tty = this.getTty(ttyId);
+        if (!tty) return false;
+        this.ttyCenter.#clientApi.cancelTtyReadRequest(ttyId, requestId);
+        return tty.resolveRequest(requestId, res);
+      }
+      @RpcExposed()
+      rejectTtyReadRequest(ttyId: number, requestId: number, reason: any): boolean {
+        const tty = this.getTty(ttyId);
+        if (!tty) return false;
+        return tty.rejectRequest(requestId, reason);
+      }
+      @RpcExposed()
+      inputTty(ttyId: number, data: any): boolean {
+        const tty = this.getTty(ttyId);
+        if (!tty) return false;
+        return tty.input(data);
+      }
+    };
   // ServerTtyExposed 实现
-
-  @RpcExposed()
-  getTtyCache(id: number): TtyOutputsData[] {
-    const tty = this.getCreated(id);
-    if (!tty) return [];
-    return Array.from(tty.getCache());
-  }
-  @RpcExposed()
-  resolveTtyReadRequest(ttyId: number, requestId: number, res: any): boolean {
-    const tty = this.#instanceMap.get(ttyId);
-    if (!tty) return false;
-    return tty.resolveRequest(requestId, res);
-  }
-  @RpcExposed()
-  rejectTtyReadRequest(ttyId: number, requestId: number, reason: any): boolean {
-    const tty = this.#instanceMap.get(ttyId);
-    if (!tty) return false;
-    return tty.rejectRequest(requestId, reason);
-  }
-  @RpcExposed()
-  inputTty(ttyId: number, data: any): boolean {
-    const tty = this.#instanceMap.get(ttyId);
-    if (!tty) return false;
-    return tty.input(data);
-  }
 }
 
 class VioTtyImpl extends CacheTty implements VioTty {
