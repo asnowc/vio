@@ -2,10 +2,21 @@ import { indexRecordToArray } from "../../lib/array_like.ts";
 import { MaybePromise } from "../../type.ts";
 import { VioChart as RpcVioChart } from "./chart/VioChart.ts";
 import { VioTableImpl } from "./table/VioTable.ts";
-import { ServerObjectExposed, TableDataDto, VioObjectDto, VioTableDto } from "./object.dto.ts";
+import {
+  ChartUpdateData,
+  ClientObjectExposed,
+  ServerObjectExposed,
+  TableChanges,
+  TableDataDto,
+  VioObjectCreateDto,
+  VioObjectDto,
+  VioTableDto,
+} from "./object.dto.ts";
 import { TableFilter, TableRow, ChartDataItem, ChartInfo, RequestUpdateRes, VioChart, Key } from "./object.type.ts";
 
 import { VioObjectCenterImpl } from "./_VioObjectCenter.ts";
+import { VioClientExposed } from "../api_type.ts";
+import { CpCall, MakeCallers } from "cpcall";
 
 export class RpcServerObjectExposed implements ServerObjectExposed {
   constructor(objectCenter: VioObjectCenterImpl) {
@@ -88,4 +99,32 @@ function getChartInfo<T>(chart: VioChart<T>, id: number): ChartInfo<T> {
     cacheList,
     dimensions: indexRecordToArray(chart.dimensions),
   };
+}
+export class ClientObjectApi implements ClientObjectExposed {
+  constructor(api: MakeCallers<VioClientExposed>) {
+    this.#api = api.object;
+  }
+  #api?: MakeCallers<ClientObjectExposed>;
+  createObject(info: VioObjectCreateDto): void {
+    if (!this.#api) return;
+    CpCall.exec(this.#api.createObject, info);
+  }
+  deleteObject(id: number): void {
+    if (!this.#api) return;
+    CpCall.exec(this.#api.deleteObject, id);
+  }
+
+  writeChart(id: number, data: ChartUpdateData<any>): void {
+    if (!this.#api) return;
+    CpCall.exec(this.#api.writeChart, id, data);
+  }
+
+  updateTable(tableId: number): void {
+    if (!this.#api) return;
+    CpCall.exec(this.#api.updateTable, tableId);
+  }
+  tableChange(tableId: number, changes: TableChanges<TableRow>): void {
+    if (!this.#api) return;
+    CpCall.exec(this.#api.tableChange, tableId, changes);
+  }
 }
