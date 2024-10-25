@@ -67,7 +67,7 @@ describe("tty-read", function () {
     expect(calls[0][1]).toEqual({ content: ["xxxx"], type: "log" } satisfies TtyOutputData.Text);
   });
 });
-test.only("多客户", async function ({ vio, connectVioSever }) {
+test("多客户", async function ({ vio, connectVioSever }) {
   const p1 = vio.readText("h1").catch(() => {}); //请求确认
 
   const c1 = await connectVioSever(); // 客户端连接

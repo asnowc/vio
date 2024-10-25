@@ -22,7 +22,6 @@ export class VioObjectCenterImpl implements VioObjectCenter, ServerObjectExposed
   #instanceMap = new UniqueKeyMap<VioObject>(2 ** 32);
   /**
    * 所有 Vio 对象数量
-   * @deprecated 已废弃
    */
   get chartsNumber(): number {
     return this.#instanceMap.size;

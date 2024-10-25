@@ -92,11 +92,6 @@ class VioImpl extends TTY implements Vio {
       for (const viewer of this.#viewers.values()) viewer.object.updateTable(...args);
     },
   });
-  /**
-   * 图相关的接口
-   * @deprecated 改用 object
-   */
-  readonly chart: VioObjectCenter = this.object;
 }
 /**
  * 创建 Vio 实例

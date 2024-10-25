@@ -411,8 +411,6 @@ export interface VioHttpServerOption {
     frontendConfig?: object;
     requestHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
     rpcAuthenticate?(request: Request): void;
-    // @deprecated (undocumented)
-    staticHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
     staticSetHeaders?: Record<string, string>;
     vioStaticDir?: string;
 }
