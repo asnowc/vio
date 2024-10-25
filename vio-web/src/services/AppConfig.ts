@@ -1,5 +1,4 @@
 import { AppThemeName, AppWebConfig, RpcConnectConfig, getAppWebConfig } from "./app_config/user_json_config.ts";
-import { DEV_MODE } from "@/const.ts";
 import { EventTrigger } from "evlib";
 import React, { useContext } from "react";
 
@@ -19,10 +18,6 @@ export class AppConfig implements AppWebConfig {
   constructor(config: AppWebConfig) {
     this.themeName = config.themeName;
     this.rpcConnect = config.rpcConnect;
-    if (import.meta.env.MODE === DEV_MODE) {
-      this.rpcConnect.reconnectTryMax = 0;
-      console.info("DEV 模式已关闭自动重连");
-    }
   }
 }
 

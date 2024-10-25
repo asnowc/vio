@@ -18,7 +18,7 @@ test("二维折线图更新", async function ({ vioServerInfo: { vio }, appPage:
   await page.getByLabel("dashboard").locator("svg").click();
   await page.getByRole("button", { name: chart.name }).click(); // 打开面板
   const chartPanel = page.locator(`.${E2E_SELECT_CLASS.panels.chart}`);
-  await expect(chartPanel.count(), "面板已打开").resolves.toBe(1);
+  await expect(chartPanel, "面板已打开").toHaveCount(1);
 
   await expect(chartPanel, "读取到缓存").toHaveScreenshot({ maxDiffPixelRatio });
 
@@ -44,7 +44,7 @@ test("创建与删除图", async function ({ vioServerInfo: { vio }, appPage: pa
   });
 
   await page.getByRole("button", { name: chart1.meta.title! }).click(); // 打开面板
-  await expect(chartPanel.count(), "图1面板已打开").resolves.toBe(1);
+  await expect(chartPanel, "图1面板已打开").toHaveCount(1);
 
   const chart2 = vio.object.createChart(1, {
     name: "abc图2",
@@ -56,5 +56,5 @@ test("创建与删除图", async function ({ vioServerInfo: { vio }, appPage: pa
 
   vio.object.disposeObject(chart1);
   await afterTime(100);
-  await expect(page.getByRole("button", { name: chart1.meta.title! }).count(), "侧栏统计已被删除").resolves.toBe(0);
+  await expect(page.getByRole("button", { name: chart1.meta.title! }), "侧栏统计已被删除").toHaveCount(0);
 });

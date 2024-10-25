@@ -8,7 +8,6 @@ describe("test content", function () {
   beforeEach(async ({ appPage: page, vioServerInfo: { visitUrl } }) => {
     await page.goto(visitUrl);
     await waitPageConnect(page);
-    await page.getByRole("switch").click(); //开启接收请求
   });
   test("input text", async function ({ appPage: page, vioServerInfo: { vio } }) {
     const tty = vio;
@@ -87,42 +86,22 @@ describe("reading dispatch", function () {
     await page.goto(visitUrl);
     await waitPageConnect(page);
   });
-  test("夺取输入权", async function ({ vioServerInfo: { vio, visitUrl }, appPage: page, createAppPage }) {
-    await page.getByRole("switch").click(); // 开启接收输入
-
+  test("多客户端连接", async function ({ vioServerInfo: { vio, visitUrl }, appPage: page, createAppPage }) {
     let p1 = vio.confirm("c1"); // 请求发送到 page1
 
     const page2 = await createAppPage();
     await page2.goto(visitUrl);
 
-    await page2.getByRole("switch").click(); // page2 开启接收输入请求，page1 的输入权被夺走
-
-    await expect(page.getByRole("switch")).not.toBeChecked();
-
     let p2 = vio.confirm("c2");
 
-    await expect(page.getByRole("button", { name: "是" }).count()).resolves.toBe(0);
+    await expect(page.getByRole("button", { name: "是" })).toHaveCount(2);
 
     const butNo = page2.getByRole("button", { name: "否" });
-    await expect(butNo.count()).resolves.toBe(2);
+    await expect(butNo).toHaveCount(2);
     await butNo.first().click();
     await butNo.click();
 
     await expect(p2).resolves.toBe(false);
-    await expect(p1).resolves.toBe(false);
-  });
-  /**
-   * 有时候请求已经发送到客户端，但客户端在断开连接前没有响应读取请求。如果有客户端获取输入权，改读取请求应被重新发送
-   */
-  test("读取请求重发", async function ({ appPage: page, vioServerInfo: { vio } }) {
-    await page.getByRole("switch").click(); // 开启接收输入
-    const p1 = vio.confirm("yes or no?");
-
-    await page.getByRole("button", { name: "是" }).waitFor({ state: "visible" });
-    await page.reload();
-    await page.getByRole("switch").click(); // 开启接收输入
-    await page.getByRole("button", { name: "否" }).click();
-
     await expect(p1).resolves.toBe(false);
   });
 });

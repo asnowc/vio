@@ -67,7 +67,7 @@ export namespace TtyInputReq {
     [key: string | number]: any;
   }
 }
-
+WebSocket;
 export type TtyOutputsData =
   | TtyOutputData.Text
   | TtyOutputData.Table
@@ -82,23 +82,41 @@ export type TtyInputsReq =
   | TtyInputReq.Select
   | TtyInputReq.Custom;
 
+export interface TtyCommandInfo {
+  command: string;
+  description?: string;
+  args?: { key: string; type: TtyInputsReq; required?: boolean }[];
+  ttyId: number;
+}
 export interface ServerTtyExposed {
   /** 获取 TTY 输出缓存日志 */
   getTtyCache(ttyId: number): MaybePromise<TtyOutputsData[]>;
-  /** 切换 TTY 读取权限 */
-  setTtyReadEnable(ttyId: number, enable: boolean): MaybePromise<boolean>;
   /** 解决 tty 输入请求 */
   resolveTtyReadRequest(ttyId: number, requestId: number, res: any): MaybePromise<boolean>;
   /** 拒绝 tty 输入请求 */
   rejectTtyReadRequest(ttyId: number, requestId: number, reason?: any): MaybePromise<boolean>;
-
+  /** 客户端主动输入 */
   inputTty(ttyId: number, data: any): MaybePromise<boolean>;
+  /** 执行命令 */
+  execCommand(ttyId: number, command: string, args?: Record<string, any>): MaybePromise<boolean>;
+  /** 获取服务端命令列表 */
+  getTtyCommands(options?: GetTtyCommandsOption): MaybePromise<{ list: TtyCommandInfo[] }>;
+}
+export interface GetTtyCommandsOption {
+  /** 指定终端id */
+  ttyId?: number;
+  /** 搜索命令，搜索包括命令和描述 */
+  search?: string;
+  /** 分页，从 0 开始 */
+  page?: number;
+  /** 分页大小 */
+  pageSize?: number;
 }
 export interface ClientTtyExposed {
   /** 在指定 TTY 输出数据 */
   writeTty(ttyId: number, data: TtyOutputsData): void;
   /** 在指定 TTY 发送读取请求 */
   sendTtyReadRequest(ttyId: number, requestId: number, opts: TtyInputsReq): void;
-  /** 切换 TTY 读取权限 */
-  ttyReadEnableChange(ttyId: number, enable: boolean): void;
+  /** 取消指定 TTY 的读取请求 */
+  cancelTtyReadRequest(ttyId: number, requestId: number): void;
 }

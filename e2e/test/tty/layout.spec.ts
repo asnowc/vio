@@ -14,7 +14,7 @@ test("saveLayout", async function ({ appPage: page }, info) {
 
   await page.reload({ waitUntil: "domcontentloaded" });
   await new Promise((resolve) => setTimeout(resolve, 1000)); //等待页面载入
-  await expect(page.getByText("TTY 0").count()).resolves.toBe(1);
-  await expect(page.getByText("TTY 1").count()).resolves.toBe(1);
-  await expect(page.getByText("TTY 2").count()).resolves.toBe(1);
+  await expect(page.getByText("TTY 0")).toHaveCount(1);
+  await expect(page.getByText("TTY 1")).toHaveCount(1);
+  await expect(page.getByText("TTY 2")).toHaveCount(1);
 });

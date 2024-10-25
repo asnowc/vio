@@ -198,46 +198,63 @@ export type TableRow = {
 
 // @public
 export abstract class TTY implements TtyInput, TtyOutput {
+    // @override (undocumented)
     confirm(title: string, content?: string): Promise<boolean>;
-    // (undocumented)
+    // @override (undocumented)
     error(...args: any[]): void;
-    // (undocumented)
+    // @override (undocumented)
     info(...args: any[]): void;
-    // (undocumented)
+    // @override (undocumented)
     log(...args: any[]): void;
+    // @override (undocumented)
     pick<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[]): Promise<T>;
     // Warning: (ae-forgotten-export) The symbol "TtyInputsReq" needs to be exported by the entry point index.d.ts
     abstract read<T = unknown>(config: TtyInputsReq): Promise<T>;
+    // @override (undocumented)
     readFiles(option?: TtyReadFileOption): Promise<VioFileData[]>;
+    // (undocumented)
     readText(title: string, max?: number): Promise<string>;
+    // (undocumented)
     readText(max?: number): Promise<string>;
+    // @override (undocumented)
     select<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[], config?: {
         min?: number;
         max?: number;
     }): Promise<T[]>;
-    // (undocumented)
+    // @override (undocumented)
     warn(...args: any[]): void;
     // Warning: (ae-forgotten-export) The symbol "TtyOutputsData" needs to be exported by the entry point index.d.ts
     abstract write(data: TtyOutputsData): void;
+    // @override (undocumented)
     writeImage(imageData: EncodedImageData | RawImageData): void;
-    // @alpha
+    // @override (undocumented)
     writeTable(data: any[][], header?: string[]): void;
-    // (undocumented)
+    // @override (undocumented)
     writeUiLink(ui: VioObject): void;
 }
 
 // @public (undocumented)
-export class TtyCenter {
-    // Warning: (ae-forgotten-export) The symbol "TtyWriterFn" needs to be exported by the entry point index.d.ts
-    constructor(writeTty: TtyWriterFn);
+export interface TtyCenter {
     delete(tty: VioTty): boolean;
     get(ttyId: number): VioTty;
     getAll(): IterableIterator<VioTty>;
     // (undocumented)
     getCreated(index: number): VioTty | undefined;
-    setReader(ttyId: number, reader: TtyReader): TtyReadResolver;
+    setCommand(command: string, call?: TtyCommand, ttyId?: number): void;
+}
+
+// @public (undocumented)
+export interface TtyCommand<T extends {} = {}> {
+    // Warning: (ae-forgotten-export) The symbol "TtyCommandInfo" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    static TTY_DEFAULT_CACHE_SIZE: number;
+    args?: TtyCommandInfo["args"];
+    // (undocumented)
+    call(args: T, commandInfo: {
+        command: string;
+    }): void;
+    // (undocumented)
+    description?: string;
 }
 
 // @public (undocumented)
@@ -268,13 +285,6 @@ export interface TtyOutput {
     writeTable(data: any[][], header?: string[]): void;
 }
 
-// @public (undocumented)
-export interface TtyReader {
-    dispose?(): void;
-    // Warning: (ae-forgotten-export) The symbol "TtyReadFn" needs to be exported by the entry point index.d.ts
-    read: TtyReadFn;
-}
-
 // @public
 export type TtyReadFileOption = {
     mime?: string;
@@ -283,15 +293,6 @@ export type TtyReadFileOption = {
     maxNumber?: number;
     minNumber?: number;
 };
-
-// @public (undocumented)
-export interface TtyReadResolver {
-    dispose(): void;
-    input(data: any): boolean;
-    reject(requestId: number, reason: any): boolean;
-    resolve(requestId: number, data: any): boolean;
-    waitingSize: number;
-}
 
 // @public (undocumented)
 export interface UiAction extends UiBase {
@@ -342,8 +343,6 @@ export type UiTag = UiOutput & {
 
 // @public
 export interface Vio extends TTY {
-    // @deprecated
-    readonly chart: VioObjectCenter;
     // Warning: (ae-forgotten-export) The symbol "WebSocket_2" needs to be exported by the entry point index.d.ts
     joinFormWebsocket(websocket: WebSocket_2, onDispose?: (viewer: Disposable_2) => void): Disposable_2;
     readonly object: VioObjectCenter;
@@ -412,8 +411,6 @@ export interface VioHttpServerOption {
     frontendConfig?: object;
     requestHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
     rpcAuthenticate?(request: Request): void;
-    // @deprecated (undocumented)
-    staticHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
     staticSetHeaders?: Record<string, string>;
     vioStaticDir?: string;
 }
@@ -439,23 +436,11 @@ export interface VioObjectCenter {
 
 // @public (undocumented)
 export interface VioObjectCenter {
-    // @deprecated
-    create<T = any>(dimension: 1, options?: ChartCreateOption<T>): VioChart<T>;
-    // @deprecated
-    create<T = any>(dimension: 2, options?: ChartCreateOption<T[]>): VioChart<T[]>;
-    // @deprecated
-    create<T = any>(dimension: 3, options?: ChartCreateOption<T[][]>): VioChart<T[][]>;
-    // @deprecated (undocumented)
-    create<T = any>(dimension: number, options?: ChartCreateOption<T>): VioChart<T>;
     createChart<T = any>(dimension: 1, options?: ChartCreateOption<T>): VioChart<T>;
     createChart<T = any>(dimension: 2, options?: ChartCreateOption<T[]>): VioChart<T[]>;
     createChart<T = any>(dimension: 3, options?: ChartCreateOption<T[][]>): VioChart<T[][]>;
     // (undocumented)
     createChart<T = any>(dimension: number, options?: ChartCreateOption<T>): VioChart<T>;
-    // @deprecated (undocumented)
-    disposeChart(chart: VioChart): void;
-    // @deprecated (undocumented)
-    get(chartId: number): VioChart | undefined;
 }
 
 // @public (undocumented)
@@ -495,6 +480,7 @@ export interface VioTty extends TTY {
     cacheSize: number;
     disposed: boolean;
     getCache(): IterableIterator<TtyOutputsData>;
+    setCommand(command: string, call?: TtyCommand): void;
 }
 
 // (No @packageDocumentation comment for this package)

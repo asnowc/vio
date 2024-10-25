@@ -14,11 +14,6 @@ export interface VioHttpServerOption {
   vioStaticDir?: string;
   /** 覆盖静态资源响应头 */
   staticSetHeaders?: Record<string, string>;
-  /**
-   * @deprecated 改用 requestHandler
-   * 自定义处理请求。请求处理在 api 之后，静态文件服务器之前。
-   */
-  staticHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
   /** 自定义处理请求。请求处理在 api 之后，静态文件服务器之前。  */
   requestHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
   /** web终端前端配置 */
@@ -35,7 +30,7 @@ export class VioHttpServer {
     private vio: Vio,
     opts: VioHttpServerOption = {},
   ) {
-    let { vioStaticDir, staticSetHeaders, staticHandler, requestHandler = staticHandler, rpcAuthenticate } = opts;
+    let { vioStaticDir, staticSetHeaders, requestHandler, rpcAuthenticate } = opts;
     if (!vioStaticDir && packageDir) {
       vioStaticDir = path.resolve(packageDir, "assets/web");
     }
@@ -48,7 +43,7 @@ export class VioHttpServer {
     if (opts.frontendConfig) {
       this.#frontendConfig = Response.json(opts.frontendConfig);
     }
-    if (typeof opts.rpcAuthenticate === "function") this.#rpcAuthenticate = opts.rpcAuthenticate;
+    if (typeof rpcAuthenticate === "function") this.#rpcAuthenticate = rpcAuthenticate;
 
     const router = new Router();
     router.set("/api/test", function () {

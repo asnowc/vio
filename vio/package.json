@@ -1,6 +1,6 @@
 {
   "name": "@asla/vio",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "A web terminal that provides a variety of graphical controls. You can interact with processes in the browser",
   "type": "module",
   "scripts": {
@@ -14,8 +14,8 @@
   "keywords": [],
   "license": "MIT",
   "devDependencies": {
-    "@eavid/lib-node": "^2.3.0",
-    "@types/node": "^22.7.3",
+    "@eavid/lib-node": "^2.4.1",
+    "@types/node": "^22.7.9",
     "evlib": "^2.9.0",
     "rollup-plugin-dts": "^6.1.1"
   },

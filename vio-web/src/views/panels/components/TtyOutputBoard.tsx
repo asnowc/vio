@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import React, { memo, ReactNode, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { TtyClientAgent, TtyOutputMsg, useVioApi } from "@/services/VioApi.ts";
 import { useListenable, useListenableData } from "@/hooks/event.ts";
 import { TtyOutput, TextMsgFilter } from "./tty/OutputItem.tsx";
@@ -17,8 +17,12 @@ import { useAsync } from "@/hooks/async.ts";
 import { E2E_SELECT_CLASS } from "@/const.ts";
 import { TtyOutputData } from "@asla/vio/client";
 
-export function TtyOutputBoard(props: { ttyAgent: TtyClientAgent; visible?: boolean }) {
-  const { ttyAgent, visible = true } = props;
+export function TtyOutputBoard(props: {
+  ttyAgent: TtyClientAgent;
+  visible?: boolean;
+  renderRightTool?: (element: ReactNode) => ReactNode;
+}) {
+  const { ttyAgent, visible = true, renderRightTool = (element) => element } = props;
   const colors = useThemeToken();
 
   const { ttyMsgList: ttyMsgList, clearTtyData } = useTtyData(ttyAgent, visible);
@@ -82,20 +86,22 @@ export function TtyOutputBoard(props: { ttyAgent: TtyClientAgent; visible?: bool
           <TooltipBtn title="清空输出" icon={<ClearOutlined />} onClick={clearTtyData} size="small"></TooltipBtn>
           <TextMsgFilter filterValues={excludeTextType} onFilerChange={setExcludeTextType} />
         </flex-row>
-        <flex-row style={{ alignItems: "center", gap: 8 }}>
-          <TooltipBtn
-            title="搜索"
-            icon={<SearchOutlined />}
-            onClick={() => floatSearch.open(true)}
-            size="small"
-          ></TooltipBtn>
-          <TooltipBtn
-            title="滚动到底部"
-            icon={<VerticalAlignBottomOutlined />}
-            onClick={() => scrollToBottom(true)}
-            size="small"
-          ></TooltipBtn>
-        </flex-row>
+        {renderRightTool(
+          <flex-row style={{ alignItems: "center", gap: 8 }}>
+            <TooltipBtn
+              title="搜索"
+              icon={<SearchOutlined />}
+              onClick={() => floatSearch.open(true)}
+              size="small"
+            ></TooltipBtn>
+            <TooltipBtn
+              title="滚动到底部"
+              icon={<VerticalAlignBottomOutlined />}
+              onClick={() => scrollToBottom(true)}
+              size="small"
+            ></TooltipBtn>
+          </flex-row>,
+        )}
       </flex-row>
       <div style={{ flex: 1, padding: "8px 0", overflow: "auto" }} ref={containerRef}>
         <flex-col style={{ padding: "0 8px", gap: 4 }}>

@@ -64,7 +64,7 @@ function writeText(type: TtyOutputData.Text["type"], args: any[]): TtyOutputData
 export abstract class TTY implements TtyInput, TtyOutput {
   /** 写入任意数据 */
   abstract write(data: TtyOutputsData): void;
-  /** 输出图像 */
+  /** @override */
   writeImage(imageData: EncodedImageData | RawImageData): void {
     if (typeof (imageData as EncodedImageData).mime === "string") {
       const image = imageData as EncodedImageData;
@@ -74,32 +74,34 @@ export abstract class TTY implements TtyInput, TtyOutput {
       return this.write({ type: "image", image, imageDataType: 1 } satisfies TtyOutputData.Image);
     }
   }
-  /**
-   * 输出表格
-   * @alpha
-   */
+  /** @override */
   writeTable(data: any[][], header?: string[]): void {
     return this.write({ type: "table", data, header } satisfies TtyOutputData.Table);
   }
+  /** @override */
   log(...args: any[]): void {
     this.write(writeText("log", args));
   }
+  /** @override */
   warn(...args: any[]): void {
     this.write(writeText("warn", args));
   }
+  /** @override */
   error(...args: any[]): void {
     this.write(writeText("error", args));
   }
+  /** @override */
   info(...args: any[]): void {
     this.write(writeText("info", args));
   }
+  /** @override */
   writeUiLink(ui: VioObject): void {
     throw new Error("Unsupported UI object");
     this.write({ type: "link", uiType: "chart", id: ui.id } satisfies TtyOutputData.UILink);
   }
   /** 读取任意数据 */
   abstract read<T = unknown>(config: TtyInputsReq): Promise<T>;
-  /** 请求输入文件 */
+  /** @override */
   async readFiles(option: TtyReadFileOption = {}): Promise<VioFileData[]> {
     return this.read<TtyInputReq.FileResult>({
       type: "file",
@@ -113,10 +115,9 @@ export abstract class TTY implements TtyInput, TtyOutput {
     });
   }
 
-  /** 提示读取文本 */
   async readText(title: string, max?: number): Promise<string>;
-  /** 读取文本 */
   async readText(max?: number): Promise<string>;
+  /** @override */
   async readText(title_max?: string | number, max?: number): Promise<string> {
     let res: unknown;
     if (typeof title_max === "string") res = await this.read({ type: "text", title: title_max, maxLen: max });
@@ -124,16 +125,16 @@ export abstract class TTY implements TtyInput, TtyOutput {
     if (typeof res !== "string") throw new InvalidInputDataError(createTypeErrorDesc("string", typeof res));
     return res;
   }
-  /** 请求确认 */
+  /** @override */
   async confirm(title: string, content?: string): Promise<boolean> {
     const res = await this.read({ type: "confirm", title, content });
     return Boolean(res);
   }
-  /** 单选 */
+  /** @override */
   pick<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[]): Promise<T> {
     return this.select(title, options, { min: 1, max: 1 }).then((res) => res[0]);
   }
-  /** 多选 */
+  /** @override */
   async select<T extends SelectKey = SelectKey>(
     title: string,
     options: SelectItem<T>[],
