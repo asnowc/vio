@@ -1,3 +1,6 @@
+import { TTY } from "./_TTY.ts";
+import { TtyOutputsData } from "./tty.dto.ts";
+
 /**
  * @public
  * @category TTY
@@ -44,3 +47,31 @@ export type SelectKey = string | number;
  * @category TTY
  */
 export type SelectItem<T extends SelectKey = SelectKey> = { value: T; label?: string };
+
+/**
+ * @public
+ * @category TTY
+ */
+export interface VioTty extends TTY {
+  /** 已缓存的消息数量 */
+  cachedSize: number;
+  /** 缓存数量上限。可修改 */
+  cacheSize: number;
+  /** 获取已缓存是数据 */
+  getCache(): IterableIterator<TtyOutputsData>;
+  /** TTY 是否已被销毁 */
+  disposed: boolean;
+}
+/**
+ * @public
+ * @category TTY
+ */
+export interface TtyCenter {
+  /** 获取指定索引的 TTY. 如果不存在，则创建后返回 */
+  get(ttyId: number): VioTty;
+  getCreated(index: number): VioTty | undefined;
+  /** 获取所有已创建的 TTY */
+  getAll(): IterableIterator<VioTty>;
+  /** 删除指定索引的 TTY */
+  delete(tty: VioTty): boolean;
+}

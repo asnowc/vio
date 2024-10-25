@@ -1,12 +1,11 @@
-import React, { ReactNode, useMemo, useReducer, useRef, useState } from "react";
-import { Badge, Empty, Space, Switch, Tabs, TabsProps } from "antd";
+import React, { ReactNode, useMemo, useReducer, useRef } from "react";
+import { Badge, Empty, Space, Tabs, TabsProps } from "antd";
 import { TtyInputMsg, useVioApi, TtyClientAgent } from "@/services/VioApi.ts";
 import { useListenable, useListenableData } from "@/hooks/event.ts";
 import { TtyItem } from "./tty/InputItem.tsx";
 import { INPUT_TYPE_INFO } from "./tty/const.tsx";
 import { useAntdStatic } from "@/hooks/msg.ts";
 import { TtyInputReq } from "@asla/vio/client";
-import { useAsync } from "@/hooks/async.ts";
 import { E2E_SELECT_CLASS } from "@/const.ts";
 
 export type TtyInputBoardProps = {
@@ -15,7 +14,7 @@ export type TtyInputBoardProps = {
 };
 export function TtyInputBoard(props: TtyInputBoardProps) {
   const { ttyAgent, visible = true } = props;
-  const { dataList, resolveInput, onInputEnableChange, readEnable, connected } = useTtyData(ttyAgent, visible);
+  const { dataList, resolveInput, connected } = useTtyData(ttyAgent, visible);
   const dataGroup: InputReqGroup = useMemo(() => {
     return Object.groupBy(dataList, (item) => item.req.type ?? "unknown") as InputReqGroup;
   }, [dataList]);
@@ -64,30 +63,13 @@ export function TtyInputBoard(props: TtyInputBoardProps) {
     });
     return res;
   }, [dataList, dataGroup]);
-  const { loading: readEnableLoading, run: onInputRequestChange } = useAsync(onInputEnableChange);
 
   return (
     <flex-row
       class={E2E_SELECT_CLASS.panels.tty_input}
       style={{ height: "100%", overflow: "hidden", padding: "0 8px" }}
     >
-      <Tabs
-        size="small"
-        items={tabItem}
-        tabBarGutter={14}
-        style={{ width: "100%" }}
-        tabBarExtraContent={
-          <Space>
-            接收输入请求
-            <Switch
-              disabled={!connected}
-              loading={readEnableLoading}
-              checked={readEnable}
-              onChange={onInputRequestChange}
-            />
-          </Space>
-        }
-      />
+      <Tabs size="small" items={tabItem} tabBarGutter={14} style={{ width: "100%" }} />
     </flex-row>
   );
 }
@@ -126,27 +108,11 @@ function useTtyData(ttyAgent: TtyClientAgent, visible: boolean) {
     else isFirst.current = false;
     if (visible) updateDataList();
   }, [visible]);
-  const readEnable = useListenableData(
-    ttyApi.readEnableChangeEvent,
-    (data, before) => {
-      if (data.id === ttyId) {
-        if (data.passive && ttyAgent.readEnable === false) {
-          message.error("输入权被夺取");
-        }
-      }
-      return ttyAgent.readEnable;
-    },
-    ttyAgent.readEnable,
-  );
-
-  const onInputEnableChange = (enable: boolean): Promise<boolean> => {
-    return ttyApi.setTtyReadEnable(ttyAgent.ttyId, enable);
-  };
 
   const resolveInput = (id: number, value: number) => {
     const exist = ttyApi.get(ttyId)!.resolveReading(id, value);
     if (!exist) message.error("输入请求的 id 不存在");
   };
 
-  return { dataList, resolveInput, onInputEnableChange, readEnable, connected };
+  return { dataList, resolveInput, connected };
 }

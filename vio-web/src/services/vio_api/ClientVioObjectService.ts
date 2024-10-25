@@ -17,6 +17,7 @@ import { ChartDataItem, ChartInfo, TableFilter, TableRow, VioChartCreateConfig, 
 @RpcService()
 export class ClientVioObjectService implements ClientObjectExposed {
   protected uiObjects = new Map<number, VioObject>();
+  /** @override */
   @RpcExposed()
   deleteObject(...idList: number[]): void {
     let deleted: Record<string, boolean> = {};
@@ -31,6 +32,7 @@ export class ClientVioObjectService implements ClientObjectExposed {
     }
     this.deleteObjEvent.emit(new Set(idList));
   }
+  /** @override */
   @RpcExposed()
   createObject(info: VioObjectCreateDto): void {
     this.uiObjects.set(info.id, info);
@@ -51,6 +53,7 @@ export class ClientVioObjectService implements ClientObjectExposed {
 
   /* Chart */
 
+  /** @override */
   @RpcExposed()
   writeChart(chartId: number, data: ChartUpdateData<any>): void {
     this.writeChartEvent.emit({ id: chartId, data });
@@ -122,12 +125,14 @@ export class ClientVioObjectService implements ClientObjectExposed {
     const table = this.#watchingTable[id];
     if (table instanceof TableClientAgent) return table;
   }
+  /** @override */
   @RpcExposed()
   updateTable(tableId: number): void {
     const table = this.#getTable(tableId);
     if (!table) return;
     table.needReloadEvent.emit();
   }
+  /** @override */
   @RpcExposed()
   tableChange(tableId: number, changes: TableChanges<TableRow>): void {
     const table = this.#getTable(tableId);

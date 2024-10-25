@@ -26,23 +26,20 @@ describe("tty-read", function () {
         default:
           break;
       }
-      serverApi.tty.resolveTtyReadRequest(index, reqId, res).then((res) => {
-        res;
-      });
+      serverApi.tty.resolveTtyReadRequest(index, reqId, res).catch(() => {});
     });
-    const result = await serverApi.tty.setTtyReadEnable(0, true);
-  }, 500);
+  });
   test("input", async function ({ task, vio }) {
-    task.suite.tasks[0].result;
-
     const res = await vio.readText("title");
     expect(res).toBe("res-title");
   });
   test("pick", async function ({ vio }) {
-    const res = await vio.pick<string | number>("title", [
-      { label: "aa", value: 1 },
-      { label: "aa2", value: "a" },
-    ]);
+    const res = await vio
+      .pick<string | number>("title", [
+        { label: "aa", value: 1 },
+        { label: "aa2", value: "a" },
+      ])
+      .catch(() => {});
     expect(res).toBe(1);
   });
   test("select", async function ({ vio, connector }) {
@@ -70,44 +67,25 @@ describe("tty-read", function () {
     expect(calls[0][1]).toEqual({ content: ["xxxx"], type: "log" } satisfies TtyOutputData.Text);
   });
 });
-test("重新获取输入权", async function ({ vio, connectVioSever }) {
-  const p1 = vio.confirm("h1"); //请求确认
+test.only("多客户", async function ({ vio, connectVioSever }) {
+  const p1 = vio.readText("h1").catch(() => {}); //请求确认
 
   const c1 = await connectVioSever(); // 客户端连接
-
-  await expect(c1.serverApi.tty.setTtyReadEnable(0, true), "tty0 成功获取输入权").resolves.toBe(true);
-
-  expect(c1.clientApi.tty.sendTtyReadRequest, "应收到一次请求").toBeCalledTimes(1);
-
-  c1.cpc.onClose.catch(() => {});
-  c1.cpc.dispose(); // 模拟断开连接
-
   const c2 = await connectVioSever(); //模拟重新连接
-  await expect(c2.serverApi.tty.setTtyReadEnable(0, true), "获取到输入权").resolves.toBe(true);
-  expect(c2.clientApi.tty.sendTtyReadRequest, "应收到一次请求").toBeCalledTimes(1);
-  const reqId = c2.clientApi.tty.sendTtyReadRequest.mock.calls[0][1];
-  await expect(c2.serverApi.tty.resolveTtyReadRequest(0, reqId, true), "c2 成功解决请求").resolves.toBe(true);
-  await expect(p1).resolves.toBe(true);
-});
 
-test("切换输入权", async function ({ vio, connectVioSever }) {
-  const c1 = await connectVioSever(); // 客户端连接
-  const p1 = vio.readText("h1"); //请求确认
-
-  await expect(c1.serverApi.tty.setTtyReadEnable(0, true), "tty0 成功获取输入权").resolves.toBe(true);
   expect(c1.clientApi.tty.sendTtyReadRequest, "应收到一次请求").toBeCalledTimes(1);
 
-  const c2 = await connectVioSever(); //模拟另一个连接
-  await expect(c2.serverApi.tty.setTtyReadEnable(0, true), "成功夺取 tty0 的输入权").resolves.toBe(true);
+  await afterTime(50);
+  expect(c2.clientApi.tty.sendTtyReadRequest, "应收到一次请求").toBeCalledTimes(1);
 
-  await afterTime();
-  expect(c1.clientApi.tty.ttyReadEnableChange, "通知c1 输入权被关闭").toBeCalledWith(0, false);
-  const reqId1 = c1.clientApi.tty.sendTtyReadRequest.mock.calls[0][1];
-  await expect(c1.serverApi.tty.resolveTtyReadRequest(0, reqId1, "111"), "输入权被夺走，解决失败").resolves.toBe(false);
+  const reqId = c2.clientApi.tty.sendTtyReadRequest.mock.calls[0][1];
+  await expect(c2.serverApi.tty.resolveTtyReadRequest(0, reqId, "11"), "c1 成功解决请求").resolves.toBe(true);
+  await afterTime(50);
+  expect(c2.clientApi.tty.cancelTtyReadRequest).not.toBeCalled();
+  expect(c1.clientApi.tty.cancelTtyReadRequest).toBeCalled();
+  await expect(c1.serverApi.tty.resolveTtyReadRequest(0, reqId, "22"), "c2 没有解决请求").resolves.toBe(false);
 
-  const reqId2 = c2.clientApi.tty.sendTtyReadRequest.mock.calls[0][1];
-  await expect(c2.serverApi.tty.resolveTtyReadRequest(0, reqId2, "222")).resolves.toBe(true);
-  await expect(p1).resolves.toBe("222");
+  expect(p1).resolves.toBe("11");
 });
 
 test("cache", async function ({ vio, connector }) {

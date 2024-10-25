@@ -24,19 +24,22 @@ function createWsConnection(url: string): Promise<Socket> {
       if (status !== 101) reject(new Error("服务器拒绝协议升级。返回状态码:" + status));
     });
     req.on("close", () => reject(new Error("服务器拒绝连接")));
-    req.on("error", (err) => reject(err));
+    req.on("error", (err) => reject(new Error("Upgrade Request Error", { cause: err })));
     req.end();
   });
 }
 
-export function connectWebsocket(url: string): Promise<WebSocket> {
+export async function connectWebsocket(url: string): Promise<WebSocket> {
   if (url.startsWith("ws")) url = "http" + url.slice(2);
   else {
     let i = url.indexOf(":");
     throw new Error(`Protocol "${url.slice(0, i + 1)}" not supported. Expected "http:"`);
   }
-
-  return createWsConnection(url).then((socket) => new WebSocket(socket));
+  // const socket = await createWsConnection(url);
+  return createWsConnection(url).then((socket) => {
+    const ws = new WebSocket(socket, { isOpened: true });
+    return ws;
+  });
 }
 export function genResponseWsHeader(oKey: string): Record<string, string> {
   const headers: OutgoingHttpHeaders = {
@@ -54,24 +57,37 @@ function SHA1(str: string) {
 
 /** 实现了 标准 WebSocket 部分接口 */
 export class WebSocket extends EventTarget implements SampleWebSocket {
-  constructor(socket: Duplex, opts: { openEvent?: boolean } = {}) {
+  /**
+   * socket 触发 wsOpen 事件后将触发 WebSocket 实例的 open 事件
+   */
+  constructor(socket: Duplex, option: { isOpened?: boolean } = {}) {
     super();
+    this.#resolver = new WebSocketResolver(socket);
 
-    this.#resolver = new WebSocketResolver(socket, {
-      onError: (err) => this.dispatchEvent(new Event("error")),
-      onClose: () => this.dispatchEvent(new Event("close")),
-      onMessage: (data) => {
-        const e = new Event("message") as MessageEvent;
-        e.data = typeof data === "string" ? data : data.buffer;
-        this.dispatchEvent(e);
-      },
-    });
-    if (opts.openEvent) {
-      setTimeout(() => {
+    if (option.isOpened) this.#open();
+    else {
+      socket.once("wsOpen", () => {
+        this.#open();
         this.dispatchEvent(new Event("open"));
       });
     }
   }
+
+  async #open(): Promise<void> {
+    const iter = this.#resolver.open();
+    try {
+      for await (const data of iter) {
+        const e = new Event("message") as any;
+        e.data = typeof data === "string" ? data : data.buffer;
+        this.dispatchEvent(e);
+      }
+    } catch (error) {
+      this.dispatchEvent(new Event("error"));
+    } finally {
+      this.dispatchEvent(new Event("close"));
+    }
+  }
+
   #resolver: WebSocketResolver;
   readonly CONNECTING = WS_STATUS.CONNECTING;
   readonly OPEN = WS_STATUS.OPEN;
@@ -93,5 +109,3 @@ export interface WebSocket extends EventTarget {
   addEventListener(type: "message", listener: (e: MessageEvent) => void): void;
   addEventListener(type: string, listener: (e: MessageEvent) => void): void;
 }
-
-type MessageEvent = Event & { data: any };

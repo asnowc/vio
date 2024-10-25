@@ -1,7 +1,7 @@
-import type { TtyInputsReq, TtyOutputsData } from "./api_type.ts";
+import type { TtyInputsReq, TtyOutputsData, VioClientExposed, VioServerExposed } from "./api_type.ts";
 import type { WebSocket } from "../lib/deno/http.ts";
-import { initWebsocket, type RpcClientApi, Viewer, ViewerImpl } from "./_rpc_api.ts";
-import { TTY, TtyCenter, VioTty } from "./tty/mod.ts";
+import { CpcViewer, Viewer } from "./_rpc_api.ts";
+import { TTY, TtyCenter, VioTty, TtyCenterImpl, ServerTtyExposedImpl } from "./tty/mod.private.ts";
 import { VioObjectCenterImpl, VioObjectCenter } from "./vio_object/mod.private.ts";
 
 /** VIO 实例。
@@ -10,11 +10,6 @@ import { VioObjectCenterImpl, VioObjectCenter } from "./vio_object/mod.private.t
 export interface Vio extends TTY {
   /** 终端相关的接口 */
   readonly tty: TtyCenter;
-  /**
-   * 图相关的接口
-   * @deprecated 改用 object
-   */
-  readonly chart: VioObjectCenter;
   /** 图相关的接口 */
   readonly object: VioObjectCenter;
   // joinViewer(viewer: VioClientExposed, onDispose?: (viewer: Viewer) => void): Viewer;
@@ -39,15 +34,8 @@ class VioImpl extends TTY implements Vio {
     return this.#tty0.write(data);
   }
 
-  readonly #viewers = new Map<Viewer, RpcClientApi>();
-  joinViewer(api: RpcClientApi, onDispose?: (viewer: Viewer) => void): Viewer {
-    const viewer = new ViewerImpl(api.tty, (viewer) => {
-      this.#viewers.delete(viewer);
-      onDispose?.(viewer);
-    });
-    this.#viewers.set(viewer, api);
-    return viewer;
-  }
+  readonly #viewers = new Set<Viewer>();
+
   get viewerNumber() {
     return this.#viewers.size;
   }
@@ -55,22 +43,36 @@ class VioImpl extends TTY implements Vio {
     return this.#viewers.keys();
   }
   joinFormWebsocket(websocket: WebSocket, onDispose?: (viewer: Disposable) => void): Disposable {
-    const { clientApi, cpc } = initWebsocket(this, websocket);
-
-    const viewer = this.joinViewer(clientApi, (viewer) => {
-      cpc.dispose();
+    const viewer = new CpcViewer(websocket, (viewer) => {
+      this.#viewers.delete(viewer);
       onDispose?.(viewer);
     });
-    cpc.onClose
-      .finally(() => {
-        if (!viewer.disposed) viewer.dispose();
-      })
-      .catch(() => {});
+    const serviceExposed: VioServerExposed = {
+      object: this.object,
+      tty: new ServerTtyExposedImpl(this.tty, viewer, this.#viewers),
+    };
+    viewer.exposeApi(serviceExposed);
+    this.#viewers.add(viewer);
+    setTimeout(() => {
+      for (const cachedRead of this.tty.eachWaitingReadRequest()) {
+        viewer.tty.sendTtyReadRequest(cachedRead.ttyId, cachedRead.requestId, cachedRead.config);
+      }
+    });
     return viewer;
   }
 
-  readonly tty: TtyCenter = new TtyCenter((...args) => {
-    for (const viewer of this.#viewers.values()) viewer.tty.writeTty(...args);
+  readonly tty = new TtyCenterImpl({
+    sendTtyReadRequest: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.tty.sendTtyReadRequest(...args);
+    },
+    cancelTtyReadRequest: (...args) => {
+      for (const viewer of this.#viewers.values()) {
+        viewer.tty.cancelTtyReadRequest(...args);
+      }
+    },
+    writeTty: (...args) => {
+      for (const viewer of this.#viewers.values()) viewer.tty.writeTty(...args);
+    },
   });
   #tty0: VioTty = this.tty.get(0);
   readonly object = new VioObjectCenterImpl({

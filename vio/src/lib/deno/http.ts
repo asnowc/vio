@@ -62,6 +62,7 @@ export interface WebSocket extends EventTarget {
   close(): void;
   send(data: Uint8Array): void;
 
+  addEventListener(type: "open", listener: (e: Event) => void): void;
   addEventListener(type: "error", listener: (e: Event) => void): void;
   addEventListener(type: "close", listener: (e: Event) => void): void;
   addEventListener(type: "message", listener: (e: MessageEvent) => void): void;
