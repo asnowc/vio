@@ -49,6 +49,34 @@ const selectedList = await vio.select("select", options); // 多选
 const selected = await vio.pick("pick", options); // 单选
 ```
 
-### 输入权
+## 命令
 
-每个 TTY 只能被一个 web 端 接收请求，例如如果你打开两个浏览器标签页同时访问 vio 服务器，同一个 TTY 只能有一个浏览器能开启 “接收输入请求”
+可以设定一些命令，在 Web端触发执行
+
+```ts
+const tty = await vio.tty.get(0);
+tty.setCommand("test.command", {
+  description: "输出测试日志",
+  call: (args, info) => tty.log(info.command, "输出测试日志"),
+});
+tty.setCommand("test.args", {
+  description: "测试命令参数",
+  args: [
+    { key: "confirm", required: true, type: { type: "confirm", title: "hhh", content: "xx" } },
+    {
+      key: "select",
+      type: {
+        type: "select",
+        title: "hhh",
+        options: [
+          { value: 1, label: "x1" },
+          { value: 2, label: "x2" },
+          { value: 3, label: "x3" },
+        ],
+      },
+    },
+    { key: "text", type: { type: "text", title: "hhh" } },
+  ],
+  call: (args, info) => tty.log("输出参数", args),
+});
+```

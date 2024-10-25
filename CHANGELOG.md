@@ -1,5 +1,22 @@
 ## 0.x
 
+### 0.4.0
+feat!: 新增定义中的命令的功能，见 VioTty.setCommand() 方法
+feat!: 移除终端输入权的功能 移除 
+BREAKING(TTY)
+BREAKING: 移除 VioHttpServerOption.staticHandler()
+BREAKING: 移除 Vio.chart
+BREAKING: 类 TtyCenter 改为导出接口，移除 TtyCenter.setReader()
+BREAKING: 移除 VioObjectCenter.create()、VioObjectCenter.disposeChart()、VioObjectCenter.get()
+
+#### 0.3.1
+
+fix: TTY 滚动无法自动锁定
+
+#### 0.3.0
+
+BREAKING(TTY): 删除 TTY.writeText()，新增 TTY.log()、TTY.warn()、TTY.error()、TTY.info()
+
 #### 0.2.0
 
 ##### API
