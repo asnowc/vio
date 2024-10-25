@@ -245,8 +245,10 @@ export interface TtyCenter {
 
 // @public (undocumented)
 export interface TtyCommand<T extends {} = {}> {
+    // Warning: (ae-forgotten-export) The symbol "TtyCommandInfo" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    args?: Record<string, TtyInputsReq>;
+    args?: TtyCommandInfo["args"];
     // (undocumented)
     call(args: T, commandInfo: {
         command: string;

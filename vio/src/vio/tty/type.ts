@@ -89,5 +89,5 @@ export interface TtyCenter {
 export interface TtyCommand<T extends {} = {}> {
   call(args: T, commandInfo: { command: string }): void;
   description?: string;
-  args?: Record<string, TtyInputsReq>;
+  args?: TtyCommandInfo["args"];
 }

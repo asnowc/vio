@@ -9,8 +9,8 @@ import { DoubleSplitLayout } from "@/lib/dockview.tsx";
 import { ReactErrorBoundary } from "@/components/ErrorHander.tsx";
 import { E2E_SELECT_CLASS } from "@/const.ts";
 import { TooltipBtn } from "../components/TooltipBtn.tsx";
-import { TtyCommandInfo } from "@asla/vio/client";
 import { RightOutlined } from "@ant-design/icons";
+import { useCommandBoard } from "./components/cmd_exec_modal.tsx";
 
 export function VioTty({ api, containerApi, params }: IDockviewPanelProps<{ index: number }>) {
   const [visible, setVisible] = useState(api.isVisible);
@@ -24,6 +24,7 @@ export function VioTty({ api, containerApi, params }: IDockviewPanelProps<{ inde
   const tty = useMemo(() => vioApi.tty.get(params.index, true), [params.index]);
   const [showCmdBoard, setShowCmdBoard] = useState(false);
 
+  const cmdBoard = useCommandBoard();
   return (
     <ReactErrorBoundary>
       <DoubleSplitLayout
@@ -58,10 +59,15 @@ export function VioTty({ api, containerApi, params }: IDockviewPanelProps<{ inde
           <TtyCommandBoard
             style={{ width: "50%", minWidth: 200, maxWidth: 800 }}
             ttyId={tty.ttyId}
+            onExecCommand={(cmd) => {
+              cmdBoard.execCommand(cmd);
+              setShowCmdBoard(false);
+            }}
             onClose={() => setShowCmdBoard(false)}
           />
         </flex-row>
       )}
+      {cmdBoard.slot}
     </ReactErrorBoundary>
   );
 }

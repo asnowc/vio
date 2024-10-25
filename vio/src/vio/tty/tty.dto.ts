@@ -67,7 +67,7 @@ export namespace TtyInputReq {
     [key: string | number]: any;
   }
 }
-WebSocket
+WebSocket;
 export type TtyOutputsData =
   | TtyOutputData.Text
   | TtyOutputData.Table
@@ -85,7 +85,7 @@ export type TtyInputsReq =
 export interface TtyCommandInfo {
   command: string;
   description?: string;
-  args?: Record<string, TtyInputsReq>;
+  args?: { key: string; type: TtyInputsReq; required?: boolean }[];
   ttyId: number;
 }
 export interface ServerTtyExposed {
@@ -98,7 +98,7 @@ export interface ServerTtyExposed {
   /** 客户端主动输入 */
   inputTty(ttyId: number, data: any): MaybePromise<boolean>;
   /** 执行命令 */
-  execCommand(ttyId: number, command: string, args?: any[]): MaybePromise<boolean>;
+  execCommand(ttyId: number, command: string, args?: Record<string, any>): MaybePromise<boolean>;
   /** 获取服务端命令列表 */
   getTtyCommands(options?: GetTtyCommandsOption): MaybePromise<{ list: TtyCommandInfo[] }>;
 }

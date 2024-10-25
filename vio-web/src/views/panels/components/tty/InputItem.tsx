@@ -1,13 +1,13 @@
 import { TtyInputMsg } from "@/services/VioApi.ts";
 import { ListItem } from "@/views/components/ListItem.tsx";
-import React from "react";
+import React, { ReactNode } from "react";
 import { INPUT_TYPE_INFO } from "./const.tsx";
-import { InputText } from "./InputText.tsx";
-import { InputSelect } from "./InputSelect.tsx";
-import { TtyInputReq } from "@asla/vio/client";
-import { Button, Space } from "antd";
+import { InputText, InputTextContent } from "./InputText.tsx";
+import { InputSelect, InputSelectContent } from "./InputSelect.tsx";
+import { InputFile, InputFileContent, getInputReqFileResult } from "./InputFile.tsx";
+import { TtyInputReq, TtyInputsReq } from "@asla/vio/client";
+import { Button, Radio, Space } from "antd";
 import { useThemeToken } from "@/services/AppConfig.ts";
-import { InputFile } from "./InputFile.tsx";
 
 export function TtyItem(props: { inputReq: TtyInputMsg; date?: string; onSend?: (value: any) => void }) {
   const { inputReq, date, onSend } = props;
@@ -25,7 +25,26 @@ export function TtyItem(props: { inputReq: TtyInputMsg; date?: string; onSend?: 
       return <ListItem contentIndent={false} title={"未知类型"} extra={date} />;
   }
 }
-
+export function renderInputContents(req: TtyInputsReq): ReactNode {
+  switch (req.type) {
+    //TODO 目前 InputFileContent 的 onChange() 的参数待处理
+    // case "file":
+    //   return <InputFileContent req={req} />;
+    case "confirm":
+      return (
+        <Radio.Group>
+          <Radio value={true}>是</Radio>
+          <Radio value={false}>否</Radio>
+        </Radio.Group>
+      );
+    case "select":
+      return <InputSelectContent req={req} />;
+    case "text":
+      return <InputTextContent req={req} />;
+    default:
+      return <div>不支持的类型：{req.type}</div>;
+  }
+}
 type InputConfirmProps = {
   req: TtyInputReq.Confirm;
   date?: string;

@@ -2,21 +2,18 @@ import { useAsync } from "@/hooks/async.ts";
 import { useDebounceThrottle } from "@/hooks/useDebounceThrottle.ts";
 import { useThemeToken } from "@/services/AppConfig.ts";
 import { useVioApi } from "@/services/VioApi.ts";
-import { TtyInputsReq } from "@asla/vio/client";
-import { toErrorStr } from "evlib";
-import { message, Modal, Select } from "antd";
+import { Select } from "antd";
 import React, { CSSProperties, useEffect, useState } from "react";
-interface TtyCommandVo {
-  args?: { key: string; config: TtyInputsReq }[];
-  ttyId: number;
+import { TtyCommandInfo } from "@asla/vio/client";
+import { E2E_SELECT_CLASS } from "@/const.ts";
 
-  command: string;
-  description?: string;
-  label?: string;
-  value: string;
-}
-export function TtyCommandBoard(props: { ttyId?: number; onClose?: () => void; style?: CSSProperties }) {
-  const { style, ttyId, onClose } = props;
+export function TtyCommandBoard(props: {
+  ttyId?: number;
+  onExecCommand(cmd: TtyCommandInfo): void;
+  onClose?: () => void;
+  style?: CSSProperties;
+}) {
+  const { style, ttyId, onClose, onExecCommand } = props;
   const { tty } = useVioApi();
   const token = useThemeToken();
   const [searchText, setSearchText] = useState<string>("");
@@ -24,33 +21,18 @@ export function TtyCommandBoard(props: { ttyId?: number; onClose?: () => void; s
     loading,
     run: refreshCmdList,
     res: cmdList,
-  } = useAsync(async (): Promise<TtyCommandVo[] | undefined> => {
+  } = useAsync(async (): Promise<TtyCommandInfo[] | undefined> => {
     const res = await tty.serverApi?.getTtyCommands({ ttyId, search: searchText });
-    return res?.list.map(
-      (item): TtyCommandVo => ({
-        label: item.description,
-        value: item.command,
-        command: item.command,
-        ttyId: item.ttyId,
-        description: item.description,
-        args: item.args ? Object.entries(item.args).map((item) => ({ key: item[0], config: item[1] })) : undefined,
-      }),
-    );
+    return res?.list.map((item) => ({
+      label: item.description,
+      value: item.command,
+      command: item.command,
+      ttyId: item.ttyId,
+      description: item.description,
+      args: item.args,
+    }));
   });
-  const onExecCommand = async (e: TtyCommandVo) => {
-    onClose?.();
-    const args = e.args;
-    if (!tty.serverApi) return;
-    let result: any;
-    if (!args || args.length === 0) {
-      try {
-        result = await tty.serverApi.execCommand(e.ttyId, e.command);
-      } catch (error) {
-        message.error(toErrorStr(error));
-      }
-    } else {
-    }
-  };
+
   const run = useDebounceThrottle(refreshCmdList, 60);
   useEffect(() => run(), [searchText, ttyId]);
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -71,25 +53,26 @@ export function TtyCommandBoard(props: { ttyId?: number; onClose?: () => void; s
     }
   };
   return (
-    <div style={style}>
-      <Select<string, TtyCommandVo>
+    <div style={style} className={E2E_SELECT_CLASS.panels.tty_command_board}>
+      <Select<string, TtyCommandInfo>
         suffixIcon={false}
         onKeyDown={onKeyDown}
         open
+        autoFocus
         loading={loading}
         showSearch
         filterOption={false}
         placeholder="搜索命令"
         onSearch={setSearchText}
         options={cmdList}
-        onChange={(value, option) => onExecCommand?.(option as TtyCommandVo)}
+        onChange={(value, option) => onExecCommand?.(option as TtyCommandInfo)}
         style={{ width: "100%" }}
         optionRender={(item, b) => {
           const cmd = item.data;
-          let argsInfo: string;
+          let argsInfo: string = "参数: ";
           if (cmd.args?.length) {
-            if (cmd.args.length === 1) argsInfo = cmd.args[0].key;
-            else argsInfo = cmd.args.length + " 个参数";
+            if (cmd.args.length === 1) argsInfo += cmd.args[0].key;
+            else argsInfo += cmd.args.length;
           } else argsInfo = "";
           return (
             <div>
@@ -105,10 +88,4 @@ export function TtyCommandBoard(props: { ttyId?: number; onClose?: () => void; s
       />
     </div>
   );
-}
-
-export function CommandExecModal(props: { command?: TtyCommandVo; open?: boolean; onClose?(): void }) {
-  const { command, onClose, open } = props;
-  const title = command?.description ?? command?.command;
-  return <Modal open={open} onCancel={onClose} title={title}></Modal>;
 }

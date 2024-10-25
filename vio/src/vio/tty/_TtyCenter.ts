@@ -148,6 +148,7 @@ export class ServerTtyExposedImpl implements ServerTtyExposed {
     for (const tty of eachTty) {
       let item: TtyCommandInfo | undefined;
       for (const [id, command] of tty.eachCommands()) {
+        command.args
         item = { ttyId: tty.ttyIndex, description: command.description, args: command.args, command: id };
         if (search) {
           const isMatch =

@@ -7,9 +7,23 @@ export function setCommand(tty: VioTty) {
   });
   tty.setCommand("test.args", {
     description: "测试命令参数",
-    args: {
-      yes_no: { type: "confirm", title: "hhh", content: "xx" },
-    },
+    args: [
+      { key: "confirm", required: true, type: { type: "confirm", title: "hhh", content: "xx" } },
+      { key: "file", type: { type: "file", title: "hhh" } },
+      {
+        key: "select",
+        type: {
+          type: "select",
+          title: "hhh",
+          options: [
+            { value: 1, label: "x1" },
+            { value: 2, label: "x2" },
+            { value: 3, label: "x3" },
+          ],
+        },
+      },
+      { key: "text", type: { type: "text", title: "hhh" } },
+    ],
     call: (args, info) => tty.log("输出参数", args),
   });
 }
