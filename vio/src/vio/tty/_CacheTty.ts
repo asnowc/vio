@@ -3,6 +3,8 @@ import { TtyOutputsData } from "./tty.dto.ts";
 import { TTY } from "./_TTY.ts";
 
 type WriteTty = (ttyId: number, data: TtyOutputsData) => void;
+
+/** @public */
 export abstract class CacheTty extends TTY {
   constructor(
     readonly ttyIndex: number,
@@ -30,7 +32,7 @@ export abstract class CacheTty extends TTY {
     }
   }
 
-  /** @implements */
+  /** @override */
   write(data: TtyOutputsData): void {
     this.#outputCache.push({ data });
     if (!this.#writeTty) return;

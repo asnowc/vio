@@ -66,5 +66,5 @@ export interface WebSocket extends EventTarget {
   addEventListener(type: "error", listener: (e: Event) => void): void;
   addEventListener(type: "close", listener: (e: Event) => void): void;
   addEventListener(type: "message", listener: (e: MessageEvent) => void): void;
-  addEventListener(type: string, listener: (e: MessageEvent) => void): void;
+  addEventListener(type: string, listener: (e: Event) => void): void;
 }

@@ -198,31 +198,38 @@ export type TableRow = {
 
 // @public
 export abstract class TTY implements TtyInput, TtyOutput {
+    // @override (undocumented)
     confirm(title: string, content?: string): Promise<boolean>;
-    // (undocumented)
+    // @override (undocumented)
     error(...args: any[]): void;
-    // (undocumented)
+    // @override (undocumented)
     info(...args: any[]): void;
-    // (undocumented)
+    // @override (undocumented)
     log(...args: any[]): void;
+    // @override (undocumented)
     pick<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[]): Promise<T>;
     // Warning: (ae-forgotten-export) The symbol "TtyInputsReq" needs to be exported by the entry point index.d.ts
     abstract read<T = unknown>(config: TtyInputsReq): Promise<T>;
+    // @override (undocumented)
     readFiles(option?: TtyReadFileOption): Promise<VioFileData[]>;
+    // (undocumented)
     readText(title: string, max?: number): Promise<string>;
+    // (undocumented)
     readText(max?: number): Promise<string>;
+    // @override (undocumented)
     select<T extends SelectKey = SelectKey>(title: string, options: SelectItem<T>[], config?: {
         min?: number;
         max?: number;
     }): Promise<T[]>;
-    // (undocumented)
+    // @override (undocumented)
     warn(...args: any[]): void;
     // Warning: (ae-forgotten-export) The symbol "TtyOutputsData" needs to be exported by the entry point index.d.ts
     abstract write(data: TtyOutputsData): void;
+    // @override (undocumented)
     writeImage(imageData: EncodedImageData | RawImageData): void;
-    // @alpha
+    // @override (undocumented)
     writeTable(data: any[][], header?: string[]): void;
-    // (undocumented)
+    // @override (undocumented)
     writeUiLink(ui: VioObject): void;
 }
 
@@ -233,6 +240,19 @@ export interface TtyCenter {
     getAll(): IterableIterator<VioTty>;
     // (undocumented)
     getCreated(index: number): VioTty | undefined;
+    setCommand(command: string, call?: TtyCommand, ttyId?: number): void;
+}
+
+// @public (undocumented)
+export interface TtyCommand<T extends {} = {}> {
+    // (undocumented)
+    args?: Record<string, TtyInputsReq>;
+    // (undocumented)
+    call(args: T, commandInfo: {
+        command: string;
+    }): void;
+    // (undocumented)
+    description?: string;
 }
 
 // @public (undocumented)
@@ -460,6 +480,7 @@ export interface VioTty extends TTY {
     cacheSize: number;
     disposed: boolean;
     getCache(): IterableIterator<TtyOutputsData>;
+    setCommand(command: string, call?: TtyCommand): void;
 }
 
 // (No @packageDocumentation comment for this package)

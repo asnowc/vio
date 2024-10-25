@@ -1,5 +1,5 @@
 import { TTY } from "./_TTY.ts";
-import { TtyOutputsData } from "./tty.dto.ts";
+import { TtyCommandInfo, TtyInputsReq, TtyOutputsData } from "./tty.dto.ts";
 
 /**
  * @public
@@ -61,6 +61,8 @@ export interface VioTty extends TTY {
   getCache(): IterableIterator<TtyOutputsData>;
   /** TTY 是否已被销毁 */
   disposed: boolean;
+  /** 设置命令，如果call 为 undefined，则删除命令 */
+  setCommand(command: string, call?: TtyCommand): void;
 }
 /**
  * @public
@@ -74,4 +76,18 @@ export interface TtyCenter {
   getAll(): IterableIterator<VioTty>;
   /** 删除指定索引的 TTY */
   delete(tty: VioTty): boolean;
+  /**
+   * 设置命令，如果call 为 undefined，则删除命令
+   * @param ttyId - 如果为空，则设置到 tty0
+   */
+  setCommand(command: string, call?: TtyCommand, ttyId?: number): void;
+}
+/**
+ * @public
+ * @category TTY
+ */
+export interface TtyCommand<T extends {} = {}> {
+  call(args: T, commandInfo: { command: string }): void;
+  description?: string;
+  args?: Record<string, TtyInputsReq>;
 }

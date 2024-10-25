@@ -67,7 +67,7 @@ export namespace TtyInputReq {
     [key: string | number]: any;
   }
 }
-
+WebSocket
 export type TtyOutputsData =
   | TtyOutputData.Text
   | TtyOutputData.Table
@@ -82,6 +82,12 @@ export type TtyInputsReq =
   | TtyInputReq.Select
   | TtyInputReq.Custom;
 
+export interface TtyCommandInfo {
+  command: string;
+  description?: string;
+  args?: Record<string, TtyInputsReq>;
+  ttyId: number;
+}
 export interface ServerTtyExposed {
   /** 获取 TTY 输出缓存日志 */
   getTtyCache(ttyId: number): MaybePromise<TtyOutputsData[]>;
@@ -91,6 +97,20 @@ export interface ServerTtyExposed {
   rejectTtyReadRequest(ttyId: number, requestId: number, reason?: any): MaybePromise<boolean>;
   /** 客户端主动输入 */
   inputTty(ttyId: number, data: any): MaybePromise<boolean>;
+  /** 执行命令 */
+  execCommand(ttyId: number, command: string, args?: any[]): MaybePromise<boolean>;
+  /** 获取服务端命令列表 */
+  getTtyCommands(options?: GetTtyCommandsOption): MaybePromise<{ list: TtyCommandInfo[] }>;
+}
+export interface GetTtyCommandsOption {
+  /** 指定终端id */
+  ttyId?: number;
+  /** 搜索命令，搜索包括命令和描述 */
+  search?: string;
+  /** 分页，从 0 开始 */
+  page?: number;
+  /** 分页大小 */
+  pageSize?: number;
 }
 export interface ClientTtyExposed {
   /** 在指定 TTY 输出数据 */
