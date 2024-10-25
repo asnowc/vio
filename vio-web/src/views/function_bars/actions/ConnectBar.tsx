@@ -1,6 +1,6 @@
 import { Tooltip } from "antd";
 import { useEffect, useMemo, useRef } from "react";
-import { useVioApi } from "@/services/VioApi.ts";
+import { RpcConnectStatus, useVioApi } from "@/services/VioApi.ts";
 import React from "react";
 import { useAppConfig, useThemeToken } from "@/services/AppConfig.ts";
 import { LoadingOutlined } from "@ant-design/icons";
@@ -68,7 +68,7 @@ function useRpcConnect() {
       waitTime: connectConfig.wait,
     });
   }, []);
-  const manualDisconnectRef = useRef({});
+  const manualDisconnectRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (connectConfig.autoConnect) connect();
@@ -76,8 +76,10 @@ function useRpcConnect() {
   const status = useListenableData(
     vioApi.statusChange,
     (status, before) => {
-      if (status === 0) {
-        if (before === 2) message.info("连接已断开");
+      console.log(status, before);
+
+      if (status === RpcConnectStatus.disconnected) {
+        if (before === RpcConnectStatus.connected) message.info("连接已断开");
         if (!manualDisconnectRef.current) autoRetry.onFail();
       }
       return vioApi.status;
@@ -120,8 +122,8 @@ class AutoRetry {
   #retryWaiting?: number;
   onFail() {
     if (this.#retryWaiting !== undefined) return;
-    if (this.retryCount <= this.maxRetry) return;
     this.retryCount++;
+    if (this.retryCount > this.maxRetry) return;
     if (this.waitTime) {
       this.#retryWaiting = setTimeout(() => this.immediatelyRetry(), this.waitTime);
     } else this.immediatelyRetry();
