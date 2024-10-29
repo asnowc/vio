@@ -98,7 +98,7 @@ export interface ServerTtyExposed {
   /** 客户端主动输入 */
   inputTty(ttyId: number, data: any): MaybePromise<boolean>;
   /** 执行命令 */
-  execCommand(ttyId: number, command: string, args?: Record<string, any>): MaybePromise<boolean>;
+  execCommand(ttyId: number, command: string, args?: Record<string, any>): boolean;
   /** 获取服务端命令列表 */
   getTtyCommands(options?: GetTtyCommandsOption): MaybePromise<{ list: TtyCommandInfo[] }>;
 }

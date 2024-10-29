@@ -121,13 +121,14 @@ export class ServerTtyExposedImpl implements ServerTtyExposed {
   }
   /** @override */
   @RpcExposed()
-  execCommand(ttyId: number, command: string, args = {}): any {
+  execCommand(ttyId: number, command: string, args = {}): boolean {
     const tty = this.getTty(ttyId);
     if (!tty) throw new Error(`命令 ${command} 在终端${ttyId}未注册`);
     const config = tty.getCommand(command);
     if (!config) throw new Error(`命令 ${command} 在终端${ttyId}未注册`);
     //todo 校验 args
-    return config.call(args, { command });
+    const result = config.call(args, { command });
+    return true;
   }
   /** @override */
   @RpcExposed()
@@ -148,7 +149,7 @@ export class ServerTtyExposedImpl implements ServerTtyExposed {
     for (const tty of eachTty) {
       let item: TtyCommandInfo | undefined;
       for (const [id, command] of tty.eachCommands()) {
-        command.args
+        command.args;
         item = { ttyId: tty.ttyIndex, description: command.description, args: command.args, command: id };
         if (search) {
           const isMatch =

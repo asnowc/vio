@@ -1,5 +1,5 @@
 import { ClientTtyExposed, ServerTtyExposed, TtyInputsReq, TtyOutputData, TtyOutputsData } from "@asla/vio/client";
-import { RpcExposed, RpcService } from "cpcall";
+import { RpcExposed, RpcService, MakeCallers } from "cpcall";
 import { EventTrigger } from "evlib";
 import { LinkedCacheQueue, LinkedQueue, LoopUniqueId } from "evlib/data_struct";
 
@@ -43,11 +43,11 @@ export class TtyViewService implements ClientTtyExposed {
       tty.clearReading();
     }
   }
-  init(resolver?: ServerTtyExposed) {
+  init(resolver?: MakeCallers<ServerTtyExposed>) {
     this.clearAllReading();
     this.serverApi = resolver;
   }
-  serverApi?: ServerTtyExposed;
+  serverApi?: MakeCallers<ServerTtyExposed>;
   #ttys: Record<number, TtyClientAgent> = {};
 
   @RpcExposed()

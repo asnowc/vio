@@ -87,7 +87,7 @@ export interface TtyCenter {
  * @category TTY
  */
 export interface TtyCommand<T extends {} = {}> {
-  call(args: T, commandInfo: { command: string }): void;
+  call(args: T, commandInfo: { command: string }): any;
   description?: string;
   args?: TtyCommandInfo["args"];
 }

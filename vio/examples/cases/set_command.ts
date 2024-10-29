@@ -5,6 +5,13 @@ export function setCommand(tty: VioTty) {
     description: "输出测试日志",
     call: (args, info) => tty.log(info.command, "输出测试日志"),
   });
+  tty.setCommand("test.error", {
+    description: "执行会错误的命令",
+    args: [{ key: "tt", type: { type: "text" } }],
+    call: (args, info) => {
+      throw new Error("执行出错");
+    },
+  });
   tty.setCommand("test.args", {
     description: "测试命令参数",
     args: [

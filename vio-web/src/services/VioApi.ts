@@ -67,7 +67,7 @@ export class VioRpcApi {
   private onCpcConnect(cpc: CpCall) {
     this.chart.clearObject();
     this.#cpc = cpc;
-    cpc.setObject(this.#clientRoot satisfies VioClientExposed);
+    cpc.exposeObject(this.#clientRoot);
     this.#serverApi = cpc.genCaller<VioServerExposed>();
     this.tty.init(this.#serverApi.tty);
     this.chart.init(this.#serverApi.object);
