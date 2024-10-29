@@ -250,11 +250,15 @@ export interface TtyCommand<T extends {} = {}> {
     // (undocumented)
     args?: TtyCommandInfo["args"];
     // (undocumented)
-    call(args: T, commandInfo: {
-        command: string;
-    }): void;
+    call(args: T, commandInfo: TtyCommandExecContext): any;
     // (undocumented)
     description?: string;
+}
+
+// @public (undocumented)
+export interface TtyCommandExecContext {
+    command: string;
+    tty: VioTty;
 }
 
 // @public (undocumented)

@@ -87,7 +87,17 @@ export interface TtyCenter {
  * @category TTY
  */
 export interface TtyCommand<T extends {} = {}> {
-  call(args: T, commandInfo: { command: string }): any;
+  call(args: T, commandInfo: TtyCommandExecContext): any;
   description?: string;
   args?: TtyCommandInfo["args"];
+}
+/**
+ * @public
+ * @category TTY
+ */
+export interface TtyCommandExecContext {
+  /** 触发执行的命令 */
+  command: string;
+  /** 命令注册的终端 */
+  tty: VioTty;
 }

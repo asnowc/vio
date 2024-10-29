@@ -127,7 +127,7 @@ export class ServerTtyExposedImpl implements ServerTtyExposed {
     const config = tty.getCommand(command);
     if (!config) throw new Error(`命令 ${command} 在终端${ttyId}未注册`);
     //todo 校验 args
-    const result = config.call(args, { command });
+    const result = config.call(args, { command, tty });
     return true;
   }
   /** @override */
