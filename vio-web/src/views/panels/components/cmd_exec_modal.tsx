@@ -1,6 +1,6 @@
 import { useVioApi } from "@/services/VioApi.ts";
 import { toErrorStr } from "evlib";
-import { Form, message, Modal, Tooltip } from "antd";
+import { Form, FormInstance, Modal, Tooltip } from "antd";
 import React, { useMemo, useState } from "react";
 import { renderInputContents } from "./tty/InputItem.tsx";
 import { TtyCommandInfo } from "@asla/vio/client";
@@ -11,23 +11,19 @@ function CommandExecModal(props: {
   command?: TtyCommandInfo;
   open?: boolean;
   onSubmit?: (values: any) => any;
-  onClose?(): void;
+  onCancel?(): void;
+  form: FormInstance;
 }) {
-  const { command, onClose, open } = props;
-  const [form] = Form.useForm();
+  const { command, onCancel, open, form } = props;
   const { loading, run: onSubmit } = useAsync(async () => {
     const values = await form.validateFields();
     await props.onSubmit?.(values);
-    onClose?.();
   });
   let title = "输入参数";
   if (command) title += ": " + (command.description ?? command.command);
 
-  useMemo(() => {
-    if (open) form.resetFields();
-  }, [open]);
   return (
-    <Modal open={open} onCancel={onClose} title={title} onOk={onSubmit} okText="执行" confirmLoading={loading}>
+    <Modal open={open} onCancel={onCancel} title={title} onOk={onSubmit} okText="执行" confirmLoading={loading}>
       <Form form={form}>
         {command?.args?.map(({ type, key, required }) => {
           const label = type?.title ? <Tooltip title={type.title}>{key}</Tooltip> : key;
@@ -43,6 +39,8 @@ function CommandExecModal(props: {
 }
 
 export function useCommandBoard() {
+  const cache = useMemo(() => new History(100), []);
+  const [form] = Form.useForm();
   const [execCmdOpen, setExecCmdOpen] = useState<TtyCommandInfo>();
 
   const { message } = useAntdStatic();
@@ -57,10 +55,18 @@ export function useCommandBoard() {
       throw error;
     }
   };
+
   const execCommand = async (e: TtyCommandInfo) => {
     const args = e.args;
     if (!args || args.length === 0) await sendExec(e.ttyId, e.command);
-    else setExecCmdOpen(e);
+    else {
+      form.resetFields();
+      const history = cache.get(e.command);
+      if (history) form.setFieldsValue(cache.get(e.command));
+      console.log(history);
+
+      setExecCmdOpen(e);
+    }
   };
   const modal = (
     <CommandExecModal
@@ -68,10 +74,39 @@ export function useCommandBoard() {
       command={execCmdOpen}
       onSubmit={(args) => {
         if (!execCmdOpen) return;
-        return sendExec(execCmdOpen.ttyId, execCmdOpen.command, args);
+        return sendExec(execCmdOpen.ttyId, execCmdOpen.command, args).then(() => {
+          setExecCmdOpen(undefined);
+          cache.add(execCmdOpen.command, args);
+        });
       }}
-      onClose={() => setExecCmdOpen(undefined)}
+      onCancel={() => {
+        if (execCmdOpen) cache.add(execCmdOpen.command, form.getFieldsValue());
+        setExecCmdOpen(undefined);
+      }}
+      form={form}
     />
   );
   return { slot: modal, execCommand };
+}
+class History {
+  constructor(readonly maxLength: number) {}
+  private data = new Map<string, any>();
+  private deleteFirst() {
+    for (const key of this.data.keys()) {
+      this.data.delete(key);
+      break;
+    }
+  }
+  add(key: string, args: any) {
+    if (this.data.has(key)) {
+      this.data.delete(key);
+    }
+    this.data.set(key, args);
+    if (this.data.size > this.maxLength) {
+      this.deleteFirst();
+    }
+  }
+  get(key: string) {
+    return this.data.get(key);
+  }
 }
