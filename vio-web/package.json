@@ -21,7 +21,7 @@
     "cpcall": "^0.6.4",
     "dockview": "^1.17.1",
     "echarts-comp": "^0.4.0",
-    "evlib": "^2.9.0",
+    "evlib": "^2.11.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

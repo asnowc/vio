@@ -14,9 +14,9 @@
   "keywords": [],
   "license": "MIT",
   "devDependencies": {
-    "@eavid/lib-node": "^2.4.1",
-    "@types/node": "^22.7.9",
-    "evlib": "^2.9.0",
+    "@eavid/lib-node": "^2.5.1",
+    "@types/node": "^22.10.1",
+    "evlib": "^2.11.1",
     "rollup-plugin-dts": "^6.1.1"
   },
   "dependencies": {

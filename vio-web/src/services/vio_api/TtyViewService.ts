@@ -168,10 +168,12 @@ function transformTtyOutputData(data: TtyOutputsData): TtyOutputsViewData {
         const bin = image.data;
         let buf: ArrayBuffer;
         if (bin.byteLength === bin.buffer.byteLength) {
+          //@ts-ignore
           buf = bin.buffer;
         } else {
           const data = new Uint8Array(bin.byteLength);
           data.set(bin);
+          //@ts-ignore
           buf = data.buffer;
         }
         return { data: new Blob([buf], { type: image.mime }), type: "image" };

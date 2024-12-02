@@ -11,7 +11,8 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "importHelpers": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "noImplicitOverride": true
   },
   "exclude": ["node_modules", "dist"]
 }

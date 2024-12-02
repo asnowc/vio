@@ -183,8 +183,7 @@ class VioTtyImpl extends CacheTty implements VioTty {
       }
     });
   }
-  /** @override */
-  dispose() {
+  override dispose() {
     super.dispose();
     const err = new InstanceDisposedError("VioTty");
     for (const hd of this.waitingResolverMap.values()) {

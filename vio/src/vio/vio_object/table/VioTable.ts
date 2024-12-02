@@ -11,7 +11,7 @@ export class VioTableImpl<Row extends TableRow = TableRow, Add extends TableRow 
     this.#ctrl = ctrl;
   }
   #ctrl: ClientTableExposed;
-  updateRow(row: Row, index: number): void {
+  override updateRow(row: Row, index: number): void {
     const oldRow = this.data[index];
     super.updateRow(row, index);
     const keyField = this.config.keyField;
@@ -33,14 +33,14 @@ export class VioTableImpl<Row extends TableRow = TableRow, Add extends TableRow 
     }
     this.#check();
   }
-  addRow(row: Row, index: number = this.data.length): void {
+  override addRow(row: Row, index: number = this.data.length): void {
     super.addRow(row, index);
     const key = row[this.config.keyField];
     if (this.#deleteMerge.has(key)) this.#deleteMerge.delete(key);
     this.#addMerge.set(key, row);
     this.#check();
   }
-  deleteRow(index: number, count = 1): Row[] {
+  override deleteRow(index: number, count = 1): Row[] {
     const deleted = super.deleteRow(index, count);
     const keyField = this.config.keyField;
 
@@ -55,7 +55,7 @@ export class VioTableImpl<Row extends TableRow = TableRow, Add extends TableRow 
     this.#check();
     return deleted;
   }
-  updateTable(data: Row[]): void {
+  override updateTable(data: Row[]): void {
     super.updateTable(data);
     this.#skipUpdate();
     this.#ctrl.updateTable(this.id);

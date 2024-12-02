@@ -151,7 +151,7 @@ export class ChartClientAgent<T = number> extends VioChartBase<T> {
   constructor(config: VioChartCreateConfig<T>) {
     super(config);
   }
-  pushCache(...items: ChartDataItem<T>[]): void {
+  override pushCache(...items: ChartDataItem<T>[]): void {
     super.pushCache(...items);
   }
   updateData(data: T, timeName?: string | undefined): void {

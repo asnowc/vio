@@ -37,10 +37,13 @@ export class VioChart<T> extends VioChartBase<T> {
     const writeData: ChartUpdateData<any> = { data: internalData, timestamp: timestamp, timeAxisName: timeName };
     this.#ctrl.writeChart(this.id, writeData);
   }
-  updateSubData(updateData: DimensionalityReduction<T>, coord: number, opts?: ChartUpdateLowerOption): void;
-  updateSubData(updateData: IntersectingDimension<T>, coord: (number | undefined)[], opts?: ChartUpdateOption): void;
-  /** @override */
-  updateSubData(
+  override updateSubData(updateData: DimensionalityReduction<T>, coord: number, opts?: ChartUpdateLowerOption): void;
+  override updateSubData(
+    updateData: IntersectingDimension<T>,
+    coord: (number | undefined)[],
+    opts?: ChartUpdateOption,
+  ): void;
+  override updateSubData(
     updateData: IntersectingDimension<T>,
     coord: number | (number | undefined)[],
     opts?: ChartUpdateLowerOption | ChartUpdateOption,

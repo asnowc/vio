@@ -70,6 +70,6 @@ export async function getInputReqFileResult(selectedFiles: UploadFile[]) {
     ),
   );
   return fileDataLIst.map((buf): VioFileData => {
-    return { name: file.name, data: new Uint8Array(buf, 0, buf.byteLength), mime: file.type };
+    return { name: file.name, data: new Uint8Array(buf.buffer, 0, buf.byteLength), mime: file.type };
   });
 }

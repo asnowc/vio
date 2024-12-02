@@ -85,7 +85,7 @@ test("多客户", async function ({ vio, connectVioSever }) {
   expect(c1.clientApi.tty.cancelTtyReadRequest).toBeCalled();
   await expect(c1.serverApi.tty.resolveTtyReadRequest(0, reqId, "22"), "c2 没有解决请求").resolves.toBe(false);
 
-  expect(p1).resolves.toBe("11");
+  await expect(p1).resolves.toBe("11");
 });
 
 test("cache", async function ({ vio, connector }) {

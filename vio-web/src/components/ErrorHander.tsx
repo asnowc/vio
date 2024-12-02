@@ -1,9 +1,9 @@
 import React, { Component, ReactNode, ErrorInfo, FC } from "react";
 
 export class ReactErrorBoundary extends Component<{ children: ReactNode }> {
-  state: Readonly<{ errored?: { error: Error; errorInfo: ErrorInfo } }> = {};
+  override state: Readonly<{ errored?: { error: Error; errorInfo: ErrorInfo } }> = {};
   private ErrorPanel: FC<ErrorPanelProps> = ErrorPanel;
-  render(): React.ReactNode {
+  override render(): React.ReactNode {
     const { errored } = this.state;
     if (errored) {
       const { error, errorInfo } = errored;
@@ -12,7 +12,7 @@ export class ReactErrorBoundary extends Component<{ children: ReactNode }> {
     }
     return this.props.children;
   }
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     this.setState({ errored: { error, errorInfo } });
   }
 }
@@ -23,7 +23,7 @@ type ErrorPanelProps = {
 };
 function ErrorPanel(props: ErrorPanelProps) {
   const { error, errorInfo, onRetry } = props;
-  const stack = error instanceof Error ? error.stack ?? error.message : String(error);
+  const stack = error instanceof Error ? (error.stack ?? error.message) : String(error);
   return (
     <div
       style={{
