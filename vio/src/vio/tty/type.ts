@@ -62,7 +62,7 @@ export interface VioTty extends TTY {
   /** TTY 是否已被销毁 */
   disposed: boolean;
   /** 设置命令，如果call 为 undefined，则删除命令 */
-  setCommand(command: string, call?: TtyCommand): void;
+  setCommand(command: string, call?: TtyCommand | ((args: {}, commandInfo: TtyCommandExecContext) => any)): void;
 }
 /**
  * @public
@@ -91,7 +91,7 @@ export interface TtyCenter {
  * @category TTY
  */
 export type TtyCommand<T extends {} = {}> = {
-  call(args: T, commandInfo: TtyCommandExecContext): any;
+  exec(args: T, commandInfo: TtyCommandExecContext): any;
   description?: string;
   args?: TtyCommandInfo["args"];
 };

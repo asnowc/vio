@@ -13,6 +13,7 @@ import { RpcExposed, RpcService } from "cpcall";
 import { TtyCenter, TtyCommand, TtyCommandExecContext, VioTty } from "./type.ts";
 import { Viewer } from "../_rpc_api.ts";
 import { MaybePromise } from "../../type.ts";
+import { toErrorStr } from "evlib";
 
 export class TtyCenterImpl implements TtyCenter {
   constructor(clientTtyApi: ClientTtyExposed) {
@@ -65,7 +66,12 @@ export class TtyCenterImpl implements TtyCenter {
     }
   }
   /** 设置指定 TTY 的命令，如果call 为 undefined，则删除命令 */
-  setCommand(command: string, call?: TtyCommand, ttyId: number = 0): void {
+  setCommand(
+    command: string,
+    call?: TtyCommand | ((args: {}, commandInfo: TtyCommandExecContext) => any),
+    ttyId: number = 0,
+  ): void {
+    if (typeof call === "function") call = { exec: call };
     if (call) {
       this.get(ttyId).setCommand(command, call);
     } else {
@@ -127,7 +133,10 @@ export class ServerTtyExposedImpl implements ServerTtyExposed {
     const config = tty.getCommand(command);
     if (!config) throw new Error(`命令 ${command} 在终端${ttyId}未注册`);
     //todo 校验 args
-    const result = config.call(args, { command, tty });
+    const result = config.exec(args, { command, tty });
+    if (result instanceof Promise) {
+      result.catch((e) => tty.error("命令执行异常", toErrorStr(e)));
+    }
     return true;
   }
   /** @override */
@@ -220,8 +229,9 @@ class VioTtyImpl extends CacheTty implements VioTty {
 
   #commands = new Map<string, TtyCommand>();
   /** @override */
-  setCommand(command: string, call?: TtyCommand) {
-    if (call) this.#commands.set(command, call);
+  setCommand(command: string, exec?: TtyCommand | ((args: {}, commandInfo: TtyCommandExecContext) => any)) {
+    if (typeof exec === "function") exec = { exec: exec };
+    if (exec) this.#commands.set(command, exec);
     else this.#commands.delete(command);
   }
   eachCommands() {

@@ -12,7 +12,7 @@ beforeEach(async ({ appPage: page, vioServerInfo: { visitUrl, vio } }) => {
     vio.log("log-" + info.command, args);
   };
 
-  tty.setCommand("cmd.test-0", { description: "desc:test-0", call: cmdFn });
+  tty.setCommand("cmd.test-0", { description: "desc:test-0", exec: cmdFn });
   tty.setCommand("cmd.test-1", {
     description: "desc:test-0",
     args: [
@@ -29,19 +29,19 @@ beforeEach(async ({ appPage: page, vioServerInfo: { visitUrl, vio } }) => {
         },
       },
     ],
-    call: cmdFn,
+    exec: cmdFn,
   });
-  tty.setCommand("cmd.search-0", { description: "desc:search-0", call: cmdFn });
-  tty.setCommand("cmd.search-1", { description: "desc:search-0", call: cmdFn });
+  tty.setCommand("cmd.search-0", { description: "desc:search-0", exec: cmdFn });
+  tty.setCommand("cmd.search-1", { description: "desc:search-0", exec: cmdFn });
 });
 test("search-exec-cmd-no-args", async function ({ appPage: page, vioServerInfo: { vio } }) {
   const ttyPanel = page.locator(`.${E2E_SELECT_CLASS.panels.tty_output}`);
 
-  await page.getByRole("button", { name: "right" }).click();
+  await page.getByRole("button", { name: "right" }).last().click();
 
   await page.locator("span", { hasText: "cmd.test-0" }).click();
 
-  await page.getByRole("button", { name: "right" }).click();
+  await page.getByRole("button", { name: "right" }).last().click();
   await page.locator("#rc_select_1").fill("search");
   await page.locator("#rc_select_1").press("ArrowDown");
   await page.locator("#rc_select_1").press("Enter");
@@ -51,7 +51,7 @@ test("search-exec-cmd-no-args", async function ({ appPage: page, vioServerInfo: 
 });
 test("带参数", async function ({ appPage: page, vioServerInfo: { vio } }) {
   const ttyPanel = page.locator(`.${E2E_SELECT_CLASS.panels.tty_output}`);
-  await page.getByRole("button", { name: "right" }).click();
+  await page.getByRole("button", { name: "right" }).last().click();
 
   await page.locator("span").filter({ hasText: "cmd.test-1" }).click();
   await page.getByPlaceholder("输入文本").click();

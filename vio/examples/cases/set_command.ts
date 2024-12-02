@@ -1,16 +1,10 @@
-import { VioTty } from "@asla/vio";
+import { TtyCenter } from "@asla/vio";
 
-export function setCommand(tty: VioTty) {
+export function setCommand(center: TtyCenter) {
+  const tty = center.get(0);
   tty.setCommand("test.command", {
     description: "输出测试日志",
-    call: (args, info) => tty.log(info.command, "输出测试日志"),
-  });
-  tty.setCommand("test.error", {
-    description: "执行会错误的命令",
-    args: [{ key: "tt", type: { type: "text" } }],
-    call: (args, info) => {
-      throw new Error("执行出错");
-    },
+    exec: (args, info) => tty.log(info.command, "输出测试日志"),
   });
   tty.setCommand("test.args", {
     description: "测试命令参数",
@@ -31,6 +25,19 @@ export function setCommand(tty: VioTty) {
       },
       { key: "text", type: { type: "text", title: "hhh" } },
     ],
-    call: (args, info) => tty.log("输出参数", args),
+    exec: (args, info) => tty.log("输出参数", args),
+  });
+
+  const tty1 = center.get(1);
+
+  tty1.setCommand("test.error", {
+    description: "执行会错误的命令",
+    args: [{ key: "tt", type: { type: "text" } }],
+    exec: (args, info) => {
+      throw new Error("执行出错");
+    },
+  });
+  tty1.setCommand("async-error", async function () {
+    throw Error("异步错误");
   });
 }

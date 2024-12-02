@@ -240,20 +240,15 @@ export interface TtyCenter {
     getAll(): IterableIterator<VioTty>;
     // (undocumented)
     getCreated(index: number): VioTty | undefined;
-    setCommand(command: string, call?: TtyCommand, ttyId?: number): void;
+    setCommand(command: string, call?: TtyCommand | ((args: {}, commandInfo: TtyCommandExecContext) => any), ttyId?: number): void;
 }
 
 // @public (undocumented)
-export interface TtyCommand<T extends {} = {}> {
-    // Warning: (ae-forgotten-export) The symbol "TtyCommandInfo" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    args?: TtyCommandInfo["args"];
-    // (undocumented)
-    call(args: T, commandInfo: TtyCommandExecContext): any;
-    // (undocumented)
+export type TtyCommand<T extends {} = {}> = {
+    exec(args: T, commandInfo: TtyCommandExecContext): any;
     description?: string;
-}
+    args?: TtyCommandInfo["args"];
+};
 
 // @public (undocumented)
 export interface TtyCommandExecContext {
@@ -484,8 +479,12 @@ export interface VioTty extends TTY {
     cacheSize: number;
     disposed: boolean;
     getCache(): IterableIterator<TtyOutputsData>;
-    setCommand(command: string, call?: TtyCommand): void;
+    setCommand(command: string, call?: TtyCommand | ((args: {}, commandInfo: TtyCommandExecContext) => any)): void;
 }
+
+// Warnings were encountered during analysis:
+//
+// dist/mod.d.ts:96:5 - (ae-forgotten-export) The symbol "TtyCommandInfo" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

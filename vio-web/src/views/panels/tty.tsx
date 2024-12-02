@@ -22,7 +22,7 @@ export function VioTty({ api, containerApi, params }: IDockviewPanelProps<{ inde
   }, []);
   const vioApi = useVioApi();
   const tty = useMemo(() => vioApi.tty.get(params.index, true), [params.index]);
-  const [showCmdBoard, setShowCmdBoard] = useState(0 | 1 | 2);
+  const [showCmdBoard, setShowCmdBoard] = useState<0 | 1 | 2>(0);
   const closeCmdBoard = () => {
     setShowCmdBoard(0);
   };
