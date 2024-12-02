@@ -10,7 +10,7 @@ import { UniqueKeyMap } from "evlib/data_struct";
 import { CacheTty } from "./_CacheTty.ts";
 import { InstanceDisposedError } from "../const.ts";
 import { RpcExposed, RpcService } from "cpcall";
-import { TtyCenter, TtyCommand, VioTty } from "./type.ts";
+import { TtyCenter, TtyCommand, TtyCommandExecContext, VioTty } from "./type.ts";
 import { Viewer } from "../_rpc_api.ts";
 import { MaybePromise } from "../../type.ts";
 
@@ -139,12 +139,12 @@ export class ServerTtyExposedImpl implements ServerTtyExposed {
     const result: { list: TtyCommandInfo[] } = { list };
     if (page <= 0 || isNaN(page)) return result;
     let eachTty: Iterable<VioTtyImpl>;
-    if (ttyId) {
+    if (ttyId === undefined) {
+      eachTty = this.ttyCenter.getAll();
+    } else {
       const tty = this.ttyCenter.getCreated(ttyId);
       if (!tty) return result;
       eachTty = [tty];
-    } else {
-      eachTty = this.ttyCenter.getAll();
     }
     for (const tty of eachTty) {
       let item: TtyCommandInfo | undefined;

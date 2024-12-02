@@ -22,7 +22,10 @@ export function VioTty({ api, containerApi, params }: IDockviewPanelProps<{ inde
   }, []);
   const vioApi = useVioApi();
   const tty = useMemo(() => vioApi.tty.get(params.index, true), [params.index]);
-  const [showCmdBoard, setShowCmdBoard] = useState(false);
+  const [showCmdBoard, setShowCmdBoard] = useState(0 | 1 | 2);
+  const closeCmdBoard = () => {
+    setShowCmdBoard(0);
+  };
 
   const cmdBoard = useCommandBoard();
   return (
@@ -39,15 +42,22 @@ export function VioTty({ api, containerApi, params }: IDockviewPanelProps<{ inde
           ttyAgent={tty}
           renderRightTool={(element) => (
             <flex-row>
-              {
+              {tty.ttyId === 0 && (
                 <TooltipBtn
                   size="small"
-                  title="命令"
-                  onClick={() => setShowCmdBoard(true)}
+                  title="所有命令"
+                  onClick={() => setShowCmdBoard(2)}
                   style={{ marginRight: 8 }}
                   icon={<RightOutlined />}
                 />
-              }
+              )}
+              <TooltipBtn
+                size="small"
+                title="命令"
+                onClick={() => setShowCmdBoard(1)}
+                style={{ marginRight: 8 }}
+                icon={<RightOutlined />}
+              />
               {element}
             </flex-row>
           )}
@@ -58,12 +68,13 @@ export function VioTty({ api, containerApi, params }: IDockviewPanelProps<{ inde
         <flex-row style={{ width: "100%", position: "absolute", top: 20, justifyContent: "center" }}>
           <TtyCommandBoard
             style={{ width: "50%", minWidth: 200, maxWidth: 800 }}
+            showAll={showCmdBoard === 2}
             ttyId={tty.ttyId}
             onExecCommand={(cmd) => {
               cmdBoard.execCommand(cmd);
-              setShowCmdBoard(false);
+              closeCmdBoard();
             }}
-            onClose={() => setShowCmdBoard(false)}
+            onClose={closeCmdBoard}
           />
         </flex-row>
       )}

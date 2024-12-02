@@ -9,11 +9,12 @@ import { E2E_SELECT_CLASS } from "@/const.ts";
 
 export function TtyCommandBoard(props: {
   ttyId?: number;
+  showAll?: boolean;
   onExecCommand(cmd: TtyCommandInfo): void;
   onClose?: () => void;
   style?: CSSProperties;
 }) {
-  const { style, ttyId, onClose, onExecCommand } = props;
+  const { style, ttyId, onClose, onExecCommand, showAll } = props;
   const { tty } = useVioApi();
   const token = useThemeToken();
   const [searchText, setSearchText] = useState<string>("");
@@ -22,7 +23,8 @@ export function TtyCommandBoard(props: {
     run: refreshCmdList,
     res: cmdList,
   } = useAsync(async (): Promise<TtyCommandInfo[] | undefined> => {
-    const res = await tty.serverApi?.getTtyCommands({ ttyId, search: searchText });
+    const res = await tty.serverApi?.getTtyCommands({ ttyId: showAll ? undefined : ttyId, search: searchText });
+
     return res?.list.map((item) => ({
       label: item.description,
       value: item.command,
@@ -34,7 +36,7 @@ export function TtyCommandBoard(props: {
   });
 
   const run = useDebounceThrottle(refreshCmdList, 60);
-  useEffect(() => run(), [searchText, ttyId]);
+  useEffect(() => run(), [searchText, ttyId, showAll]);
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     switch (e.code) {
       case "Enter":
@@ -77,7 +79,10 @@ export function TtyCommandBoard(props: {
           return (
             <div>
               <flex-row style={{ justifyContent: "space-between" }}>
-                <span>{cmd.command}</span>
+                <span>
+                  {showAll ? "TTY " + item.data.ttyId + ": " : undefined}
+                  {cmd.command}
+                </span>
                 <span>{argsInfo}</span>
               </flex-row>
               <div style={{ color: token.colorTextSecondary }}>{cmd.description}</div>

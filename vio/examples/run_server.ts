@@ -10,6 +10,11 @@ export async function startDefaultServer(vio: Vio, port: number = 8887, hostname
   // memoryChart(vio);
   // appendTable(vio);
   setCommand(vio.tty.get(0));
+  vio.tty.get(1).setCommand("tty1", {
+    call: (args, { tty }) => {
+      tty.log("tty1");
+    },
+  });
 
   const server = new VioHttpServer(vio);
   await server.listen(port, hostname);

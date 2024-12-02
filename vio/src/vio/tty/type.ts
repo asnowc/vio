@@ -1,5 +1,5 @@
 import { TTY } from "./_TTY.ts";
-import { TtyCommandInfo, TtyInputsReq, TtyOutputsData } from "./tty.dto.ts";
+import { TtyCommandInfo, TtyOutputsData } from "./tty.dto.ts";
 
 /**
  * @public
@@ -80,17 +80,21 @@ export interface TtyCenter {
    * 设置命令，如果call 为 undefined，则删除命令
    * @param ttyId - 如果为空，则设置到 tty0
    */
-  setCommand(command: string, call?: TtyCommand, ttyId?: number): void;
+  setCommand(
+    command: string,
+    call?: TtyCommand | ((args: {}, commandInfo: TtyCommandExecContext) => any),
+    ttyId?: number,
+  ): void;
 }
 /**
  * @public
  * @category TTY
  */
-export interface TtyCommand<T extends {} = {}> {
+export type TtyCommand<T extends {} = {}> = {
   call(args: T, commandInfo: TtyCommandExecContext): any;
   description?: string;
   args?: TtyCommandInfo["args"];
-}
+};
 /**
  * @public
  * @category TTY
