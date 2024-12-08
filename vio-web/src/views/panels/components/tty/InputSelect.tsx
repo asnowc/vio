@@ -61,7 +61,7 @@ export function InputSelectContent<T extends string | number = string | number>(
     return { min, max, isMul: max > 1 };
   }, [req]);
 
-  if (options.length > 1) {
+  if (options.length > 6) {
     return (
       <Select
         onChange={props.onChange}
