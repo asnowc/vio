@@ -27,7 +27,7 @@ export function TtyCommandBoard(props: {
 
     return res?.list.map((item) => ({
       label: item.description,
-      value: item.command,
+      value: item.ttyId + item.command,
       command: item.command,
       ttyId: item.ttyId,
       description: item.description,
