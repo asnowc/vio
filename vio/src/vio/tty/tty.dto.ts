@@ -13,10 +13,10 @@ export namespace TtyOutputData {
     uiType: string;
     id: number | string;
   }
-  export interface Table<T = string | number> {
+  export interface Table<T extends {} = Record<string, any>> {
     type: "table";
-    data: readonly (readonly T[])[];
-    header?: readonly string[];
+    title?: string;
+    data: readonly T[];
   }
   export type Image = {
     type: "image";
@@ -43,7 +43,7 @@ export namespace TtyInputReq {
   /** 请求选择 */
   export interface Select {
     type: "select";
-    options: SelectItem[];
+    options: readonly (SelectItem | string | number)[];
     title: string;
     /** 最小选择数量 */
     min?: number;
@@ -67,7 +67,6 @@ export namespace TtyInputReq {
     [key: string | number]: any;
   }
 }
-WebSocket;
 export type TtyOutputsData =
   | TtyOutputData.Text
   | TtyOutputData.Table

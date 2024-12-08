@@ -5,6 +5,7 @@ import { TooltipBtn } from "@/views/components/TooltipBtn.tsx";
 import { TtyOutputsViewData } from "@/services/VioApi.ts";
 import { JsData } from "@/components/JsObject.tsx";
 import { OutputImage } from "./OutputImage.tsx";
+import { OutputTable } from "./OutputTable.tsx";
 export function TtyOutput(props: { msg: TtyOutputsViewData; date: string }) {
   const { date } = props;
   const msg = props.msg;
@@ -23,6 +24,9 @@ export function TtyOutput(props: { msg: TtyOutputsViewData; date: string }) {
     }
     case "image": {
       return <OutputImage data={msg} date={date} />;
+    }
+    case "table": {
+      return <OutputTable data={msg} date={date} />;
     }
 
     default: {

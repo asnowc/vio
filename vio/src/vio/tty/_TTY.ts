@@ -46,7 +46,7 @@ export interface TtyOutput {
    * 输出表格
    * @alpha
    */
-  writeTable(data: any[][], header?: string[]): void;
+  writeTable(data: any[][], title?: string): void;
   log(...args: string[]): void;
   warn(...args: string[]): void;
   error(...args: string[]): void;
@@ -75,8 +75,8 @@ export abstract class TTY implements TtyInput, TtyOutput {
     }
   }
   /** @override */
-  writeTable(data: any[][], header?: string[]): void {
-    return this.write({ type: "table", data, header } satisfies TtyOutputData.Table);
+  writeTable<T extends {}>(data: T[], title?: string): void {
+    return this.write({ type: "table", data, title } satisfies TtyOutputData.Table);
   }
   /** @override */
   log(...args: any[]): void {

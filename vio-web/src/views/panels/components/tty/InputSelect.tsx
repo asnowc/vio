@@ -13,7 +13,7 @@ export type InputTextProps = {
 };
 
 export function InputSelect(props: InputTextProps) {
-  const { req, date, onSend, expandLimit = 4 } = props;
+  const { req, date, onSend, expandLimit } = props;
   const [value, setValue] = useState<(string | number)[]>([]);
   const { max, min } = useMemo(() => {
     let { max = Infinity, min = 0 } = req;
@@ -51,9 +51,12 @@ export function InputSelectContent<T extends string | number = string | number>(
   onChange?: (value: T[]) => void;
   expandLimit?: number;
 }) {
-  const { req, value, expandLimit = 4 } = props;
-  const options = useMemo((): { value: any; label: any }[] => {
-    return req.options.map(({ value, label = value }) => ({ value, label }));
+  const { req, value, expandLimit = 6 } = props;
+  const options = useMemo((): { value: any; label: string | number }[] => {
+    return req.options.map((item) => {
+      if (typeof item === "object") return { value: item.value, label: item.label ?? item.value };
+      return { value: item, label: item.toString() };
+    });
   }, [req.options]);
   const { isMul, max } = useMemo(() => {
     let { max = Infinity, min = 0 } = req;
@@ -61,7 +64,7 @@ export function InputSelectContent<T extends string | number = string | number>(
     return { min, max, isMul: max > 1 };
   }, [req]);
 
-  if (options.length > 6) {
+  if (options.length > expandLimit) {
     return (
       <Select
         onChange={props.onChange}
