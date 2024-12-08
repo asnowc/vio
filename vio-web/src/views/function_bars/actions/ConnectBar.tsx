@@ -76,8 +76,6 @@ function useRpcConnect() {
   const status = useListenableData(
     vioApi.statusChange,
     (status, before) => {
-      console.log(status, before);
-
       if (status === RpcConnectStatus.disconnected) {
         if (before === RpcConnectStatus.connected) message.info("连接已断开");
         if (!manualDisconnectRef.current) autoRetry.onFail();

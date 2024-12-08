@@ -62,9 +62,7 @@ export function useCommandBoard() {
     else {
       form.resetFields();
       const history = cache.get(e.command);
-      if (history) form.setFieldsValue(cache.get(e.command));
-      console.log(history);
-
+      if (history) form.setFieldsValue(history);
       setExecCmdOpen(e);
     }
   };
