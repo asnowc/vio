@@ -46,7 +46,7 @@ describe("tty-read", function () {
     const { clientApi, serverApi } = connector;
     clientApi.tty.sendTtyReadRequest.mockImplementationOnce((index, reqId, req) => {
       if (req.type === "select") {
-        const res = (req as TtyInputReq.Select).options.map((item) => item.value);
+        const res = (req as TtyInputReq.Select).options.map((item) => (typeof item === "object" ? item.value : item));
         serverApi.tty.resolveTtyReadRequest(index, reqId, res);
       }
     });
