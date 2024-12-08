@@ -228,7 +228,7 @@ export abstract class TTY implements TtyInput, TtyOutput {
     // @override (undocumented)
     writeImage(imageData: EncodedImageData | RawImageData): void;
     // @override (undocumented)
-    writeTable(data: any[][], header?: string[]): void;
+    writeTable<T extends {}>(data: T[], title?: string): void;
     // @override (undocumented)
     writeUiLink(ui: VioObject): void;
 }
@@ -281,7 +281,7 @@ export interface TtyOutput {
     warn(...args: string[]): void;
     writeImage(imageData: EncodedImageData | RawImageData): void;
     // @alpha
-    writeTable(data: any[][], header?: string[]): void;
+    writeTable(data: any[][], title?: string): void;
 }
 
 // @public
