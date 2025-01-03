@@ -17,6 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          registry-url: https://registry.npmjs.org
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -33,7 +34,7 @@ jobs:
         working-directory: ./vio
       - name: Publish npm
         run: npm publish
-        working-directory: ./package
+        working-directory: ./vio
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish jsr
