@@ -7,89 +7,38 @@ on:
 permissions:
   contents: read
   id-token: write
-env:
-  PKG_NAME: npm-package
 jobs:
-  prepare:
+  publish:
     if: ${{github.repository_owner == 'asnowc'}}
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{fromJson(env.PACKAGE_JSON).version}}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup NodeJS
-        uses: asnowc/actions@setup-node/v2
+      - uses: actions/setup-node@v4
         with:
-          node_v: 22
-          pnpm_v: 9
+          node-version: 22
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
           run_install: true
       - name: Build
         run: pnpm run ci:build
       - name: Check Api
         run: pnpm run ci:check-api
-      - name: Read packageJson
-        run: |
-          {
-            echo 'PACKAGE_JSON<<EOF' 
-            cat ./vio/package.json
-            echo EOF
-          } >>  $GITHUB_ENV
-      - name: Pack npm
-        run: |
-          cp ../README.md ./README.md 
-          pnpm pack --pack-destination
-          mv asla-vio-${{fromJson(env.PACKAGE_JSON).version}}.tgz ../${{env.PKG_NAME}}.tgz
-        working-directory: ./vio
-      - name: Upload npm package
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{env.PKG_NAME}}
-          path: ${{env.PKG_NAME}}.tgz
-          retention-days: 3
-      - name: Upload assets
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-assets-${{fromJson(env.PACKAGE_JSON).version}}
-          path: vio/assets/
-          retention-days: 7
-      - name: Publish-Npm dry-run
-        run: npm publish --dry-run
-        working-directory: ./vio
+
       - name: Publish-Jsr dry-run
         run: |
           cp ../README.md ./README.md 
           npx jsr publish --dry-run --allow-dirty
         working-directory: ./vio
-  publish-npm:
-    needs: prepare
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{env.PKG_NAME}}
-      - name: Unpack
-        run: tar -zxvf ${{env.PKG_NAME}}.tgz
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          registry-url: https://registry.npmjs.org
-      - name: Publish
+      - name: Publish npm
         run: npm publish
         working-directory: ./package
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  publish-jsr:
-    runs-on: ubuntu-latest
-    needs: prepare
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Publish
+      - name: Publish jsr
         run: |
           cp ../README.md ./README.md 
           npx jsr publish --allow-dirty
         working-directory: ./vio
+ 
