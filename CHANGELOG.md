@@ -1,5 +1,11 @@
 ## 0.x
 
+### 0.5.4
+
+chore: 删除 config.json connectProtocol 默认值
+
+### 0.5.3
+
 ### 0.5.2
 
 默认的 rpc websocket 连接协议根据 location.protocol 确定

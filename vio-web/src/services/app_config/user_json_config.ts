@@ -56,7 +56,7 @@ export async function getAppWebConfig(): Promise<AppWebConfig> {
           optional({
             connectHost: optional.string,
             connectProtocol: (val: any): TypeCheckFnCheckResult => {
-              if ([undefined, "ws", "wss"].includes(val)) return;
+              if ([undefined, null, "ws", "wss"].includes(val)) return;
               return { error: "connectProtocol must be 'ws' of 'wss'" };
             },
             connectPath: optional.string,
@@ -76,7 +76,10 @@ export async function getAppWebConfig(): Promise<AppWebConfig> {
           ...reset
         } = res1 ?? ({} as UserAppWebConfig["rpcConnect"]);
         if (reset.connectUrl) return { value: reset, replace: true };
-        else reset.connectUrl = `${connectProtocol}://${connectHost}${connectPath}`;
+        else {
+          const protocol = connectProtocol ? connectProtocol : location.protocol === "http" ? "ws" : "wss";
+          reset.connectUrl = `${protocol}://${connectHost}${connectPath}`;
+        }
         return { value: reset, replace: true };
       },
     },
