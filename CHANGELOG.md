@@ -1,8 +1,17 @@
 ## 0.x
 
+### 0.5.2
+
+默认的 rpc websocket 连接协议根据 location.protocol 确定
+
+### 0.5.1
+
+### 0.5.0
+
 ### 0.4.0
+
 feat!: 新增定义中的命令的功能，见 VioTty.setCommand() 方法
-feat!: 移除终端输入权的功能 移除 
+feat!: 移除终端输入权的功能 移除
 BREAKING(TTY)
 BREAKING: 移除 VioHttpServerOption.staticHandler()
 BREAKING: 移除 Vio.chart

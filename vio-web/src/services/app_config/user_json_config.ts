@@ -30,7 +30,7 @@ export type UserAppWebConfig = {
   rpcConnect: Partial<RpcConnectConfig> & {
     /** 连接 websocket 的域。默认位 web 服务器的域 */
     connectHost?: string;
-    /** 连接 websocket 的协议，可选 "ws"或 "wss". 默认 "ws" */
+    /** 连接 websocket 的协议，可选 "ws"或 "wss". 默认为 location.protocol 为 http 则为 ws, 否则为 wss */
     connectProtocol?: "ws" | "wss";
     /** 连接 websocket 的路径，默认 "/api/rpc" */
     connectPath?: string;
@@ -72,7 +72,7 @@ export async function getAppWebConfig(): Promise<AppWebConfig> {
         const {
           connectHost = location.host,
           connectPath = "/api/rpc",
-          connectProtocol = "ws",
+          connectProtocol = location.protocol === "http" ? "ws" : "wss",
           ...reset
         } = res1 ?? ({} as UserAppWebConfig["rpcConnect"]);
         if (reset.connectUrl) return { value: reset, replace: true };
