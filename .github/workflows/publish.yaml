@@ -54,6 +54,14 @@ jobs:
           name: web-assets-${{fromJson(env.PACKAGE_JSON).version}}
           path: vio/assets/
           retention-days: 7
+      - name: Publish-Npm dry-run
+        run: npm publish --dry-run
+        working-directory: ./vio
+      - name: Publish-Jsr dry-run
+        run: |
+          cp ../README.md ./README.md 
+          npx jsr publish --dry-run --allow-dirty
+        working-directory: ./vio
   publish-npm:
     needs: prepare
     runs-on: ubuntu-latest
@@ -80,10 +88,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Deno
-        uses: denoland/setup-deno@v1
       - name: Publish
         run: |
           cp ../README.md ./README.md 
-          deno publish --allow-dirty
+          npx jsr publish --allow-dirty
         working-directory: ./vio
