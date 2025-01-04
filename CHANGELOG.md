@@ -1,5 +1,7 @@
 ## 0.x
 
+### 0.5.5
+
 ### 0.5.4
 
 chore: 删除 config.json connectProtocol 默认值

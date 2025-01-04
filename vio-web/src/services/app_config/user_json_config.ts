@@ -37,13 +37,16 @@ export type UserAppWebConfig = {
   };
 };
 export async function getAppWebConfig(): Promise<AppWebConfig> {
-  const config = await fetch("/config.json").then(
+  const pathname = location.pathname;
+  const configUrl = pathname.endsWith("/") ? pathname + "config.json" : pathname + "/config.json";
+  const config = await fetch(configUrl).then(
     (res) => res.json(),
     (e) => {
       console.error("配置读取失败： ", e);
       return {};
     },
   );
+  const defaultWsProtocol = location.protocol === "http:" ? "ws" : "wss";
   const { value: userConfig, error } = checkType(
     config,
     {
@@ -72,12 +75,12 @@ export async function getAppWebConfig(): Promise<AppWebConfig> {
         const {
           connectHost = location.host,
           connectPath = "/api/rpc",
-          connectProtocol = location.protocol === "http" ? "ws" : "wss",
+          connectProtocol,
           ...reset
         } = res1 ?? ({} as UserAppWebConfig["rpcConnect"]);
         if (reset.connectUrl) return { value: reset, replace: true };
         else {
-          const protocol = connectProtocol ? connectProtocol : location.protocol === "http" ? "ws" : "wss";
+          const protocol = connectProtocol ? connectProtocol : defaultWsProtocol;
           reset.connectUrl = `${protocol}://${connectHost}${connectPath}`;
         }
         return { value: reset, replace: true };
@@ -89,7 +92,7 @@ export async function getAppWebConfig(): Promise<AppWebConfig> {
   const defaultConfig: AppWebConfig = {
     themeName: "dark",
     rpcConnect: {
-      connectUrl: `ws://${location.host}/api/rpc`,
+      connectUrl: `${defaultWsProtocol}://${location.host}/api/rpc`,
       autoConnect: true,
       reconnectTryMax: 10,
       wait: 5000,
