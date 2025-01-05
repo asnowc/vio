@@ -18,10 +18,10 @@
     "@ant-design/icons": "^5.5.1",
     "@asla/vio": "workspace:^",
     "antd": "^5.21.1",
-    "cpcall": "^0.6.4",
+    "cpcall": "^0.6.7",
     "dockview": "^1.17.1",
     "echarts-comp": "^0.4.0",
-    "evlib": "^2.11.1",
+    "evlib": "^2.12.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

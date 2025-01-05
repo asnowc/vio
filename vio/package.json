@@ -20,7 +20,7 @@
     "rollup-plugin-dts": "^6.1.1"
   },
   "dependencies": {
-    "cpcall": "^0.6.4"
+    "cpcall": "^0.6.7"
   },
   "publishConfig": {
     "access": "public",

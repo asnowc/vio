@@ -48,8 +48,8 @@ importers:
   vio:
     dependencies:
       cpcall:
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: ^0.6.7
+        version: 0.6.7
     devDependencies:
       '@eavid/lib-node':
         specifier: ^2.5.1
@@ -76,8 +76,8 @@ importers:
         specifier: ^5.21.1
         version: 5.22.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       cpcall:
-        specifier: ^0.6.4
-        version: 0.6.4
+        specifier: ^0.6.7
+        version: 0.6.7
       dockview:
         specifier: ^1.17.1
         version: 1.17.2
@@ -85,8 +85,8 @@ importers:
         specifier: ^0.4.0
         version: 0.4.0(echarts@5.5.0)(react@18.3.1)
       evlib:
-        specifier: ^2.11.1
-        version: 2.11.1
+        specifier: ^2.12.1
+        version: 2.12.1
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -833,8 +833,8 @@ packages:
   copy-to-clipboard@3.3.3:
     resolution: {integrity: sha512-2KV8NhB5JqC3ky0r9PMCAZKbUHSwtEo4CwCs0KXgruG43gX5PMqDEBbVU4OUzw2MuAWUfsuFmWvEKG5QRfSnJA==}
 
-  cpcall@0.6.4:
-    resolution: {integrity: sha512-vZROc0E3ovZP+BFoQRCARsLqX6fCILo5tL9veuOojOjx67KPvQenquXkeZYVQOPQoEwkV91tFNhBJlZNS4oM8A==}
+  cpcall@0.6.7:
+    resolution: {integrity: sha512-SiQ/Wg2lXxeDaUroi2DlIgrnTizfv3VKP3OOUWL+BoSDErDTfbMHNIRzRPaEdKNMW6D7hSiGeIt2SF1hhlyPlA==}
     engines: {node: '>=18'}
 
   cross-spawn@7.0.6:
@@ -911,6 +911,10 @@ packages:
 
   evlib@2.11.1:
     resolution: {integrity: sha512-QlF1J32m6jYx9EXMck/c6Kro1a+eNWV4vxYxyXBS210kSPWAYI/DbOHEZoHQnBtKtq8n5TrxNdDIqnEDc1XUOA==}
+    engines: {pnpm: '>=9'}
+
+  evlib@2.12.1:
+    resolution: {integrity: sha512-Sd17dLyhptAMvIJg2wz/xVoU9197cpwudXkcUWVQxPvuev+0CPWCD7+h0TKC8s8qpwa2pPs53TFRG5UuCyVwcg==}
     engines: {pnpm: '>=9'}
 
   expect-type@1.1.0:
@@ -1018,8 +1022,8 @@ packages:
   jackspeak@3.4.3:
     resolution: {integrity: sha512-OGlZQpz2yfahA/Rd1Y8Cd9SIEsqvXkLVoSw/cgwhnhFMDbsQFeZYoJJ7bIZBS9BcamUW96asq/npPWugM+RQBw==}
 
-  jbod@0.5.0:
-    resolution: {integrity: sha512-YNZwHGPT8WDApAgEyRCa6GBCFspbCN4R7G7xCYtJOA5R2C9XJqcwMg/jrWTSrDewvH4hGAH6amcwymvMewvoTQ==}
+  jbod@0.5.1:
+    resolution: {integrity: sha512-uOBKTedmcbTLNulJieJuXt3N20rkoqxczLz+Nm4Z6r0GbQhZ9Cf5XB61CCHXCPzzeu4IST0LoawMbtLVjBt8xw==}
 
   jju@1.4.0:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
@@ -2463,9 +2467,9 @@ snapshots:
     dependencies:
       toggle-selection: 1.0.6
 
-  cpcall@0.6.4:
+  cpcall@0.6.7:
     dependencies:
-      jbod: 0.5.0
+      jbod: 0.5.1
 
   cross-spawn@7.0.6:
     dependencies:
@@ -2546,6 +2550,8 @@ snapshots:
       '@types/estree': 1.0.6
 
   evlib@2.11.1: {}
+
+  evlib@2.12.1: {}
 
   expect-type@1.1.0: {}
 
@@ -2640,7 +2646,7 @@ snapshots:
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
 
-  jbod@0.5.0: {}
+  jbod@0.5.1: {}
 
   jju@1.4.0: {}
 
