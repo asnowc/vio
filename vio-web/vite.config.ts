@@ -1,6 +1,7 @@
 import type { ProxyOptions, UserConfig, AliasOptions } from "vite";
 import { defineProject } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import legacy from "@vitejs/plugin-legacy";
 
 import path from "node:path";
 const root = import.meta.dirname;
@@ -18,6 +19,7 @@ const config: UserConfig = {
   },
   esbuild: { target: "es2022" },
   build: {
+    emptyOutDir: true,
     target: "es2018",
     minify: true,
     sourcemap: false,
@@ -35,7 +37,17 @@ const config: UserConfig = {
     },
     outDir: "../vio/assets/web",
   },
-  plugins: [react()],
+  plugins: [
+    react(),
+    legacy({
+      renderLegacyChunks: false,
+      polyfills: false,
+
+      renderModernChunks: true,
+      modernPolyfills: true,
+      modernTargets: "defaults",
+    }),
+  ],
   optimizeDeps: {
     exclude: ["@asla/vio"],
   },

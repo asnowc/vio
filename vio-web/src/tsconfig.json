@@ -2,7 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "types": [],
-    "lib": ["ESNext", "DOM"],
+    "lib": ["ES2024", "DOM", "ESNext.Decorators"],
     "rootDir": ".",
     "jsx": "react"
   }

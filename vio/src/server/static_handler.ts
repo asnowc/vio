@@ -15,7 +15,7 @@ export class FileServerHandler {
     const filename = this.rootDir + pathname;
     const response = await platformApi.responseFileHandler.getResponse(filename, reqHeaders, this.#serHEaders);
     if (!response) return;
-
+    if (pathname === "/index.html") response.headers.set("cache-control", "no-store");
     const { ext } = path.parse(pathname);
     const mime = this.#mime[ext];
     if (mime) {
