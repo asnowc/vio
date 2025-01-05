@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 
 import path from "node:path";
 const root = import.meta.dirname;
-
+const HTTPS_ENABLE = false;
 const src = path.resolve(root, "src");
 const alias: AliasOptions = [
   { find: /^@(?=\/)/, replacement: path.resolve(src) },
@@ -18,7 +18,7 @@ const config: UserConfig = {
   },
   esbuild: { target: "es2022" },
   build: {
-    target: "es2017",
+    target: "es2018",
     minify: true,
     sourcemap: false,
     rollupOptions: {
@@ -41,6 +41,12 @@ const config: UserConfig = {
   },
   server: {
     proxy: genProxies("http://127.0.0.1:8887"),
+    https: HTTPS_ENABLE
+      ? {
+          key: "./localhost.key",
+          cert: "./localhost.crt",
+        }
+      : undefined,
   },
 };
 

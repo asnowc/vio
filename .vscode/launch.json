@@ -10,7 +10,7 @@
       "cwd": "${workspaceFolder}",
       "sourceMaps": true,
       "runtimeArgs": ["run", "--inspect-wait", "-A", "--config", "vio/deno.json"],
-      "runtimeExecutable": "${env:DENO_INSTALL_ROOT}/deno",
+      "runtimeExecutable": "deno",
       "attachSimplePort": 9229
     }
   ],
