@@ -7,15 +7,8 @@ import { WebSocket, genResponseWsHeader } from "../websocket.ts";
 import { genErrorInfo } from "../parse_error.ts";
 import type { NetAddr, ServeHandler, ServeHandlerInfo, ServeOptions, HttpServer as DenoHttpServer } from "./type.ts";
 import { nodeHttpReqToRequest, responsePipeToNodeRes } from "@eavid/lib-node/http";
+import { withPromise } from "evlib";
 
-function withResolvers<T>(): PromiseWithResolvers<T> {
-  let obj: PromiseWithResolvers<any> = {} as any;
-  obj.promise = new Promise(function (resolve, reject) {
-    obj.resolve = resolve;
-    obj.reject = reject;
-  });
-  return obj;
-}
 /** @public */
 export class HttpServer implements DenoHttpServer {
   static listen(server: HttpServer) {
@@ -97,7 +90,7 @@ export class HttpServer implements DenoHttpServer {
   get finished(): Promise<void> {
     return this.#closeCall.promise;
   }
-  #closeCall = withResolvers<void>();
+  #closeCall = withPromise<void>();
   #closing = false;
 
   shutdown(): Promise<void> {
