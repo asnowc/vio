@@ -1,8 +1,19 @@
-name: Unit Test
+name: Test
 on:
   push:
     branches:
       - "*"
+    paths:
+      - vio/src/**
+      - vio/test/**
+      - vio/build/**
+      - vio-web/src/**
+      - vio-web/test/**
+      - vio-web/vite.config.ts
+      - vio-web/index.html
+      - e2e/**
+      - pnpm-lock.yaml
+      - .github/workflows/test.yaml
 jobs:
   test:
     runs-on: ubuntu-latest
