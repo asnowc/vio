@@ -18,8 +18,8 @@ export interface VioHttpServerOption {
   requestHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
   /** web终端前端配置 */
   frontendConfig?: object;
-  /** 连接鉴权. 如果不通过，应抛出异常 */
-  rpcAuthenticate?(request: Request): void;
+  /** RPC 连接鉴权. 如果不通过，应抛出异常 */
+  rpcAuthenticate?(request: Request): Promise<unknown> | void;
 }
 /**
  * vio http 服务器
@@ -49,11 +49,11 @@ export class VioHttpServer {
     router.set("/api/test", function () {
       return Response.json({ value: "ok" });
     });
-    router.set("/api/rpc", ({ request: req }) => {
+    router.set("/api/rpc", async ({ request: req }) => {
       if (req.headers.get("Upgrade") !== "websocket") return new Response(undefined, { status: 400 });
       if (this.#rpcAuthenticate) {
         try {
-          this.#rpcAuthenticate(req);
+          await this.#rpcAuthenticate(req);
         } catch (error) {
           return new Response(null, { status: 403 });
         }
@@ -98,7 +98,7 @@ export class VioHttpServer {
 
   #router: Router;
 
-  #rpcAuthenticate?: (request: Request) => void;
+  #rpcAuthenticate?: (request: Request) => Promise<unknown> | void;
   async #onWebSocketConnect(ws: WebSocket): Promise<Disposable> {
     if (!this.#serve) throw new Error("unable connect");
     if (ws.readyState === ws.CONNECTING) {
