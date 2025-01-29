@@ -1,5 +1,9 @@
 ## 0.x
 
+### 0.5.7
+
+feat: VioHttpServerOption.rpcAuthenticate 可以是异步函数
+
 ### 0.5.6
 
 浏览器兼容性改进，Chrome 最低支持 109 版本

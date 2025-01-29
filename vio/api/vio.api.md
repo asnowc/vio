@@ -409,7 +409,7 @@ export class VioHttpServer {
 export interface VioHttpServerOption {
     frontendConfig?: object;
     requestHandler?: (request: Request) => Response | undefined | Promise<Response | undefined>;
-    rpcAuthenticate?(request: Request): void;
+    rpcAuthenticate?(request: Request): Promise<unknown> | void;
     staticSetHeaders?: Record<string, string>;
     vioStaticDir?: string;
 }
