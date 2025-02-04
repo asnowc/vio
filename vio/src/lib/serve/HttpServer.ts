@@ -1,11 +1,19 @@
 import { IncomingMessage, ServerResponse, createServer, STATUS_CODES } from "node:http";
+import https from "node:https";
 import type { Duplex } from "node:stream";
 import { Buffer } from "node:buffer";
 import { createHttpResHeaderFrame } from "../http_server/http/http_frame.ts";
 import { genUrl, nodeReqToInfo, nodeReqToWebReqInit } from "./node_http_transf.ts";
 import { WebSocket, genResponseWsHeader } from "../websocket.ts";
 import { genErrorInfo } from "../parse_error.ts";
-import type { NetAddr, ServeHandler, ServeHandlerInfo, ServeOptions, HttpServer as DenoHttpServer } from "./type.ts";
+import type {
+  NetAddr,
+  ServeHandler,
+  ServeHandlerInfo,
+  ServeOptions,
+  HttpServer as DenoHttpServer,
+  TlsCertifiedKeyPem,
+} from "./type.ts";
 import { nodeHttpReqToRequest, responsePipeToNodeRes } from "@eavid/lib-node/http";
 import { withPromise } from "evlib";
 
@@ -66,7 +74,13 @@ export class HttpServer implements DenoHttpServer {
     const defaultOnListen = (addr: NetAddr) => {
       console.log(`Listening on http://${addr.hostname}:${addr.port}`);
     };
-    const { hostname = "localhost", port = 80, onListen = defaultOnListen, onError, signal, reusePort } = opts;
+    const tlsConfig = opts as Partial<TlsCertifiedKeyPem>;
+    if (tlsConfig.cert && tlsConfig.key) {
+      this.#server = https.createServer({ key: tlsConfig.key, cert: tlsConfig.cert }, this.#onInternalReq);
+    } else {
+      this.#server = createServer(this.#onInternalReq);
+    }
+    const { hostname = "localhost", port = 80, onListen = defaultOnListen, onError } = opts;
     if (onRequest) this.#onRequest = onRequest;
     this.#closeCall.promise;
     this.#server.once("close", () => {
@@ -75,9 +89,6 @@ export class HttpServer implements DenoHttpServer {
     this.#server.on("upgrade", this.#onUpgrade);
     this.#server.on("listening", () => onListen(this.addr));
     onError && this.#server.on("error", onError);
-    if (signal) {
-      //TODO: signal、onError
-    }
 
     this.addr = {
       hostname,

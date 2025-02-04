@@ -1,4 +1,4 @@
-import type { WebSocket } from "../lib/deno/http.ts";
+import type { ServeOptions, WebSocket } from "../lib/deno/http.ts";
 import { Vio, Disposable } from "../vio/vio.ts";
 import { Router, createRequestContext } from "./router.ts";
 import { FileServerHandler } from "./static_handler.ts";
@@ -129,10 +129,24 @@ export class VioHttpServer {
     if (!this.#serve) return Promise.resolve();
     return this.#serve.shutdown();
   }
-  listen(port?: number, hostname?: string): Promise<void> {
+  listen(port?: number, hostname?: string): Promise<void>;
+  listen(option: ServeOptions): Promise<void>;
+  listen(port_option?: number | ServeOptions, hostname?: string): Promise<void> {
     if (this.#serve) throw new Error("");
     return new Promise<void>((resolve) => {
-      this.#serve = platformApi.serve({ hostname, port, onListen: () => resolve() }, this.#handler);
+      if (typeof port_option === "object") {
+        const onListen = port_option.onListen;
+        this.#serve = platformApi.serve(
+          {
+            ...port_option,
+            onListen: (localAddr) => {
+              resolve();
+              onListen?.(localAddr);
+            },
+          },
+          this.#handler,
+        );
+      } else this.#serve = platformApi.serve({ hostname, port: port_option, onListen: () => resolve() }, this.#handler);
       if (!this.#ref) this.#serve.unref();
     });
   }
@@ -146,3 +160,5 @@ export class VioHttpServer {
     this.#ref = false;
   }
 }
+
+export type { ServeOptions, TlsCertifiedKeyPem, ServeTcpOption } from "../lib/deno/http.ts";

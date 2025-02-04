@@ -170,6 +170,19 @@ export type SelectItem<T extends SelectKey = SelectKey> = {
 export type SelectKey = string | number;
 
 // @public (undocumented)
+export type ServeOptions = ServeTcpOption | (ServeTcpOption & TlsCertifiedKeyPem);
+
+// @public (undocumented)
+export interface ServeTcpOption {
+    hostname?: string;
+    onError?: (error: unknown) => Response | Promise<Response>;
+    // Warning: (ae-forgotten-export) The symbol "NetAddr" needs to be exported by the entry point index.d.ts
+    onListen?: (localAddr: NetAddr) => void;
+    // (undocumented)
+    port?: number;
+}
+
+// @public (undocumented)
 export type TableCreateOption = {
     keyField: string;
     name?: string;
@@ -195,6 +208,13 @@ export type TableRenderFn<Row extends TableRow> = (args: {
 export type TableRow = {
     [key: string]: any;
 };
+
+// @public (undocumented)
+export interface TlsCertifiedKeyPem {
+    cert: string;
+    key: string;
+    keyFormat?: "pem";
+}
 
 // @public
 export abstract class TTY implements TtyInput, TtyOutput {
@@ -400,6 +420,8 @@ export class VioHttpServer {
     // (undocumented)
     listen(port?: number, hostname?: string): Promise<void>;
     // (undocumented)
+    listen(option: ServeOptions): Promise<void>;
+    // (undocumented)
     ref(): void;
     // (undocumented)
     unref(): void;
@@ -484,7 +506,7 @@ export interface VioTty extends TTY {
 
 // Warnings were encountered during analysis:
 //
-// dist/mod.d.ts:96:5 - (ae-forgotten-export) The symbol "TtyCommandInfo" needs to be exported by the entry point index.d.ts
+// dist/mod.d.ts:97:5 - (ae-forgotten-export) The symbol "TtyCommandInfo" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
