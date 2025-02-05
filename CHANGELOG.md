@@ -1,5 +1,9 @@
 ## 0.x
 
+### 0.5.8
+
+feat: VioHttpServer 支持 https
+
 ### 0.5.7
 
 feat: VioHttpServerOption.rpcAuthenticate 可以是异步函数
